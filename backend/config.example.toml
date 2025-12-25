@@ -1,0 +1,8 @@
+[server]
+address = "0.0.0.0"
+port = 5666
+
+[database.default]
+link = "pgsql:gva:gva@tcp(127.0.0.1:5432)/gva?sslmode=disable"
+type = "pgsql"
+debug = true

@@ -1,0 +1,27 @@
+- [ ] **Phase 1: Core User and Authentication Services**
+    - [x] **Database Schema:**
+        - [x] Create a new migration file for the `sys_user` table using `golang-migrate/migrate`.
+        - [x] Define the SQL schema for the `sys_user` table in the migration file.
+        - [x] Apply the migration to the database.
+    - [x] **GoFrame Code Generation:**
+        - [x] Update `backend/hack/config.yaml` to point to the `gva` database.
+        - [x] Manually run `gf gen dao` in the `backend` directory to generate the DAO and model files for the `sys_user` and `sys_tenant` tables.
+    - [x] **Authentication Service (`app/service/auth`):**
+        - [x] Create `backend/api/auth/v1/auth.go` with API request/response structs.
+        - [x] Create `backend/internal/service/auth.go` with basic function structure and updated import.
+        - [x] Implement the `Login` function.
+        - [x] Write unit tests for Login function.
+        - [ ] Implement the `RefreshToken` function.
+        - [ ] Implement the `Logout` function.
+        - [ ] Implement the `GetAccessCodes` function.
+    - [ ] **Authentication Controller (`app/controller/auth`):**
+        - [ ] Create the `POST /auth/login` endpoint.
+        - [ ] Create the `POST /auth/refresh` endpoint.
+        - [ ] Create the `POST /auth/logout` endpoint.
+        - [ ] Create the `GET /auth/codes` endpoint.
+    - [ ] **User Service (`app/service/user`):**
+        - [ ] Implement the `GetUserInfo` function.
+    - [ ] **User Controller (`app/controller/user`):**
+        - [ ] Create the `GET /user/info` endpoint.
+    - [ ] **Main Router:**
+        - [ ] Register the new `auth` and `user` controllers in the main router (`internal/cmd/cmd.go`).
