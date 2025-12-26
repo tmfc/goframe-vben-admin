@@ -40,6 +40,9 @@ func parseToken(tokenStr string) (jwt.MapClaims, error) {
 	if tokenStr == "" {
 		return nil, gerror.NewCode(consts.ErrorCodeUnauthorized, "token is empty")
 	}
+	if err := ensureJWTSecret(); err != nil {
+		return nil, gerror.NewCode(consts.ErrorCodeUnauthorized, err.Error())
+	}
 	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, gerror.NewCode(consts.ErrorCodeUnauthorized, "unexpected signing method")

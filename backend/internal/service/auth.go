@@ -124,7 +124,6 @@ func (s *refreshTokenStore) Valid(token, userID string) bool {
 type sAuth struct{}
 
 func init() {
-	loadJWTSecrets()
 	RegisterAuth(NewAuth())
 }
 
@@ -139,21 +138,53 @@ func RegisterRefreshTokenStore(store RefreshTokenStore) {
 }
 
 func loadJWTSecrets() {
-	jwtSecret = loadSecretFromConfigOrEnv(envJWTSecret, cfgJWTSecretKey)
-	refreshTokenSecret = loadSecretFromConfigOrEnv(envRefreshTokenSecret, cfgRefreshSecretKey)
+	if jwtSecret == nil {
+		if value, err := loadSecretFromConfigOrEnv(envJWTSecret, cfgJWTSecretKey); err == nil {
+			jwtSecret = value
+		}
+	}
+	if refreshTokenSecret == nil {
+		if value, err := loadSecretFromConfigOrEnv(envRefreshTokenSecret, cfgRefreshSecretKey); err == nil {
+			refreshTokenSecret = value
+		}
+	}
 }
 
-func loadSecretFromConfigOrEnv(envName, cfgKey string) []byte {
+func loadSecretFromConfigOrEnv(envName, cfgKey string) ([]byte, error) {
 	if cfgValue, err := g.Cfg().Get(context.Background(), cfgKey); err == nil && cfgValue != nil {
 		if value := strings.TrimSpace(cfgValue.String()); value != "" {
-			return []byte(value)
+			return []byte(value), nil
 		}
 	}
 	value := strings.TrimSpace(os.Getenv(envName))
 	if value == "" {
-		panic("missing required secret in config or environment: " + envName)
+		return nil, gerror.New("missing required secret in config or environment: " + envName)
 	}
-	return []byte(value)
+	return []byte(value), nil
+}
+
+func ensureJWTSecret() error {
+	if len(jwtSecret) > 0 {
+		return nil
+	}
+	if value, err := loadSecretFromConfigOrEnv(envJWTSecret, cfgJWTSecretKey); err == nil {
+		jwtSecret = value
+		return nil
+	} else {
+		return err
+	}
+}
+
+func ensureRefreshSecret() error {
+	if len(refreshTokenSecret) > 0 {
+		return nil
+	}
+	if value, err := loadSecretFromConfigOrEnv(envRefreshTokenSecret, cfgRefreshSecretKey); err == nil {
+		refreshTokenSecret = value
+		return nil
+	} else {
+		return err
+	}
 }
 
 // IAuth defines the interface for authentication service.
@@ -339,6 +370,9 @@ func (s *sAuth) GetAccessCodes(ctx context.Context, in v1.GetAccessCodesReq) (ou
 }
 
 func (s *sAuth) generateAccessToken(user *entity.SysUser) (string, error) {
+	if err := ensureJWTSecret(); err != nil {
+		return "", gerror.NewCode(consts.ErrorCodeUnauthorized, err.Error())
+	}
 	claims := jwt.MapClaims{
 		"id":       user.Id,
 		"username": user.Username,
@@ -350,6 +384,9 @@ func (s *sAuth) generateAccessToken(user *entity.SysUser) (string, error) {
 }
 
 func (s *sAuth) generateRefreshToken(user *entity.SysUser) (string, error) {
+	if err := ensureRefreshSecret(); err != nil {
+		return "", gerror.NewCode(consts.ErrorCodeUnauthorized, err.Error())
+	}
 	claims := jwt.MapClaims{
 		"id":       user.Id,
 		"username": user.Username,
@@ -419,6 +456,9 @@ func clearRefreshTokenCookie(ctx context.Context) {
 func parseRefreshToken(tokenStr string) (jwt.MapClaims, error) {
 	if tokenStr == "" {
 		return nil, gerror.NewCode(consts.ErrorCodeRefreshTokenRequired, "refresh token is empty")
+	}
+	if err := ensureRefreshSecret(); err != nil {
+		return nil, gerror.NewCode(consts.ErrorCodeUnauthorized, err.Error())
 	}
 	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
