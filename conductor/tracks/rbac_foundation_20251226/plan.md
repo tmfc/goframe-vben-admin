@@ -47,9 +47,9 @@
     - [x] Sub-task: Implement `UpdateRole` API endpoint.
     - [x] Sub-task: Implement `DeleteRole` API endpoint.
 - [x] Task: Implement `sys_permission` API (66862c5)
-    - [ ] Sub-task: Write tests for `sys_permission` API.
-    - [ ] Sub-task: Implement `CreatePermission` API endpoint.
-    - [ ] Sub-task: Implement `GetPermission` API endpoint.
-    - [ ] Sub-task: Implement `UpdatePermission` API endpoint.
-    - [ ] Sub-task: Implement `DeletePermission` API endpoint.
+    - [x] Sub-task: Write tests for `sys_permission` API.
+    - [x] Sub-task: Implement `CreatePermission` API endpoint.
+    - [x] Sub-task: Implement `GetPermission` API endpoint.
+    - [x] Sub-task: Implement `UpdatePermission` API endpoint.
+    - [x] Sub-task: Implement `DeletePermission` API endpoint.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Initial Role and Permission Services & APIs' (Protocol in workflow.md)
