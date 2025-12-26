@@ -9,3 +9,7 @@ debug = true
 
 [casbin]
 model = "resource/casbin/model.conf"
+
+[auth]
+jwt_secret = ""
+refresh_secret = ""

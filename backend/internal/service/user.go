@@ -66,7 +66,7 @@ func (s *sUser) Info(ctx context.Context, token string) (res *v1.UserInfoRes, er
 
 	roles := parseRoles(user.Roles)
 	if len(roles) == 0 {
-		roles = []string{"super"}
+		roles = []string{consts.DefaultRole()}
 	}
 
 	homePath := user.HomePath

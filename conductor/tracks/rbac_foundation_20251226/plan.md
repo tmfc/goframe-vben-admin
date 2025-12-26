@@ -52,4 +52,4 @@
     - [x] Sub-task: Implement `GetPermission` API endpoint.
     - [x] Sub-task: Implement `UpdatePermission` API endpoint.
     - [x] Sub-task: Implement `DeletePermission` API endpoint.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Initial Role and Permission Services & APIs' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'Phase 2: Initial Role and Permission Services & APIs' (Protocol in workflow.md)

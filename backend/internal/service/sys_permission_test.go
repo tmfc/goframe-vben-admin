@@ -35,7 +35,7 @@ func TestSysPermission_CreatePermission(t *testing.T) {
 			ModifierId:  1,
 			DeptId:      1,
 		}
-		err = SysPermission().CreatePermission(ctx, createIn)
+		_, err = SysPermission().CreatePermission(ctx, createIn)
 		t.AssertNil(err)
 
 		// Verify permission was created
@@ -46,7 +46,7 @@ func TestSysPermission_CreatePermission(t *testing.T) {
 		t.Assert(permission.Name, "TestPermission1")
 
 		// Test case 2: Permission creation with duplicate name (should fail)
-		err = SysPermission().CreatePermission(ctx, createIn)
+		_, err = SysPermission().CreatePermission(ctx, createIn)
 		t.AssertNE(err, nil)
 
 		// Test case 3: Permission creation with empty name (should fail due to validation)
@@ -59,7 +59,7 @@ func TestSysPermission_CreatePermission(t *testing.T) {
 			ModifierId:  1,
 			DeptId:      1,
 		}
-		err = SysPermission().CreatePermission(ctx, createInInvalid)
+		_, err = SysPermission().CreatePermission(ctx, createInInvalid)
 		t.AssertNE(err, nil)
 	})
 }
@@ -90,7 +90,7 @@ func TestSysPermission_GetPermission(t *testing.T) {
 			ModifierId:  1,
 			DeptId:      1,
 		}
-		_ = SysPermission().CreatePermission(ctx, createIn) // Assuming CreatePermission works
+		_, _ = SysPermission().CreatePermission(ctx, createIn) // Assuming CreatePermission works
 
 		var permission *entity.SysPermission
 		err = dao.SysPermission.Ctx(ctx).Where(dao.SysPermission.Columns().Name, "TestPermissionGet").Scan(&permission)
@@ -134,7 +134,7 @@ func TestSysPermission_UpdatePermission(t *testing.T) {
 			ModifierId:  1,
 			DeptId:      1,
 		}
-		_ = SysPermission().CreatePermission(ctx, createIn) // Assuming CreatePermission works
+		_, _ = SysPermission().CreatePermission(ctx, createIn) // Assuming CreatePermission works
 
 		var permission *entity.SysPermission
 		err = dao.SysPermission.Ctx(ctx).Where(dao.SysPermission.Columns().Name, "TestPermissionUpdate").Scan(&permission)
@@ -212,7 +212,7 @@ func TestSysPermission_DeletePermission(t *testing.T) {
 			ModifierId:  1,
 			DeptId:      1,
 		}
-		_ = SysPermission().CreatePermission(ctx, createIn) // Assuming CreatePermission works
+		_, _ = SysPermission().CreatePermission(ctx, createIn) // Assuming CreatePermission works
 
 		var permission *entity.SysPermission
 		err = dao.SysPermission.Ctx(ctx).Where(dao.SysPermission.Columns().Name, "TestPermissionDelete").Scan(&permission)

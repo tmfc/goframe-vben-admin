@@ -7,6 +7,7 @@ ON CONFLICT (id) DO NOTHING;
 
 -- Insert super user vben with bcrypt hash of "123456"
 -- roles stored as JSONB array ["super"], status=1 (enabled)
+-- Note: "super" corresponds to consts.RoleSuper
 INSERT INTO sys_user (
     id, tenant_id, username, password, real_name, roles, home_path, status
 ) VALUES (

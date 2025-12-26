@@ -13,6 +13,7 @@ import (
 type SysRole struct {
 	g.Meta      `orm:"table:sys_role, do:true"`
 	Id          any         //
+	TenantId    any         //
 	Name        any         //
 	Description any         //
 	ParentId    any         //

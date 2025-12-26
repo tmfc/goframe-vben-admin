@@ -22,6 +22,7 @@ type SysRoleDao struct {
 // SysRoleColumns defines and stores column names for the table sys_role.
 type SysRoleColumns struct {
 	Id          string //
+	TenantId    string //
 	Name        string //
 	Description string //
 	ParentId    string //
@@ -36,6 +37,7 @@ type SysRoleColumns struct {
 // sysRoleColumns holds the columns for the table sys_role.
 var sysRoleColumns = SysRoleColumns{
 	Id:          "id",
+	TenantId:    "tenant_id",
 	Name:        "name",
 	Description: "description",
 	ParentId:    "parent_id",

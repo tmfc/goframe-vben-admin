@@ -30,6 +30,40 @@ enums: cli.install
 service: cli.install
 	@gf gen service
 
+.PHONY: migrate
+migrate:
+	@set -e; \
+	echo "Running database migrations..."; \
+	if [ -n "$(DB_DSN)" ]; then \
+		dsn="$(DB_DSN)"; \
+	else \
+		link=$$(awk -F'=' '/^[[:space:]]*link[[:space:]]*=/ { \
+			gsub(/^[[:space:]]+|[[:space:]]+$$/, "", $$2); \
+			gsub(/^\"|\"$$/, "", $$2); \
+			print $$2; \
+			exit; \
+		}' "$(ROOT_DIR)/config.toml"); \
+		if [ -z "$$link" ]; then \
+			echo "config.toml link not found; set DB_DSN to override."; \
+			exit 1; \
+		fi; \
+		case "$$link" in \
+			pgsql:*) \
+				dsn="postgres://$${link#pgsql:}"; \
+				dsn="$${dsn//@tcp(/@}"; \
+				dsn="$${dsn//)/}"; \
+				;; \
+			postgresql:*|postgres:*) \
+				dsn="$$link"; \
+				;; \
+			*) \
+				echo "Unsupported database link format: $$link"; \
+				exit 1; \
+				;; \
+		esac; \
+	fi; \
+	migrate -path "$(ROOT_DIR)/db/migrations" -database "$$dsn" up
+
 
 # Build docker image.
 .PHONY: image

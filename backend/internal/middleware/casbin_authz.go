@@ -63,7 +63,7 @@ func CasbinAuthz() ghttp.HandlerFunc {
 
 		roles := service.ParseRoles(user.Roles)
 		if len(roles) == 0 {
-			roles = []string{"super"}
+			roles = []string{consts.DefaultRole()}
 		}
 
 		tenantID := user.TenantId

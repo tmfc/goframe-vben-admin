@@ -35,7 +35,7 @@ func TestSysRole_CreateRole(t *testing.T) {
 			ModifierId:  1,
 			DeptId:      1,
 		}
-		err := SysRole().CreateRole(ctx, createIn)
+		_, err := SysRole().CreateRole(ctx, createIn)
 		t.AssertNil(err)
 
 		// Verify role was created
@@ -46,7 +46,7 @@ func TestSysRole_CreateRole(t *testing.T) {
 		t.Assert(role.Name, "TestRole1")
 
 		// Test case 2: Role creation with duplicate name (should fail)
-		err = SysRole().CreateRole(ctx, createIn)
+		_, err = SysRole().CreateRole(ctx, createIn)
 		t.AssertNE(err, nil)
 
 		// Test case 3: Role creation with empty name (should fail due to validation)
@@ -59,7 +59,7 @@ func TestSysRole_CreateRole(t *testing.T) {
 			ModifierId:  1,
 			DeptId:      1,
 		}
-		err = SysRole().CreateRole(ctx, createInInvalid)
+		_, err = SysRole().CreateRole(ctx, createInInvalid)
 		t.AssertNE(err, nil)
 	})
 }
@@ -90,7 +90,7 @@ func TestSysRole_GetRole(t *testing.T) {
 			ModifierId:  1,
 			DeptId:      1,
 		}
-		_ = SysRole().CreateRole(ctx, createIn) // Assuming CreateRole works
+		_, _ = SysRole().CreateRole(ctx, createIn) // Assuming CreateRole works
 
 		var role *entity.SysRole
 		err = dao.SysRole.Ctx(ctx).Where(dao.SysRole.Columns().Name, "TestRoleGet").Scan(&role)
@@ -136,7 +136,7 @@ func TestSysRole_UpdateRole(t *testing.T) {
 			ModifierId:  1,
 			DeptId:      1,
 		}
-		_ = SysRole().CreateRole(ctx, createIn) // Assuming CreateRole works
+		_, _ = SysRole().CreateRole(ctx, createIn) // Assuming CreateRole works
 
 		var role *entity.SysRole
 		err = dao.SysRole.Ctx(ctx).Where(dao.SysRole.Columns().Name, "TestRoleUpdate").Scan(&role)
@@ -216,7 +216,7 @@ func TestSysRole_DeleteRole(t *testing.T) {
 			ModifierId:  1,
 			DeptId:      1,
 		}
-		_ = SysRole().CreateRole(ctx, createIn) // Assuming CreateRole works
+		_, _ = SysRole().CreateRole(ctx, createIn) // Assuming CreateRole works
 
 		var role *entity.SysRole
 		err = dao.SysRole.Ctx(ctx).Where(dao.SysRole.Columns().Name, "TestRoleDelete").Scan(&role)

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"net/http"
+	"os"
 	"sort"
 	"strings"
 	"sync"
@@ -25,17 +26,23 @@ const (
 	RefreshTokenTTL = time.Hour * 24 * 30
 )
 
-const refreshTokenCookieName = "jwt"
+const (
+	refreshTokenCookieName = "jwt"
+	envJWTSecret           = "JWT_SECRET"
+	envRefreshTokenSecret  = "JWT_REFRESH_SECRET"
+	cfgJWTSecretKey        = "auth.jwt_secret"
+	cfgRefreshSecretKey    = "auth.refresh_secret"
+)
 
 var (
-	jwtSecret          = []byte("your-secret-key")
-	refreshTokenSecret = []byte("your-refresh-secret-key")
-	refreshTokenCache  = newRefreshTokenStore()
+	jwtSecret          []byte
+	refreshTokenSecret []byte
+	refreshTokenCache  RefreshTokenStore = newRefreshTokenStore()
 	localAuth          IAuth
 )
 
 var roleAccessCodes = map[string][]string{
-	"super": {
+	consts.RoleSuper: {
 		"System:Menu:List",
 		"System:Menu:Create",
 		"System:Menu:Edit",
@@ -45,17 +52,17 @@ var roleAccessCodes = map[string][]string{
 		"System:Dept:Edit",
 		"System:Dept:Delete",
 	},
-	"admin": {
+	consts.RoleAdmin: {
 		"System:Menu:List",
 		"System:Menu:Edit",
 		"System:Dept:List",
 		"System:Dept:Edit",
 	},
-	"user": {
+	consts.RoleUser: {
 		"System:Menu:List",
 		"System:Dept:List",
 	},
-	"guest": {
+	consts.RoleGuest: {
 		"System:Menu:List",
 	},
 }
@@ -71,6 +78,13 @@ func RegisterAuth(i IAuth) {
 type refreshTokenStore struct {
 	sync.RWMutex
 	tokens map[string]string
+}
+
+type RefreshTokenStore interface {
+	Add(token, userID string)
+	Remove(token string)
+	Replace(oldToken, newToken, userID string)
+	Valid(token, userID string) bool
 }
 
 func newRefreshTokenStore() *refreshTokenStore {
@@ -110,11 +124,36 @@ func (s *refreshTokenStore) Valid(token, userID string) bool {
 type sAuth struct{}
 
 func init() {
+	loadJWTSecrets()
 	RegisterAuth(NewAuth())
 }
 
 func NewAuth() *sAuth {
 	return &sAuth{}
+}
+
+func RegisterRefreshTokenStore(store RefreshTokenStore) {
+	if store != nil {
+		refreshTokenCache = store
+	}
+}
+
+func loadJWTSecrets() {
+	jwtSecret = loadSecretFromConfigOrEnv(envJWTSecret, cfgJWTSecretKey)
+	refreshTokenSecret = loadSecretFromConfigOrEnv(envRefreshTokenSecret, cfgRefreshSecretKey)
+}
+
+func loadSecretFromConfigOrEnv(envName, cfgKey string) []byte {
+	if cfgValue, err := g.Cfg().Get(context.Background(), cfgKey); err == nil && cfgValue != nil {
+		if value := strings.TrimSpace(cfgValue.String()); value != "" {
+			return []byte(value)
+		}
+	}
+	value := strings.TrimSpace(os.Getenv(envName))
+	if value == "" {
+		panic("missing required secret in config or environment: " + envName)
+	}
+	return []byte(value)
 }
 
 // IAuth defines the interface for authentication service.
@@ -145,7 +184,7 @@ func (s *sAuth) Login(ctx context.Context, in v1.LoginReq) (out *v1.LoginRes, er
 
 	roles := parseRoles(user.Roles)
 	if len(roles) == 0 {
-		roles = []string{"super"}
+		roles = []string{consts.DefaultRole()}
 	}
 
 	accessToken, err := s.generateAccessToken(user)
@@ -409,14 +448,14 @@ func writeAccessTokenResponse(ctx context.Context, token string) {
 
 func buildAccessCodes(roles []string) []string {
 	if len(roles) == 0 {
-		roles = []string{"super"}
+		roles = []string{consts.DefaultRole()}
 	}
 	set := make(map[string]struct{})
 	for _, role := range roles {
 		role = strings.TrimSpace(role)
 		codes, ok := roleAccessCodes[role]
 		if !ok {
-			codes = roleAccessCodes["super"]
+			codes = roleAccessCodes[consts.DefaultRole()]
 		}
 		for _, code := range codes {
 			set[code] = struct{}{}
