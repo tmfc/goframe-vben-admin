@@ -24,11 +24,11 @@
     - [x] Sub-task: Create migration file for `casbin_rule` table with `ptype`, `v0`, `v1`, `v2`, `v3`, `v4`, `v5`.
     - [x] Sub-task: Run migration to create `casbin_rule` table.
     - [x] Sub-task: Generate DAO for `cas_bin_rule`.
-- [~] Task: Conductor - User Manual Verification 'Phase 1: Database Schema and DAO Generation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Database Schema and DAO Generation' (Protocol in workflow.md)
 
 ## Phase 2: Initial Role and Permission Services & APIs
 
-- [ ] Task: Implement `sys_role` service
+- [x] Task: Implement `sys_role` service (ee644cb)
     - [ ] Sub-task: Write tests for `sys_role` service.
     - [ ] Sub-task: Implement `CreateRole` function.
     - [ ] Sub-task: Implement `GetRole` function.
