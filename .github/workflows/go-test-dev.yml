@@ -1,0 +1,58 @@
+name: backend-go-test
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: gva
+          POSTGRES_PASSWORD: gva
+          POSTGRES_DB: gva
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U gva -d gva"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://gva:gva@localhost:5433/gva?sslmode=disable
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.x'
+
+      - name: Wait for PostgreSQL
+        run: |
+          for i in {1..10}; do
+            pg_isready -h localhost -p 5433 -U gva && break
+            echo "Postgres is unavailable - sleeping"
+            sleep 5
+          done
+
+      - name: Install golang-migrate
+        run: |
+          curl -sSL https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.tar.gz -o migrate.tar.gz
+          tar -xzf migrate.tar.gz
+          sudo mv migrate /usr/local/bin/migrate
+          rm -f migrate.tar.gz
+
+      - name: Run database migrations
+        working-directory: backend
+        run: |
+          migrate -path db/migrations -database "$DATABASE_URL" up
+
+      - name: Go test
+        working-directory: backend
+        run: go test ./...
