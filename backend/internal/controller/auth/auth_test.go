@@ -22,16 +22,20 @@ func TestAuthController_Login(t *testing.T) {
 	testTenantId := "00000000-0000-0000-0000-000000000000"
 
 	// Clean up before test.
-	dao.SysUser.Ctx(ctx).Unscoped().Where(dao.SysUser.Columns().TenantId, testTenantId).Delete()
 	dao.SysUser.Ctx(ctx).Unscoped().Where(dao.SysUser.Columns().Username, testUsername).Delete()
-	dao.SysTenant.Ctx(ctx).Unscoped().Where(dao.SysTenant.Columns().Id, testTenantId).Delete()
 
-	_, err := dao.SysTenant.Ctx(ctx).Data(g.Map{
-		dao.SysTenant.Columns().Id:   testTenantId,
-		dao.SysTenant.Columns().Name: "Controller Test Tenant",
-	}).Insert()
+	existing, err := dao.SysTenant.Ctx(ctx).Where(dao.SysTenant.Columns().Id, testTenantId).One()
 	if err != nil {
-		t.Fatalf("failed to create tenant: %v", err)
+		t.Fatalf("failed to query tenant: %v", err)
+	}
+	if existing.IsEmpty() {
+		_, err := dao.SysTenant.Ctx(ctx).Data(g.Map{
+			dao.SysTenant.Columns().Id:   testTenantId,
+			dao.SysTenant.Columns().Name: "Controller Test Tenant",
+		}).Insert()
+		if err != nil {
+			t.Fatalf("failed to create tenant: %v", err)
+		}
 	}
 
 	if err := service.Auth().CreateUserForTest(ctx, testUsername, testPassword); err != nil {
@@ -39,9 +43,7 @@ func TestAuthController_Login(t *testing.T) {
 	}
 
 	t.Cleanup(func() {
-		dao.SysUser.Ctx(ctx).Unscoped().Where(dao.SysUser.Columns().TenantId, testTenantId).Delete()
 		dao.SysUser.Ctx(ctx).Unscoped().Where(dao.SysUser.Columns().Username, testUsername).Delete()
-		dao.SysTenant.Ctx(ctx).Unscoped().Where(dao.SysTenant.Columns().Id, testTenantId).Delete()
 	})
 
 	ctrl := NewV1()

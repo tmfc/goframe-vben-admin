@@ -23,16 +23,20 @@ func TestAuth_Login(t *testing.T) {
 
 	// Clean up before test (hard delete to avoid soft-delete key conflicts).
 	dao.SysUser.Ctx(ctx).Unscoped().Where(dao.SysUser.Columns().Username, testUsername).Delete()
-	dao.SysUser.Ctx(ctx).Unscoped().Where(dao.SysUser.Columns().TenantId, testTenantId).Delete()
-	dao.SysTenant.Ctx(ctx).Unscoped().Where(dao.SysTenant.Columns().Id, testTenantId).Delete()
 
 	// Create a tenant for testing
-	_, err := dao.SysTenant.Ctx(ctx).Data(g.Map{
-		dao.SysTenant.Columns().Id:   testTenantId,
-		dao.SysTenant.Columns().Name: "Test Tenant",
-	}).Insert()
+	existing, err := dao.SysTenant.Ctx(ctx).Where(dao.SysTenant.Columns().Id, testTenantId).One()
 	if err != nil {
-		t.Fatalf("failed to create tenant: %v", err)
+		t.Fatalf("failed to query tenant: %v", err)
+	}
+	if existing.IsEmpty() {
+		_, err := dao.SysTenant.Ctx(ctx).Data(g.Map{
+			dao.SysTenant.Columns().Id:   testTenantId,
+			dao.SysTenant.Columns().Name: "Test Tenant",
+		}).Insert()
+		if err != nil {
+			t.Fatalf("failed to create tenant: %v", err)
+		}
 	}
 
 	// Create a user for testing
@@ -42,8 +46,6 @@ func TestAuth_Login(t *testing.T) {
 
 	t.Cleanup(func() {
 		dao.SysUser.Ctx(ctx).Unscoped().Where(dao.SysUser.Columns().Username, testUsername).Delete()
-		dao.SysUser.Ctx(ctx).Unscoped().Where(dao.SysUser.Columns().TenantId, testTenantId).Delete()
-		dao.SysTenant.Ctx(ctx).Unscoped().Where(dao.SysTenant.Columns().Id, testTenantId).Delete()
 	})
 
 	testCases := []struct {

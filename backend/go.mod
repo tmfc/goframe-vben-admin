@@ -3,6 +3,7 @@ module backend
 go 1.24.11
 
 require (
+	github.com/casbin/casbin/v2 v2.85.0
 	github.com/gogf/gf/contrib/drivers/pgsql/v2 v2.9.6
 	github.com/gogf/gf/v2 v2.9.6
 	github.com/golang-jwt/jwt/v4 v4.5.2
@@ -11,6 +12,7 @@ require (
 
 require (
 	github.com/BurntSushi/toml v1.5.0 // indirect
+	github.com/casbin/govaluate v1.1.0 // indirect
 	github.com/clbanning/mxj/v2 v2.7.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/emirpasic/gods/v2 v2.0.0-alpha // indirect

@@ -11,7 +11,9 @@ import (
 
 	"backend/internal/controller/auth"
 	"backend/internal/controller/hello"
+	"backend/internal/controller/menu"
 	"backend/internal/controller/user"
+	"backend/internal/middleware"
 )
 
 var (
@@ -39,10 +41,11 @@ var (
 				}
 			}
 			s.Group("/", func(group *ghttp.RouterGroup) {
-				group.Middleware(ghttp.MiddlewareHandlerResponse)
+				group.Middleware(ghttp.MiddlewareHandlerResponse, middleware.CasbinAuthz())
 				group.Bind(
 					hello.NewV1(),
 					auth.NewV1(),
+					menu.NewV1(),
 					user.NewV1(),
 				)
 			})

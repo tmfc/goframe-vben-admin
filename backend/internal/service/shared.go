@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 
@@ -30,6 +31,11 @@ func parseRoles(raw string) []string {
 	return roles
 }
 
+// ParseRoles exposes role parsing for middleware usage.
+func ParseRoles(raw string) []string {
+	return parseRoles(raw)
+}
+
 func parseToken(tokenStr string) (jwt.MapClaims, error) {
 	if tokenStr == "" {
 		return nil, gerror.NewCode(consts.ErrorCodeUnauthorized, "token is empty")
@@ -47,4 +53,14 @@ func parseToken(tokenStr string) (jwt.MapClaims, error) {
 		return claims, nil
 	}
 	return nil, gerror.NewCode(consts.ErrorCodeUnauthorized, "invalid token")
+}
+
+// ParseAccessToken exposes JWT parsing for middleware usage.
+func ParseAccessToken(tokenStr string) (jwt.MapClaims, error) {
+	return parseToken(tokenStr)
+}
+
+// ResolveAccessToken exposes access token extraction for middleware usage.
+func ResolveAccessToken(ctx context.Context, provided string) (string, error) {
+	return resolveAccessToken(ctx, provided)
 }

@@ -59,22 +59,35 @@ Implement the backend services and database schema to support the user, departme
 
 *   **Role Table (`sys_role`)**:
     *   `id` (PK, UUID/INT)
+    *   `tenant_id` (FK to `sys_tenant.id`) - Tenant scope for the role.
     *   `name` (UNIQUE, VARCHAR) - Role name (e.g., 'admin', 'user', 'super').
     *   `description` (VARCHAR) - Description of the role.
     *   `status` (TINYINT) - Role status.
     *   `created_at` (DATETIME), `updated_at` (DATETIME), `deleted_at` (DATETIME).
+    *   Unique constraint on (`tenant_id`, `name`) to allow same role names across tenants.
 *   **Permission Table (`sys_permission`)**:
     *   `id` (PK, UUID/INT)
+    *   `tenant_id` (FK to `sys_tenant.id`) - Tenant scope for the permission.
     *   `code` (UNIQUE, VARCHAR) - Permission code (e.g., 'user:create', 'menu:edit'), corresponds to `accessCodes` in frontend.
     *   `name` (VARCHAR) - Name of the permission.
     *   `description` (VARCHAR) - Description of the permission.
     *   `created_at` (DATETIME), `updated_at` (DATETIME), `deleted_at` (DATETIME).
+    *   Unique constraint on (`tenant_id`, `code`) to allow same codes across tenants.
 *   **User-Role Pivot Table (`sys_user_role`)**:
+    *   `tenant_id` (FK to `sys_tenant.id`)
     *   `user_id` (FK to `sys_user.id`)
     *   `role_id` (FK to `sys_role.id`)
+    *   Composite unique key on (`tenant_id`, `user_id`, `role_id`).
 *   **Role-Permission Pivot Table (`sys_role_permission`)**:
+    *   `tenant_id` (FK to `sys_tenant.id`)
     *   `role_id` (FK to `sys_role.id`)
     *   `permission_id` (FK to `sys_permission.id`)
+    *   Composite unique key on (`tenant_id`, `role_id`, `permission_id`).
+*   **Casbin Policy Table (`casbin_rule`)**:
+    *   `id` (PK, BIGSERIAL)
+    *   `ptype` (VARCHAR) - Policy type (`p`, `g`).
+    *   `v0`..`v5` (VARCHAR) - Casbin rule fields; store `domain` (tenant) in `v1`.
+    *   Indexes on `ptype`, `v0`, `v1`, `v2` for lookup.
 
 **GoFrame Model/DAO Generation for RBAC tables**.
 
@@ -92,7 +105,7 @@ Implement the backend services and database schema to support the user, departme
 **Authentication and Authorization Middleware**:
 
 *   Implement GoFrame middleware to validate JWT tokens for protected routes.
-*   Implement GoFrame middleware to check user roles/permissions against route requirements.
+*   Implement GoFrame middleware to check user roles/permissions via Casbin (`domain=tenant_id`).
 
 ### Phase 3: Menu and Routing Management
 

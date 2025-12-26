@@ -11,17 +11,17 @@
         - [x] Create `backend/internal/service/auth.go` with basic function structure and updated import.
         - [x] Implement the `Login` function.
         - [x] Write unit tests for Login function.
-        - [ ] Implement the `RefreshToken` function.
-        - [ ] Implement the `Logout` function.
-        - [ ] Implement the `GetAccessCodes` function.
-    - [ ] **Authentication Controller (`app/controller/auth`):**
-        - [ ] Create the `POST /auth/login` endpoint.
-        - [ ] Create the `POST /auth/refresh` endpoint.
-        - [ ] Create the `POST /auth/logout` endpoint.
-        - [ ] Create the `GET /auth/codes` endpoint.
-    - [ ] **User Service (`app/service/user`):**
-        - [ ] Implement the `GetUserInfo` function.
-    - [ ] **User Controller (`app/controller/user`):**
-        - [ ] Create the `GET /user/info` endpoint.
-    - [ ] **Main Router:**
-        - [ ] Register the new `auth` and `user` controllers in the main router (`internal/cmd/cmd.go`).
+        - [x] Implement the `RefreshToken` function.
+        - [x] Implement the `Logout` function.
+        - [x] Implement the `GetAccessCodes` function.
+    - [x] **Authentication Controller (`app/controller/auth`):**
+        - [x] Create the `POST /auth/login` endpoint.
+        - [x] Create the `POST /auth/refresh` endpoint.
+        - [x] Create the `POST /auth/logout` endpoint.
+        - [x] Create the `GET /auth/codes` endpoint.
+    - [x] **User Service (`app/service/user`):**
+        - [x] Implement the `GetUserInfo` function.
+    - [x] **User Controller (`app/controller/user`):**
+        - [x] Create the `GET /user/info` endpoint.
+    - [x] **Main Router:**
+        - [x] Register the new `auth` and `user` controllers in the main router (`internal/cmd/cmd.go`).

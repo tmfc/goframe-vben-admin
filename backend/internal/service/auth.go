@@ -288,7 +288,10 @@ func (s *sAuth) GetAccessCodes(ctx context.Context, in v1.GetAccessCodesReq) (ou
 	}
 
 	roles := parseRoles(user.Roles)
-	codes := buildAccessCodes(roles)
+	codes, err := accessCodesFromCasbin(ctx, user.TenantId, roles)
+	if err != nil || len(codes) == 0 {
+		codes = buildAccessCodes(roles)
+	}
 
 	out = &v1.GetAccessCodesRes{
 		Codes: codes,
@@ -300,6 +303,7 @@ func (s *sAuth) generateAccessToken(user *entity.SysUser) (string, error) {
 	claims := jwt.MapClaims{
 		"id":       user.Id,
 		"username": user.Username,
+		"tenantId": user.TenantId,
 		"exp":      time.Now().Add(AccessTokenTTL).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

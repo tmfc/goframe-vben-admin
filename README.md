@@ -20,6 +20,24 @@ go mod tidy
 go run ./main.go
 ```
 
+## 数据库迁移
+
+在项目根目录执行：
+
+```bash
+migrate -path backend/db/migrations -database "postgres://gva:gva@127.0.0.1:5433/gva?sslmode=disable" up
+```
+
+连接字符串请按 `backend/config.toml` 调整。
+
+## 运行后端测试
+
+在 `backend/` 目录执行：
+
+```bash
+go test ./...
+```
+
 常用命令：
 
 - `go test ./...` 运行后端测试
