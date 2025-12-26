@@ -40,7 +40,7 @@
     - [x] Sub-task: Implement `GetPermission` function.
     - [x] Sub-task: Implement `UpdatePermission` function.
     - [x] Sub-task: Implement `DeletePermission` function.
-- [ ] Task: Implement `sys_role` API
+- [x] Task: Implement `sys_role` API (34be294)
     - [ ] Sub-task: Write tests for `sys_role` API.
     - [ ] Sub-task: Implement `CreateRole` API endpoint.
     - [ ] Sub-task: Implement `GetRole` API endpoint.
