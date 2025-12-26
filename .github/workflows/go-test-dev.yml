@@ -70,6 +70,11 @@ jobs:
         run: |
           migrate -path db/migrations -database "$DATABASE_URL" up
 
+      - name: Generate JWT secrets
+        run: |
+          echo "JWT_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+          echo "JWT_REFRESH_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+
       - name: Go test
         working-directory: backend
         run: go test ./...
