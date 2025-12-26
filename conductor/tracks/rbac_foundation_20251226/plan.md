@@ -29,11 +29,11 @@
 ## Phase 2: Initial Role and Permission Services & APIs
 
 - [x] Task: Implement `sys_role` service (ee644cb)
-    - [ ] Sub-task: Write tests for `sys_role` service.
-    - [ ] Sub-task: Implement `CreateRole` function.
-    - [ ] Sub-task: Implement `GetRole` function.
-    - [ ] Sub-task: Implement `UpdateRole` function.
-    - [ ] Sub-task: Implement `DeleteRole` function.
+    - [x] Sub-task: Write tests for `sys_role` service.
+    - [x] Sub-task: Implement `CreateRole` function.
+    - [x] Sub-task: Implement `GetRole` function.
+    - [x] Sub-task: Implement `UpdateRole` function.
+    - [x] Sub-task: Implement `DeleteRole` function.
 - [ ] Task: Implement `sys_permission` service
     - [ ] Sub-task: Write tests for `sys_permission` service.
     - [ ] Sub-task: Implement `CreatePermission` function.
