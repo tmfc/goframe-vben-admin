@@ -7,6 +7,7 @@ import (
 	"backend/api/auth/v1"
 	"backend/internal/consts"
 	"backend/internal/dao"
+	"backend/internal/testutil"
 
 	_ "github.com/gogf/gf/contrib/drivers/pgsql/v2"
 	"github.com/gogf/gf/v2/errors/gcode"
@@ -16,6 +17,8 @@ import (
 )
 
 func TestAuth_Login(t *testing.T) {
+	testutil.RequireDatabase(t)
+
 	ctx := context.TODO()
 	testUsername := "testuser"
 	testPassword := "testpassword"

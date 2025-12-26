@@ -6,6 +6,6 @@ package entity
 
 // SchemaMigrations is the golang structure for table schema_migrations.
 type SchemaMigrations struct {
-	Version int64 `json:"version" orm:"version" description:""` //
-	Dirty   bool  `json:"dirty"   orm:"dirty"   description:""` //
+	Version int64 `json:"version" orm:"version" ` //
+	Dirty   bool  `json:"dirty"   orm:"dirty"   ` //
 }

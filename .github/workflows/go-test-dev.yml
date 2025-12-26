@@ -48,6 +48,23 @@ jobs:
           sudo mv migrate /usr/local/bin/migrate
           rm -f migrate.tar.gz
 
+      - name: Prepare backend config
+        working-directory: backend
+        run: |
+          cat > config.toml <<'EOF'
+          [server]
+          address = "0.0.0.0"
+          port = 5666
+
+          [database.default]
+          link = "pgsql:gva:gva@tcp(127.0.0.1:5433)/gva?sslmode=disable"
+          type = "pgsql"
+          debug = true
+
+          [casbin]
+          model = "resource/casbin/model.conf"
+          EOF
+
       - name: Run database migrations
         working-directory: backend
         run: |

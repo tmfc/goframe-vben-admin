@@ -10,10 +10,10 @@ import (
 
 // SysTenant is the golang structure for table sys_tenant.
 type SysTenant struct {
-	Id        string      `json:"id"        orm:"id"         description:""` //
-	Name      string      `json:"name"      orm:"name"       description:""` //
-	Status    int         `json:"status"    orm:"status"     description:""` //
-	CreatedAt *gtime.Time `json:"createdAt" orm:"created_at" description:""` //
-	UpdatedAt *gtime.Time `json:"updatedAt" orm:"updated_at" description:""` //
-	DeletedAt *gtime.Time `json:"deletedAt" orm:"deleted_at" description:""` //
+	Id        string      `json:"id"        orm:"id"         ` //
+	Name      string      `json:"name"      orm:"name"       ` //
+	Status    int         `json:"status"    orm:"status"     ` //
+	CreatedAt *gtime.Time `json:"createdAt" orm:"created_at" ` //
+	UpdatedAt *gtime.Time `json:"updatedAt" orm:"updated_at" ` //
+	DeletedAt *gtime.Time `json:"deletedAt" orm:"deleted_at" ` //
 }
