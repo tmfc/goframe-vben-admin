@@ -1,0 +1,2 @@
+export * from "/Users/william/work/my_opensource/goframe-vben-admin/frontend/scripts/turbo-run/src/index.js";
+export { default } from "/Users/william/work/my_opensource/goframe-vben-admin/frontend/scripts/turbo-run/src/index.js";

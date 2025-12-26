@@ -1,0 +1,6 @@
+# Database configuration for PostgreSQL
+database:
+  default:
+    link: "pgsql:gva:gva@tcp(127.0.0.1:5433)/gva?sslmode=disable"
+    type: "pgsql"
+    debug: true # Set to false in production

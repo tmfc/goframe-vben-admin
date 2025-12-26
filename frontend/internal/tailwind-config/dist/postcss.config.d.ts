@@ -1,0 +1,2 @@
+export * from "/Users/william/work/my_opensource/goframe-vben-admin/frontend/internal/tailwind-config/src/postcss.config.js";
+export { default } from "/Users/william/work/my_opensource/goframe-vben-admin/frontend/internal/tailwind-config/src/postcss.config.js";
