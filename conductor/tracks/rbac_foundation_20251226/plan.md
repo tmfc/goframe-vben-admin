@@ -26,7 +26,7 @@
     - [x] Sub-task: Generate DAO for `cas_bin_rule`.
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Database Schema and DAO Generation' (Protocol in workflow.md)
 
-## Phase 2: Initial Role and Permission Services & APIs
+## Phase 2: Initial Role and Permission Services & APIs [checkpoint: a15c97a]
 
 - [x] Task: Implement `sys_role` service (ee644cb)
     - [x] Sub-task: Write tests for `sys_role` service.
@@ -52,4 +52,4 @@
     - [x] Sub-task: Implement `GetPermission` API endpoint.
     - [x] Sub-task: Implement `UpdatePermission` API endpoint.
     - [x] Sub-task: Implement `DeletePermission` API endpoint.
-- [~] Task: Conductor - User Manual Verification 'Phase 2: Initial Role and Permission Services & APIs' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Initial Role and Permission Services & APIs' (Protocol in workflow.md)
