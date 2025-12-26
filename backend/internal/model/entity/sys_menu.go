@@ -26,4 +26,7 @@ type SysMenu struct {
 	CreatedAt      *gtime.Time `json:"createdAt"      orm:"created_at"      ` //
 	UpdatedAt      *gtime.Time `json:"updatedAt"      orm:"updated_at"      ` //
 	DeletedAt      *gtime.Time `json:"deletedAt"      orm:"deleted_at"      ` //
+	CreatorId      int64       `json:"creatorId"      orm:"creator_id"      ` //
+	ModifierId     int64       `json:"modifierId"     orm:"modifier_id"     ` //
+	DeptId         int64       `json:"deptId"         orm:"dept_id"         ` //
 }

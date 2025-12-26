@@ -17,7 +17,7 @@ import (
 type ControllerV1 struct{}
 
 // Info returns the profile of the authenticated user.
-func (c *ControllerV1) Info(ctx context.Context, req *v1.UserInfoReq) (res *v1.UserInfoRes, err error) {
+func (c *ControllerV1) UserInfo(ctx context.Context, req *v1.UserInfoReq) (res *v1.UserInfoRes, err error) {
 	if req == nil {
 		req = &v1.UserInfoReq{}
 	}

@@ -37,6 +37,9 @@ type SysMenuColumns struct {
 	CreatedAt      string //
 	UpdatedAt      string //
 	DeletedAt      string //
+	CreatorId      string //
+	ModifierId     string //
+	DeptId         string //
 }
 
 // sysMenuColumns holds the columns for the table sys_menu.
@@ -57,6 +60,9 @@ var sysMenuColumns = SysMenuColumns{
 	CreatedAt:      "created_at",
 	UpdatedAt:      "updated_at",
 	DeletedAt:      "deleted_at",
+	CreatorId:      "creator_id",
+	ModifierId:     "modifier_id",
+	DeptId:         "dept_id",
 }
 
 // NewSysMenuDao creates and returns a new DAO object for table data access.

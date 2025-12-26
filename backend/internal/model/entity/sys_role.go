@@ -11,7 +11,6 @@ import (
 // SysRole is the golang structure for table sys_role.
 type SysRole struct {
 	Id          int64       `json:"id"          orm:"id"          ` //
-	TenantId    string      `json:"tenantId"    orm:"tenant_id"   ` //
 	Name        string      `json:"name"        orm:"name"        ` //
 	Description string      `json:"description" orm:"description" ` //
 	ParentId    int64       `json:"parentId"    orm:"parent_id"   ` //
@@ -21,4 +20,5 @@ type SysRole struct {
 	CreatorId   int64       `json:"creatorId"   orm:"creator_id"  ` //
 	ModifierId  int64       `json:"modifierId"  orm:"modifier_id" ` //
 	DeptId      int64       `json:"deptId"      orm:"dept_id"     ` //
+	TenantId    string      `json:"tenantId"    orm:"tenant_id"   ` //
 }

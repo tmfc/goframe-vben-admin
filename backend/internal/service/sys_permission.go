@@ -45,10 +45,8 @@ func (s *sSysPermission) CreatePermission(ctx context.Context, in model.SysPermi
 	if err = g.Validator().Data(in).Run(ctx); err != nil {
 		return 0, err
 	}
-	tenantID := resolveTenantID(ctx)
 	// Check if permission name already exists
 	count, err := dao.SysPermission.Ctx(ctx).
-		Where("tenant_id", tenantID).
 		Where(dao.SysPermission.Columns().Name, in.Name).
 		Count()
 	if err != nil {
@@ -60,7 +58,6 @@ func (s *sSysPermission) CreatePermission(ctx context.Context, in model.SysPermi
 
 	columns := dao.SysPermission.Columns()
 	result, err := dao.SysPermission.Ctx(ctx).Data(g.Map{
-		"tenant_id":         tenantID,
 		columns.Name:        in.Name,
 		columns.Description: in.Description,
 		columns.ParentId:    in.ParentId,
@@ -82,9 +79,7 @@ func (s *sSysPermission) CreatePermission(ctx context.Context, in model.SysPermi
 // GetPermission retrieves a permission by ID.
 func (s *sSysPermission) GetPermission(ctx context.Context, in model.SysPermissionGetIn) (out *model.SysPermissionGetOut, err error) {
 	out = &model.SysPermissionGetOut{}
-	tenantID := resolveTenantID(ctx)
 	err = dao.SysPermission.Ctx(ctx).
-		Where("tenant_id", tenantID).
 		Where(dao.SysPermission.Columns().Id, in.Id).
 		Scan(&out.SysPermission)
 	if err != nil {
@@ -103,10 +98,8 @@ func (s *sSysPermission) UpdatePermission(ctx context.Context, in model.SysPermi
 		return err
 	}
 
-	tenantID := resolveTenantID(ctx)
 	// Check if permission exists
 	count, err := dao.SysPermission.Ctx(ctx).
-		Where("tenant_id", tenantID).
 		Where(dao.SysPermission.Columns().Id, in.Id).
 		Count()
 	if err != nil {
@@ -130,7 +123,6 @@ func (s *sSysPermission) UpdatePermission(ctx context.Context, in model.SysPermi
 	}
 	_, err = dao.SysPermission.Ctx(ctx).
 		Data(updateData).
-		Where("tenant_id", tenantID).
 		Where(dao.SysPermission.Columns().Id, in.Id).
 		Update()
 	return err
@@ -138,10 +130,8 @@ func (s *sSysPermission) UpdatePermission(ctx context.Context, in model.SysPermi
 
 // DeletePermission deletes a permission by ID.
 func (s *sSysPermission) DeletePermission(ctx context.Context, in model.SysPermissionDeleteIn) (err error) {
-	tenantID := resolveTenantID(ctx)
 	// Check if permission exists
 	count, err := dao.SysPermission.Ctx(ctx).
-		Where("tenant_id", tenantID).
 		Where(dao.SysPermission.Columns().Id, in.Id).
 		Count()
 	if err != nil {
@@ -152,7 +142,6 @@ func (s *sSysPermission) DeletePermission(ctx context.Context, in model.SysPermi
 	}
 
 	_, err = dao.SysPermission.Ctx(ctx).
-		Where("tenant_id", tenantID).
 		Where(dao.SysPermission.Columns().Id, in.Id).
 		Delete()
 	return err

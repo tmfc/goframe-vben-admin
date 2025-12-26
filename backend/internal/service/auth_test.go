@@ -7,6 +7,7 @@ import (
 	"backend/api/auth/v1"
 	"backend/internal/consts"
 	"backend/internal/dao"
+	"backend/internal/model/entity"
 	"backend/internal/testutil"
 
 	_ "github.com/gogf/gf/contrib/drivers/pgsql/v2"
@@ -135,4 +136,240 @@ func TestAuth_Login(t *testing.T) {
 			})
 		})
 	}
+}
+
+func TestAuth_RefreshToken(t *testing.T) {
+	testutil.RequireDatabase(t)
+
+	ctx := context.TODO()
+	testUsername := "testuser_refresh"
+	testPassword := "testpassword_refresh"
+	testTenantId := "00000000-0000-0000-0000-000000000000"
+
+	// Clean up before test
+	dao.SysUser.Ctx(ctx).Unscoped().Where(dao.SysUser.Columns().Username, testUsername).Delete()
+
+	// Create a tenant for testing
+	existing, err := dao.SysTenant.Ctx(ctx).Where(dao.SysTenant.Columns().Id, testTenantId).One()
+	if err != nil {
+		t.Fatalf("failed to query tenant: %v", err)
+	}
+	if existing.IsEmpty() {
+		_, err := dao.SysTenant.Ctx(ctx).Data(g.Map{
+			dao.SysTenant.Columns().Id:   testTenantId,
+			dao.SysTenant.Columns().Name: "Test Tenant",
+		}).Insert()
+		if err != nil {
+			t.Fatalf("failed to create tenant: %v", err)
+		}
+	}
+
+	// Create a user for testing
+	if err := Auth().CreateUserForTest(ctx, testUsername, testPassword); err != nil {
+		t.Fatalf("failed to create user: %v", err)
+	}
+
+	t.Cleanup(func() {
+		dao.SysUser.Ctx(ctx).Unscoped().Where(dao.SysUser.Columns().Username, testUsername).Delete()
+	})
+
+	gtest.C(t, func(t *gtest.T) {
+		// First login to get tokens
+		loginRes, err := Auth().Login(ctx, v1.LoginReq{
+			Username: testUsername,
+			Password: testPassword,
+		})
+		t.AssertNil(err)
+		t.AssertNE(loginRes.RefreshToken, "")
+
+		// Test successful refresh
+		refreshRes, err := Auth().RefreshToken(ctx, v1.RefreshTokenReq{
+			RefreshToken: loginRes.RefreshToken,
+		})
+		t.AssertNil(err)
+		t.AssertNE(refreshRes.AccessToken, "")
+		t.AssertNE(refreshRes.RefreshToken, "")
+
+		// Test refresh with invalid token
+		_, err = Auth().RefreshToken(ctx, v1.RefreshTokenReq{
+			RefreshToken: "invalid_token",
+		})
+		t.AssertNE(err, nil)
+
+		// Test refresh with empty token
+		_, err = Auth().RefreshToken(ctx, v1.RefreshTokenReq{
+			RefreshToken: "",
+		})
+		t.AssertNE(err, nil)
+	})
+}
+
+func TestAuth_Logout(t *testing.T) {
+	testutil.RequireDatabase(t)
+
+	ctx := context.TODO()
+	testUsername := "testuser_logout"
+	testPassword := "testpassword_logout"
+	testTenantId := "00000000-0000-0000-0000-000000000000"
+
+	// Clean up before test
+	dao.SysUser.Ctx(ctx).Unscoped().Where(dao.SysUser.Columns().Username, testUsername).Delete()
+
+	// Create a tenant for testing
+	existing, err := dao.SysTenant.Ctx(ctx).Where(dao.SysTenant.Columns().Id, testTenantId).One()
+	if err != nil {
+		t.Fatalf("failed to query tenant: %v", err)
+	}
+	if existing.IsEmpty() {
+		_, err := dao.SysTenant.Ctx(ctx).Data(g.Map{
+			dao.SysTenant.Columns().Id:   testTenantId,
+			dao.SysTenant.Columns().Name: "Test Tenant",
+		}).Insert()
+		if err != nil {
+			t.Fatalf("failed to create tenant: %v", err)
+		}
+	}
+
+	// Create a user for testing
+	if err := Auth().CreateUserForTest(ctx, testUsername, testPassword); err != nil {
+		t.Fatalf("failed to create user: %v", err)
+	}
+
+	t.Cleanup(func() {
+		dao.SysUser.Ctx(ctx).Unscoped().Where(dao.SysUser.Columns().Username, testUsername).Delete()
+	})
+
+	gtest.C(t, func(t *gtest.T) {
+		// First login to get tokens
+		loginRes, err := Auth().Login(ctx, v1.LoginReq{
+			Username: testUsername,
+			Password: testPassword,
+		})
+		t.AssertNil(err)
+		t.AssertNE(loginRes.RefreshToken, "")
+
+		// Test successful logout
+		logoutRes, err := Auth().Logout(ctx, v1.LogoutReq{
+			RefreshToken: loginRes.RefreshToken,
+		})
+		t.AssertNil(err)
+		t.AssertNE(logoutRes, nil)
+
+		// Test logout with empty token (should still succeed)
+		logoutRes, err = Auth().Logout(ctx, v1.LogoutReq{
+			RefreshToken: "",
+		})
+		t.AssertNil(err)
+		t.AssertNE(logoutRes, nil)
+	})
+}
+
+func TestAuth_GetAccessCodes(t *testing.T) {
+	testutil.RequireDatabase(t)
+
+	ctx := context.TODO()
+	testUsername := "testuser_codes"
+	testPassword := "testpassword_codes"
+	testTenantId := "00000000-0000-0000-0000-000000000000"
+
+	// Clean up before test
+	dao.SysUser.Ctx(ctx).Unscoped().Where(dao.SysUser.Columns().Username, testUsername).Delete()
+
+	// Create a tenant for testing
+	existing, err := dao.SysTenant.Ctx(ctx).Where(dao.SysTenant.Columns().Id, testTenantId).One()
+	if err != nil {
+		t.Fatalf("failed to query tenant: %v", err)
+	}
+	if existing.IsEmpty() {
+		_, err := dao.SysTenant.Ctx(ctx).Data(g.Map{
+			dao.SysTenant.Columns().Id:   testTenantId,
+			dao.SysTenant.Columns().Name: "Test Tenant",
+		}).Insert()
+		if err != nil {
+			t.Fatalf("failed to create tenant: %v", err)
+		}
+	}
+
+	// Create a user for testing
+	if err := Auth().CreateUserForTest(ctx, testUsername, testPassword); err != nil {
+		t.Fatalf("failed to create user: %v", err)
+	}
+
+	t.Cleanup(func() {
+		dao.SysUser.Ctx(ctx).Unscoped().Where(dao.SysUser.Columns().Username, testUsername).Delete()
+	})
+
+	gtest.C(t, func(t *gtest.T) {
+		// First login to get access token
+		loginRes, err := Auth().Login(ctx, v1.LoginReq{
+			Username: testUsername,
+			Password: testPassword,
+		})
+		t.AssertNil(err)
+		t.AssertNE(loginRes.AccessToken, "")
+
+		// Test successful get access codes
+		codesRes, err := Auth().GetAccessCodes(ctx, v1.GetAccessCodesReq{
+			Token: loginRes.AccessToken,
+		})
+		t.AssertNil(err)
+		t.AssertNE(codesRes, nil)
+		t.AssertGT(len(codesRes.Codes), 0)
+
+		// Test with invalid token
+		_, err = Auth().GetAccessCodes(ctx, v1.GetAccessCodesReq{
+			Token: "invalid_token",
+		})
+		t.AssertNE(err, nil)
+
+		// Test with empty token
+		_, err = Auth().GetAccessCodes(ctx, v1.GetAccessCodesReq{
+			Token: "",
+		})
+		t.AssertNE(err, nil)
+	})
+}
+
+func TestAuth_CreateUserForTest(t *testing.T) {
+	testutil.RequireDatabase(t)
+
+	ctx := context.TODO()
+	testUsername := "testuser_create"
+	testPassword := "testpassword_create"
+	testTenantId := "00000000-0000-0000-0000-000000000000"
+
+	// Clean up before test
+	dao.SysUser.Ctx(ctx).Unscoped().Where(dao.SysUser.Columns().Username, testUsername).Delete()
+
+	// Create a tenant for testing
+	existing, err := dao.SysTenant.Ctx(ctx).Where(dao.SysTenant.Columns().Id, testTenantId).One()
+	if err != nil {
+		t.Fatalf("failed to query tenant: %v", err)
+	}
+	if existing.IsEmpty() {
+		_, err := dao.SysTenant.Ctx(ctx).Data(g.Map{
+			dao.SysTenant.Columns().Id:   testTenantId,
+			dao.SysTenant.Columns().Name: "Test Tenant",
+		}).Insert()
+		if err != nil {
+			t.Fatalf("failed to create tenant: %v", err)
+		}
+	}
+
+	t.Cleanup(func() {
+		dao.SysUser.Ctx(ctx).Unscoped().Where(dao.SysUser.Columns().Username, testUsername).Delete()
+	})
+
+	gtest.C(t, func(t *gtest.T) {
+		// Test successful user creation
+		err := Auth().CreateUserForTest(ctx, testUsername, testPassword)
+		t.AssertNil(err)
+
+		// Verify user was created
+		var user *entity.SysUser
+		err = dao.SysUser.Ctx(ctx).Where(dao.SysUser.Columns().Username, testUsername).Scan(&user)
+		t.AssertNil(err)
+		t.AssertNE(user, nil)
+		t.Assert(user.Username, testUsername)
+	})
 }

@@ -27,4 +27,7 @@ type SysMenu struct {
 	CreatedAt      *gtime.Time //
 	UpdatedAt      *gtime.Time //
 	DeletedAt      *gtime.Time //
+	CreatorId      any         //
+	ModifierId     any         //
+	DeptId         any         //
 }

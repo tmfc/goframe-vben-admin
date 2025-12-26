@@ -10,7 +10,6 @@ import (
 	"backend/api/auth/v1"
 )
 
-// IAuthV1 defines the auth controller interface.
 type IAuthV1 interface {
 	Login(ctx context.Context, req *v1.LoginReq) (res *v1.LoginRes, err error)
 	RefreshToken(ctx context.Context, req *v1.RefreshTokenReq) (res *v1.RefreshTokenRes, err error)

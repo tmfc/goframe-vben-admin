@@ -6,7 +6,11 @@ import (
 	"strings"
 
 	"backend/api/menu/v1"
+	"backend/internal/dao"
+	"backend/internal/model"
 
+	"github.com/gogf/gf/v2/errors/gcode"
+	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
 )
 
@@ -36,6 +40,11 @@ func NewMenu() *sMenu {
 // IMenu defines the menu service interface.
 type IMenu interface {
 	All(ctx context.Context) (v1.MenuAllRes, error)
+	CreateMenu(ctx context.Context, in model.SysMenuCreateIn) (id uint, err error)
+	GetMenu(ctx context.Context, id uint) (out *model.SysMenuGetOut, err error)
+	UpdateMenu(ctx context.Context, in model.SysMenuUpdateIn) (err error)
+	DeleteMenu(ctx context.Context, id uint) (err error)
+	GetMenuList(ctx context.Context, in model.SysMenuGetListIn) (out *model.SysMenuGetListOut, err error)
 }
 
 type sMenu struct{}
@@ -47,6 +56,107 @@ func (s *sMenu) All(ctx context.Context) (v1.MenuAllRes, error) {
 		return filterMenuRoutes(defaultMenuList()), nil
 	}
 	return filterMenuRoutes(menus), nil
+}
+
+// CreateMenu creates a new menu.
+func (s *sMenu) CreateMenu(ctx context.Context, in model.SysMenuCreateIn) (id uint, err error) {
+	if err = g.Validator().Data(in).Run(ctx); err != nil {
+		return 0, err
+	}
+
+	result, err := dao.SysMenu.Ctx(ctx).Data(buildMenuCreateData(in)).Insert()
+	if err != nil {
+		return 0, err
+	}
+
+	lastInsertId, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	return uint(lastInsertId), nil
+}
+
+// GetMenu retrieves a menu by ID.
+func (s *sMenu) GetMenu(ctx context.Context, id uint) (out *model.SysMenuGetOut, err error) {
+	out = &model.SysMenuGetOut{}
+	err = dao.SysMenu.Ctx(ctx).Where(dao.SysMenu.Columns().Id, id).Scan(&out.SysMenu)
+	if err != nil {
+		return nil, err
+	}
+	if out.SysMenu == nil {
+		return nil, gerror.NewCodef(gcode.CodeNotFound, "Menu with ID %d not found", id)
+	}
+	return out, nil
+}
+
+// UpdateMenu updates an existing menu.
+func (s *sMenu) UpdateMenu(ctx context.Context, in model.SysMenuUpdateIn) (err error) {
+	if err = g.Validator().Data(in).Run(ctx); err != nil {
+		return err
+	}
+
+	_, err = dao.SysMenu.Ctx(ctx).Data(buildMenuUpdateData(in)).
+		Where(dao.SysMenu.Columns().Id, in.ID).Update()
+	return err
+}
+
+// DeleteMenu deletes a menu by ID.
+func (s *sMenu) DeleteMenu(ctx context.Context, id uint) (err error) {
+	_, err = dao.SysMenu.Ctx(ctx).Where(dao.SysMenu.Columns().Id, id).Delete()
+	return err
+}
+
+// GetMenuList retrieves menu list.
+func (s *sMenu) GetMenuList(ctx context.Context, in model.SysMenuGetListIn) (out *model.SysMenuGetListOut, err error) {
+	out = &model.SysMenuGetListOut{}
+	query := dao.SysMenu.Ctx(ctx).OmitEmpty()
+
+	if in.Name != "" {
+		query = query.WhereLike(dao.SysMenu.Columns().Name, "%"+in.Name+"%")
+	}
+	if in.Status != "" {
+		query = query.Where(dao.SysMenu.Columns().Status, in.Status)
+	}
+
+	out.Total, err = query.Count()
+	if err != nil {
+		return nil, err
+	}
+
+	err = query.Scan(&out.List)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func buildMenuCreateData(in model.SysMenuCreateIn) g.Map {
+	columns := dao.SysMenu.Columns()
+	return g.Map{
+		columns.Name:      in.Name,
+		columns.Path:      in.Path,
+		columns.Component: in.Component,
+		columns.Icon:      in.Icon,
+		columns.Type:      in.Type,
+		columns.ParentId:  in.ParentId,
+		columns.Status:    in.Status,
+		columns.Order:     in.Order,
+	}
+}
+
+func buildMenuUpdateData(in model.SysMenuUpdateIn) g.Map {
+	columns := dao.SysMenu.Columns()
+	return g.Map{
+		columns.Name:      in.Name,
+		columns.Path:      in.Path,
+		columns.Component: in.Component,
+		columns.Icon:      in.Icon,
+		columns.Type:      in.Type,
+		columns.ParentId:  in.ParentId,
+		columns.Status:    in.Status,
+		columns.Order:     in.Order,
+	}
 }
 
 func defaultMenuList() v1.MenuAllRes {
@@ -292,6 +402,7 @@ type menuRecord struct {
 }
 
 func fetchMenuFromDB(ctx context.Context) (v1.MenuAllRes, error) {
+
 	tenantID := resolveTenantID(ctx)
 	var records []menuRecord
 	err := g.DB().Ctx(ctx).Model("sys_menu").

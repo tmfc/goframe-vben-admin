@@ -21,34 +21,40 @@ type SysUserDao struct {
 
 // SysUserColumns defines and stores column names for the table sys_user.
 type SysUserColumns struct {
-	Id        string //
-	TenantId  string //
-	Username  string //
-	Password  string //
-	RealName  string //
-	Avatar    string //
-	HomePath  string //
-	Status    string //
-	Roles     string //
-	CreatedAt string //
-	UpdatedAt string //
-	DeletedAt string //
+	Id         string //
+	TenantId   string //
+	Username   string //
+	Password   string //
+	RealName   string //
+	Avatar     string //
+	HomePath   string //
+	Status     string //
+	Roles      string //
+	CreatedAt  string //
+	UpdatedAt  string //
+	DeletedAt  string //
+	CreatorId  string //
+	ModifierId string //
+	DeptId     string //
 }
 
 // sysUserColumns holds the columns for the table sys_user.
 var sysUserColumns = SysUserColumns{
-	Id:        "id",
-	TenantId:  "tenant_id",
-	Username:  "username",
-	Password:  "password",
-	RealName:  "real_name",
-	Avatar:    "avatar",
-	HomePath:  "home_path",
-	Status:    "status",
-	Roles:     "roles",
-	CreatedAt: "created_at",
-	UpdatedAt: "updated_at",
-	DeletedAt: "deleted_at",
+	Id:         "id",
+	TenantId:   "tenant_id",
+	Username:   "username",
+	Password:   "password",
+	RealName:   "real_name",
+	Avatar:     "avatar",
+	HomePath:   "home_path",
+	Status:     "status",
+	Roles:      "roles",
+	CreatedAt:  "created_at",
+	UpdatedAt:  "updated_at",
+	DeletedAt:  "deleted_at",
+	CreatorId:  "creator_id",
+	ModifierId: "modifier_id",
+	DeptId:     "dept_id",
 }
 
 // NewSysUserDao creates and returns a new DAO object for table data access.

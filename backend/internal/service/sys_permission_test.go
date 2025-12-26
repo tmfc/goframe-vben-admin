@@ -76,9 +76,9 @@ func TestSysPermission_GetPermission(t *testing.T) {
 
 	gtest.C(t, func(t *gtest.T) {
 		var (
-			err               error
-			getOut            *model.SysPermissionGetOut
-			getOutNotFound    *model.SysPermissionGetOut
+			err            error
+			getOut         *model.SysPermissionGetOut
+			getOutNotFound *model.SysPermissionGetOut
 		)
 		// Prepare data: Create a permission first
 		createIn := model.SysPermissionCreateIn{
@@ -234,5 +234,89 @@ func TestSysPermission_DeletePermission(t *testing.T) {
 		deleteInNotFound := model.SysPermissionDeleteIn{Id: 99999}
 		err = SysPermission().DeletePermission(ctx, deleteInNotFound)
 		t.AssertNE(err, nil)
+	})
+}
+
+func TestSysPermission_CreatePermissionWithParent(t *testing.T) {
+	testutil.RequireDatabase(t)
+
+	ctx := context.TODO()
+
+	// Cleanup function
+	t.Cleanup(func() {
+		dao.SysPermission.Ctx(ctx).Unscoped().WhereLike(dao.SysPermission.Columns().Name, "TestPermissionParent%").Delete()
+	})
+
+	gtest.C(t, func(t *gtest.T) {
+		var err error
+		// Create parent permission first
+		parentIn := model.SysPermissionCreateIn{
+			Name:        "TestPermissionParent",
+			Description: "Parent permission",
+			ParentId:    0,
+			Status:      1,
+			CreatorId:   1,
+			ModifierId:  1,
+			DeptId:      1,
+		}
+		parentID, err := SysPermission().CreatePermission(ctx, parentIn)
+		t.AssertNil(err)
+		t.AssertGT(parentID, uint(0))
+
+		// Create child permission with parent
+		childIn := model.SysPermissionCreateIn{
+			Name:        "TestPermissionChild",
+			Description: "Child permission",
+			ParentId:    parentID,
+			Status:      1,
+			CreatorId:   1,
+			ModifierId:  1,
+			DeptId:      1,
+		}
+		childID, err := SysPermission().CreatePermission(ctx, childIn)
+		t.AssertNil(err)
+		t.AssertGT(childID, uint(0))
+
+		// Verify child has correct parent
+		var child *entity.SysPermission
+		err = dao.SysPermission.Ctx(ctx).Where(dao.SysPermission.Columns().Id, childID).Scan(&child)
+		t.AssertNil(err)
+		t.Assert(child.ParentId, parentID)
+	})
+}
+
+func TestSysPermission_ListPermissions(t *testing.T) {
+	testutil.RequireDatabase(t)
+
+	ctx := context.TODO()
+
+	// Cleanup function
+	t.Cleanup(func() {
+		dao.SysPermission.Ctx(ctx).Unscoped().WhereLike(dao.SysPermission.Columns().Name, "TestPermissionList%").Delete()
+	})
+
+	gtest.C(t, func(t *gtest.T) {
+		var err error
+		// Create multiple permissions
+		for i := 1; i <= 3; i++ {
+			createIn := model.SysPermissionCreateIn{
+				Name:        "TestPermissionList" + string(rune('0'+i)),
+				Description: "Description " + string(rune('0'+i)),
+				ParentId:    0,
+				Status:      1,
+				CreatorId:   1,
+				ModifierId:  1,
+				DeptId:      1,
+			}
+			_, err = SysPermission().CreatePermission(ctx, createIn)
+			t.AssertNil(err)
+		}
+
+		// List permissions
+		permissions, err := dao.SysPermission.Ctx(ctx).
+			WhereLike(dao.SysPermission.Columns().Name, "TestPermissionList%").
+			All()
+		t.AssertNil(err)
+		t.AssertGE(len(permissions), 3)
 	})
 }

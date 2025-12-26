@@ -10,7 +10,10 @@ import (
 	"backend/api/menu/v1"
 )
 
-// IMenuV1 defines the menu controller interface.
 type IMenuV1 interface {
-	All(ctx context.Context, req *v1.MenuAllReq) (res v1.MenuAllRes, err error)
+	CreateMenu(ctx context.Context, req *v1.CreateMenuReq) (res *v1.CreateMenuRes, err error)
+	GetMenu(ctx context.Context, req *v1.GetMenuReq) (res *v1.GetMenuRes, err error)
+	UpdateMenu(ctx context.Context, req *v1.UpdateMenuReq) (res *v1.UpdateMenuRes, err error)
+	DeleteMenu(ctx context.Context, req *v1.DeleteMenuReq) (res *v1.DeleteMenuRes, err error)
+	GetMenuList(ctx context.Context, req *v1.GetMenuListReq) (res *v1.GetMenuListRes, err error)
 }

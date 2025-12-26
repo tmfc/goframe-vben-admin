@@ -10,7 +10,6 @@ import (
 	"backend/internal/testutil"
 
 	_ "github.com/gogf/gf/contrib/drivers/pgsql/v2"
-
 	"github.com/gogf/gf/v2/test/gtest"
 )
 
@@ -237,6 +236,179 @@ func TestSysRole_DeleteRole(t *testing.T) {
 		// Test case 2: Delete non-existent role
 		deleteInNotFound := model.SysRoleDeleteIn{Id: 99999}
 		err = SysRole().DeleteRole(ctx, deleteInNotFound)
+		t.AssertNE(err, nil)
+	})
+}
+
+func TestSysRole_CreateRoleWithParent(t *testing.T) {
+	testutil.RequireDatabase(t)
+
+	ctx := context.TODO()
+
+	// Cleanup function
+	t.Cleanup(func() {
+		dao.SysRole.Ctx(ctx).Unscoped().WhereLike(dao.SysRole.Columns().Name, "TestRoleParent%").Delete()
+	})
+
+	gtest.C(t, func(t *gtest.T) {
+		var err error
+		// Create parent role first
+		parentIn := model.SysRoleCreateIn{
+			Name:        "TestRoleParent",
+			Description: "Parent role",
+			ParentId:    0,
+			Status:      1,
+			CreatorId:   1,
+			ModifierId:  1,
+			DeptId:      1,
+		}
+		parentID, err := SysRole().CreateRole(ctx, parentIn)
+		t.AssertNil(err)
+		t.AssertGT(parentID, uint(0))
+
+		// Create child role with parent
+		childIn := model.SysRoleCreateIn{
+			Name:        "TestRoleChild",
+			Description: "Child role",
+			ParentId:    parentID,
+			Status:      1,
+			CreatorId:   1,
+			ModifierId:  1,
+			DeptId:      1,
+		}
+		childID, err := SysRole().CreateRole(ctx, childIn)
+		t.AssertNil(err)
+		t.AssertGT(childID, uint(0))
+
+		// Verify child has correct parent
+		var child *entity.SysRole
+		err = dao.SysRole.Ctx(ctx).Where(dao.SysRole.Columns().Id, childID).Scan(&child)
+		t.AssertNil(err)
+		t.Assert(child.ParentId, parentID)
+	})
+}
+
+func TestSysRole_UpdateRoleWithInvalidParent(t *testing.T) {
+	testutil.RequireDatabase(t)
+
+	ctx := context.TODO()
+
+	// Cleanup function
+	t.Cleanup(func() {
+		dao.SysRole.Ctx(ctx).Unscoped().WhereLike(dao.SysRole.Columns().Name, "TestRoleInvalidParent%").Delete()
+	})
+
+	gtest.C(t, func(t *gtest.T) {
+		var err error
+		// Create a role first
+		createIn := model.SysRoleCreateIn{
+			Name:        "TestRoleInvalidParent",
+			Description: "Role for testing invalid parent",
+			ParentId:    0,
+			Status:      1,
+			CreatorId:   1,
+			ModifierId:  1,
+			DeptId:      1,
+		}
+		roleID, err := SysRole().CreateRole(ctx, createIn)
+		t.AssertNil(err)
+
+		// Try to update with non-existent parent
+		updateIn := model.SysRoleUpdateIn{
+			Id:          roleID,
+			Name:        "TestRoleInvalidParent",
+			Description: "Updated description",
+			ParentId:    99999, // Non-existent parent
+			Status:      1,
+			ModifierId:  1,
+			DeptId:      1,
+		}
+		err = SysRole().UpdateRole(ctx, updateIn)
+		t.AssertNE(err, nil)
+	})
+}
+
+func TestSysRole_DeleteRoleWithChildren(t *testing.T) {
+	testutil.RequireDatabase(t)
+
+	ctx := context.TODO()
+
+	// Cleanup function
+	t.Cleanup(func() {
+		dao.SysRole.Ctx(ctx).Unscoped().WhereLike(dao.SysRole.Columns().Name, "TestRoleDeleteWithChild%").Delete()
+	})
+
+	gtest.C(t, func(t *gtest.T) {
+		var err error
+		// Create parent role
+		parentIn := model.SysRoleCreateIn{
+			Name:        "TestRoleDeleteWithChild",
+			Description: "Parent role",
+			ParentId:    0,
+			Status:      1,
+			CreatorId:   1,
+			ModifierId:  1,
+			DeptId:      1,
+		}
+		parentID, err := SysRole().CreateRole(ctx, parentIn)
+		t.AssertNil(err)
+
+		// Create child role
+		childIn := model.SysRoleCreateIn{
+			Name:        "TestRoleDeleteWithChildChild",
+			Description: "Child role",
+			ParentId:    parentID,
+			Status:      1,
+			CreatorId:   1,
+			ModifierId:  1,
+			DeptId:      1,
+		}
+		_, err = SysRole().CreateRole(ctx, childIn)
+		t.AssertNil(err)
+
+		// Try to delete parent role (should fail due to child roles)
+		deleteIn := model.SysRoleDeleteIn{Id: parentID}
+		err = SysRole().DeleteRole(ctx, deleteIn)
+		t.AssertNE(err, nil)
+	})
+}
+
+func TestSysRole_UpdateRoleWithSelfParent(t *testing.T) {
+	testutil.RequireDatabase(t)
+
+	ctx := context.TODO()
+
+	// Cleanup function
+	t.Cleanup(func() {
+		dao.SysRole.Ctx(ctx).Unscoped().WhereLike(dao.SysRole.Columns().Name, "TestRoleSelfParent%").Delete()
+	})
+
+	gtest.C(t, func(t *gtest.T) {
+		var err error
+		// Create a role first
+		createIn := model.SysRoleCreateIn{
+			Name:        "TestRoleSelfParent",
+			Description: "Role for testing self parent",
+			ParentId:    0,
+			Status:      1,
+			CreatorId:   1,
+			ModifierId:  1,
+			DeptId:      1,
+		}
+		roleID, err := SysRole().CreateRole(ctx, createIn)
+		t.AssertNil(err)
+
+		// Try to update with itself as parent
+		updateIn := model.SysRoleUpdateIn{
+			Id:          roleID,
+			Name:        "TestRoleSelfParent",
+			Description: "Updated description",
+			ParentId:    roleID, // Self as parent
+			Status:      1,
+			ModifierId:  1,
+			DeptId:      1,
+		}
+		err = SysRole().UpdateRole(ctx, updateIn)
 		t.AssertNE(err, nil)
 	})
 }
