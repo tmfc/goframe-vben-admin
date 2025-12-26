@@ -35,11 +35,11 @@
     - [x] Sub-task: Implement `UpdateRole` function.
     - [x] Sub-task: Implement `DeleteRole` function.
 - [x] Task: Implement `sys_permission` service (c2eaa73)
-    - [ ] Sub-task: Write tests for `sys_permission` service.
-    - [ ] Sub-task: Implement `CreatePermission` function.
-    - [ ] Sub-task: Implement `GetPermission` function.
-    - [ ] Sub-task: Implement `UpdatePermission` function.
-    - [ ] Sub-task: Implement `DeletePermission` function.
+    - [x] Sub-task: Write tests for `sys_permission` service.
+    - [x] Sub-task: Implement `CreatePermission` function.
+    - [x] Sub-task: Implement `GetPermission` function.
+    - [x] Sub-task: Implement `UpdatePermission` function.
+    - [x] Sub-task: Implement `DeletePermission` function.
 - [ ] Task: Implement `sys_role` API
     - [ ] Sub-task: Write tests for `sys_role` API.
     - [ ] Sub-task: Implement `CreateRole` API endpoint.
