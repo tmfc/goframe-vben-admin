@@ -3,6 +3,7 @@
 ## Backend
 - **Language:** Go
 - **Framework:** GoFrame
+- **Authorization:** Casbin
 - **Database:** PostgreSQL
 
 ## Frontend
