@@ -64,7 +64,7 @@ func TestMenu_All_SystemMenuStructure(t *testing.T) {
 			systemMenuChild := findMenuByPath(systemMenu.Children, "/system/menu")
 			if systemMenuChild != nil {
 				t.Assert(systemMenuChild.Name, "SystemMenu")
-				t.Assert(systemMenuChild.Component, "/system/menu/list")
+				t.Assert(systemMenuChild.Component, "/sys/menu/index")
 			}
 
 			// Verify System Dept child exists
