@@ -1,14 +1,14 @@
 package middleware
 
 import (
+	"context"
 	"strings"
 
 	"backend/internal/consts"
-	"backend/internal/dao"
-	"backend/internal/model/entity"
 	"backend/internal/service"
 
 	"github.com/gogf/gf/v2/errors/gerror"
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 )
 
@@ -31,73 +31,109 @@ func CasbinAuthz() ghttp.HandlerFunc {
 
 		token, err := service.ResolveAccessToken(r.Context(), "")
 		if err != nil {
-			r.SetError(err)
-			r.Exit()
+			writeAuthError(r, err, authLogContext{path: r.URL.Path, method: r.Method})
 			return
 		}
 		claims, err := service.ParseAccessToken(token)
 		if err != nil {
-			r.SetError(err)
-			r.Exit()
+			writeAuthError(r, err, authLogContext{path: r.URL.Path, method: r.Method})
 			return
 		}
 
 		userID, _ := claims["id"].(string)
 		if userID == "" {
-			r.SetError(gerror.NewCode(consts.ErrorCodeUnauthorized, "invalid token subject"))
-			r.Exit()
+			writeAuthError(r, gerror.NewCode(consts.ErrorCodeUnauthorized, "invalid token subject"), authLogContext{path: r.URL.Path, method: r.Method})
 			return
 		}
 
-		var user entity.SysUser
-		if err := dao.SysUser.Ctx(r.Context()).Where(dao.SysUser.Columns().Id, userID).Scan(&user); err != nil {
-			r.SetError(err)
-			r.Exit()
-			return
-		}
-		if user.Id == "" {
-			r.SetError(gerror.NewCode(consts.ErrorCodeUserNotFound, "user not found"))
-			r.Exit()
-			return
-		}
-
-		roles := service.ParseRoles(user.Roles)
-		if len(roles) == 0 {
-			roles = []string{consts.DefaultRole()}
-		}
-
-		tenantID := user.TenantId
-		if claimTenant, ok := claims["tenantId"].(string); ok && strings.TrimSpace(claimTenant) != "" {
-			tenantID = claimTenant
-		}
-		domain := service.NormalizeDomain(tenantID)
-		obj := r.URL.Path
-		act := strings.ToLower(r.Method)
-
-		enforcer, err := service.Casbin(r.Context())
+		tenantID, _ := claims["tenantId"].(string)
+		err = authorizeCasbin(r.Context(), authRequest{
+			userID:   userID,
+			tenantID: tenantID,
+			path:     r.URL.Path,
+			method:   r.Method,
+		})
 		if err != nil {
-			r.SetError(err)
-			r.Exit()
+			writeAuthError(r, err, authLogContext{
+				userID: userID,
+				tenant: tenantID,
+				path:   r.URL.Path,
+				method: r.Method,
+			})
 			return
 		}
-
-		for _, role := range roles {
-			if strings.TrimSpace(role) == "" {
-				continue
-			}
-			allowed, err := enforcer.Enforce(role, domain, obj, act)
-			if err != nil {
-				r.SetError(err)
-				r.Exit()
-				return
-			}
-			if allowed {
-				r.Middleware.Next()
-				return
-			}
-		}
-
-		r.SetError(gerror.NewCode(consts.ErrorCodeUnauthorized, "permission denied"))
-		r.Exit()
+		r.Middleware.Next()
 	}
+}
+
+type authRequest struct {
+	userID   string
+	tenantID string
+	path     string
+	method   string
+}
+
+type authLogContext struct {
+	userID string
+	tenant string
+	path   string
+	method string
+}
+
+func authorizeCasbin(ctx context.Context, req authRequest) error {
+	if strings.TrimSpace(req.userID) == "" {
+		return gerror.NewCode(consts.ErrorCodeUnauthorized, "invalid token subject")
+	}
+	entry, err := loadCachedUser(ctx, req.userID)
+	if err != nil {
+		return err
+	}
+
+	tenantID := entry.user.TenantId
+	if strings.TrimSpace(req.tenantID) != "" {
+		tenantID = req.tenantID
+	}
+	domain := service.NormalizeDomain(tenantID)
+	obj := req.path
+	act := strings.ToLower(req.method)
+
+	enforcer, err := service.Casbin(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, role := range entry.roles {
+		role = strings.TrimSpace(role)
+		if role == "" {
+			continue
+		}
+		allowed, err := enforcer.Enforce(role, domain, obj, act)
+		if err != nil {
+			return err
+		}
+		if allowed {
+			return nil
+		}
+	}
+
+	return gerror.NewCode(consts.ErrorCodeUnauthorized, "permission denied")
+}
+
+func writeAuthError(r *ghttp.Request, err error, ctxInfo authLogContext) {
+	logAuthError(r.Context(), err, ctxInfo)
+	r.SetError(err)
+	r.Exit()
+}
+
+func logAuthError(ctx context.Context, err error, ctxInfo authLogContext) {
+	code := gerror.Code(err)
+	if code == nil {
+		g.Log().Errorf(ctx, "casbin authz failed user=%s tenant=%s path=%s method=%s err=%v", ctxInfo.userID, ctxInfo.tenant, ctxInfo.path, ctxInfo.method, err)
+		return
+	}
+	if code == consts.ErrorCodeUnauthorized || code == consts.ErrorCodeUserNotFound {
+		g.Log().Warningf(ctx, "casbin authz denied user=%s tenant=%s path=%s method=%s err=%v", ctxInfo.userID, ctxInfo.tenant, ctxInfo.path, ctxInfo.method, err)
+		return
+	}
+	g.Log().Errorf(ctx, "casbin authz error user=%s tenant=%s path=%s method=%s err=%v", ctxInfo.userID, ctxInfo.tenant, ctxInfo.path, ctxInfo.method, err)
 }

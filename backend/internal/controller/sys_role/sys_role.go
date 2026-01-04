@@ -3,3 +3,123 @@
 // =================================================================================
 
 package sys_role
+
+import (
+	"context"
+
+	"backend/api/sys_role/v1"
+	"backend/internal/model"
+	"backend/internal/service"
+
+	"github.com/gogf/gf/v2/errors/gcode"
+	"github.com/gogf/gf/v2/errors/gerror"
+)
+
+func (c *ControllerV1) AssignUsersToRole(ctx context.Context, req *v1.AssignUsersToRoleReq) (res *v1.AssignUsersToRoleRes, err error) {
+	if req == nil {
+		req = &v1.AssignUsersToRoleReq{}
+	}
+	if len(req.UserIds) == 0 {
+		return nil, gerror.NewCode(gcode.CodeValidationFailed, "用户ID列表不能为空")
+	}
+	count := 0
+	for _, userID := range req.UserIds {
+		_, err = service.SysRole().AssignRoleToUser(ctx, model.AssignRoleToUserIn{
+			UserId:    userID,
+			RoleId:    req.ID,
+			CreatedBy: req.CreatedBy,
+		})
+		if err != nil {
+			return nil, err
+		}
+		count++
+	}
+	res = &v1.AssignUsersToRoleRes{Success: true, Count: count}
+	return
+}
+
+func (c *ControllerV1) RemoveUsersFromRole(ctx context.Context, req *v1.RemoveUsersFromRoleReq) (res *v1.RemoveUsersFromRoleRes, err error) {
+	if req == nil {
+		req = &v1.RemoveUsersFromRoleReq{}
+	}
+	if len(req.UserIds) == 0 {
+		return nil, gerror.NewCode(gcode.CodeValidationFailed, "用户ID列表不能为空")
+	}
+	count := 0
+	for _, userID := range req.UserIds {
+		_, err = service.SysRole().RemoveRoleFromUser(ctx, model.RemoveRoleFromUserIn{
+			UserId: userID,
+			RoleId: req.ID,
+		})
+		if err != nil {
+			return nil, err
+		}
+		count++
+	}
+	res = &v1.RemoveUsersFromRoleRes{Success: true, Count: count}
+	return
+}
+
+func (c *ControllerV1) GetRoleUsers(ctx context.Context, req *v1.GetRoleUsersReq) (res *v1.GetRoleUsersRes, err error) {
+	if req == nil {
+		req = &v1.GetRoleUsersReq{}
+	}
+	out, err := service.SysRole().GetUsersByRole(ctx, model.GetUsersByRoleIn{RoleId: req.ID})
+	if err != nil {
+		return nil, err
+	}
+	res = &v1.GetRoleUsersRes{GetUsersByRoleOut: out}
+	return
+}
+
+func (c *ControllerV1) AssignPermissionsToRole(ctx context.Context, req *v1.AssignPermissionsToRoleReq) (res *v1.AssignPermissionsToRoleRes, err error) {
+	if req == nil {
+		req = &v1.AssignPermissionsToRoleReq{}
+	}
+	if len(req.PermissionIds) == 0 {
+		return nil, gerror.NewCode(gcode.CodeValidationFailed, "权限ID列表不能为空")
+	}
+	err = service.SysRole().AssignPermissionsToRole(ctx, model.SysRolePermissionsIn{
+		RoleID:        req.ID,
+		PermissionIDs: req.PermissionIds,
+	})
+	if err != nil {
+		return nil, err
+	}
+	res = &v1.AssignPermissionsToRoleRes{Success: true}
+	return
+}
+
+func (c *ControllerV1) RemovePermissionsFromRole(ctx context.Context, req *v1.RemovePermissionsFromRoleReq) (res *v1.RemovePermissionsFromRoleRes, err error) {
+	if req == nil {
+		req = &v1.RemovePermissionsFromRoleReq{}
+	}
+	if len(req.PermissionIds) == 0 {
+		return nil, gerror.NewCode(gcode.CodeValidationFailed, "权限ID列表不能为空")
+	}
+	count := 0
+	for _, permissionID := range req.PermissionIds {
+		err = service.SysRole().RemovePermissionFromRole(ctx, model.SysRolePermissionIn{
+			RoleID:       req.ID,
+			PermissionID: permissionID,
+		})
+		if err != nil {
+			return nil, err
+		}
+		count++
+	}
+	res = &v1.RemovePermissionsFromRoleRes{Success: true, Count: count}
+	return
+}
+
+func (c *ControllerV1) GetRolePermissions(ctx context.Context, req *v1.GetRolePermissionsReq) (res *v1.GetRolePermissionsRes, err error) {
+	if req == nil {
+		req = &v1.GetRolePermissionsReq{}
+	}
+	out, err := service.SysRole().GetRolePermissions(ctx, model.SysRoleGetIn{Id: req.ID})
+	if err != nil {
+		return nil, err
+	}
+	res = &v1.GetRolePermissionsRes{SysRolePermissionOut: out}
+	return
+}
