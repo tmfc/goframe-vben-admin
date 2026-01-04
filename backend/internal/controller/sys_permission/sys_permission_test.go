@@ -7,6 +7,7 @@ import (
 	"backend/api/sys_permission/v1"
 	"backend/internal/dao"
 	"backend/internal/model"
+	"backend/internal/service"
 
 	"backend/internal/testutil"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/gogf/gf/v2/errors/gcode"
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/test/gtest"
+	"github.com/gogf/gf/v2/util/gconv"
 )
 
 func TestSysPermissionController_CreatePermission(t *testing.T) {
@@ -255,5 +257,65 @@ func TestSysPermissionController_DeletePermission(t *testing.T) {
 		t.AssertNil(res)
 		t.AssertNE(err, nil)
 		t.Assert(gerror.Code(err), gcode.CodeNotFound)
+	})
+}
+
+func TestSysPermissionController_GetPermissionsByUser(t *testing.T) {
+	testutil.RequireDatabase(t)
+
+	ctx := context.TODO()
+
+	t.Cleanup(func() {
+		dao.SysUser.Ctx(ctx).Unscoped().WhereLike(dao.SysUser.Columns().Username, "testuserperm%").Delete()
+		dao.SysRole.Ctx(ctx).Unscoped().WhereLike(dao.SysRole.Columns().Name, "TestPermByUser%").Delete()
+		dao.SysPermission.Ctx(ctx).Unscoped().WhereLike(dao.SysPermission.Columns().Name, "TestPermByUser%").Delete()
+		dao.SysRolePermission.Ctx(ctx).Unscoped().Where("1=1").Delete()
+		dao.CasbinRule.Ctx(ctx).Unscoped().Where("1=1").Delete()
+	})
+
+	ctrl := NewV1()
+
+	gtest.C(t, func(t *gtest.T) {
+		userID, err := service.User().Create(ctx, model.UserCreateIn{
+			Username: "testuserperm1",
+			Password: "password",
+		})
+		t.AssertNil(err)
+
+		role1ID, err := service.SysRole().CreateRole(ctx, model.SysRoleCreateIn{Name: "TestPermByUserRole1"})
+		t.AssertNil(err)
+		role2ID, err := service.SysRole().CreateRole(ctx, model.SysRoleCreateIn{Name: "TestPermByUserRole2"})
+		t.AssertNil(err)
+
+		perm1ID, err := service.SysPermission().CreatePermission(ctx, model.SysPermissionCreateIn{Name: "TestPermByUser1"})
+		t.AssertNil(err)
+		perm2ID, err := service.SysPermission().CreatePermission(ctx, model.SysPermissionCreateIn{Name: "TestPermByUser2"})
+		t.AssertNil(err)
+
+		err = service.SysRole().AssignPermissionToRole(ctx, model.SysRolePermissionIn{RoleID: role1ID, PermissionID: perm1ID})
+		t.AssertNil(err)
+		err = service.SysRole().AssignPermissionToRole(ctx, model.SysRolePermissionIn{RoleID: role2ID, PermissionID: perm2ID})
+		t.AssertNil(err)
+
+		enforcer, err := service.Casbin(ctx)
+		t.AssertNil(err)
+		_, err = enforcer.AddGroupingPolicy("u_"+userID, gconv.String(role1ID), "00000000-0000-0000-0000-000000000000")
+		t.AssertNil(err)
+		_, err = enforcer.AddGroupingPolicy("u_"+userID, gconv.String(role2ID), "00000000-0000-0000-0000-000000000000")
+		t.AssertNil(err)
+
+		permsRes, err := ctrl.GetPermissionsByUser(ctx, &v1.GetPermissionsByUserReq{UserID: userID})
+		t.AssertNil(err)
+		t.Assert(len(permsRes.PermissionIDs), 2)
+
+		user2ID, err := service.User().Create(ctx, model.UserCreateIn{
+			Username: "testuserperm2",
+			Password: "password",
+		})
+		t.AssertNil(err)
+
+		permsRes2, err := ctrl.GetPermissionsByUser(ctx, &v1.GetPermissionsByUserReq{UserID: user2ID})
+		t.AssertNil(err)
+		t.Assert(len(permsRes2.PermissionIDs), 0)
 	})
 }

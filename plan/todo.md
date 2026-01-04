@@ -31,24 +31,24 @@
 - [ ] 为 Casbin 同步功能编写单元测试
 
 ## Agent 4: API Controller 增强
-- [ ] 增强 `sys_role` controller
-  - [ ] `POST /role/:id/assign-users` - 分配用户到角色
-  - [ ] `POST /role/:id/remove-users` - 从角色移除用户
-  - [ ] `GET /role/:id/users` - 获取角色下的用户列表
-  - [ ] `POST /role/:id/assign-permissions` - 分配权限到角色
-  - [ ] `POST /role/:id/remove-permissions` - 从角色移除权限
-  - [ ] `GET /role/:id/permissions` - 获取角色的权限列表
-- [ ] 增强 `sys_permission` controller
-  - [ ] `GET /permission/by-user/:userId` - 获取用户的所有权限
-- [ ] 为新增的 API 端点编写单元测试
+- [x] 增强 `sys_role` controller
+  - [x] `POST /role/:id/assign-users` - 分配用户到角色
+  - [x] `POST /role/:id/remove-users` - 从角色移除用户
+  - [x] `GET /role/:id/users` - 获取角色下的用户列表
+  - [x] `POST /role/:id/assign-permissions` - 分配权限到角色
+  - [x] `POST /role/:id/remove-permissions` - 从角色移除权限
+  - [x] `GET /role/:id/permissions` - 获取角色的权限列表
+- [x] 增强 `sys_permission` controller
+  - [x] `GET /permission/by-user/:userId` - 获取用户的所有权限
+- [x] 为新增的 API 端点编写单元测试
 
 ## Agent 5: 中间件优化和测试
-- [ ] 优化 Casbin 认证中间件
-  - [ ] 添加缓存机制减少数据库查询
-  - [ ] 改进错误处理和日志记录
-- [ ] 创建中间件测试用例
-- [ ] 测试不同角色和权限组合的授权场景
-- [ ] 测试跨租户隔离是否正常工作
+- [x] 优化 Casbin 认证中间件
+  - [x] 添加缓存机制减少数据库查询
+  - [x] 改进错误处理和日志记录
+- [x] 创建中间件测试用例
+- [x] 测试不同角色和权限组合的授权场景
+- [x] 测试跨租户隔离是否正常工作
 
 ## Agent 6: 集成测试和文档
 - [ ] 编写端到端集成测试

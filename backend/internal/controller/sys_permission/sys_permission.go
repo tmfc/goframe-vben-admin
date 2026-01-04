@@ -3,3 +3,23 @@
 // =================================================================================
 
 package sys_permission
+
+import (
+	"context"
+
+	"backend/api/sys_permission/v1"
+	"backend/internal/model"
+	"backend/internal/service"
+)
+
+func (c *ControllerV1) GetPermissionsByUser(ctx context.Context, req *v1.GetPermissionsByUserReq) (res *v1.GetPermissionsByUserRes, err error) {
+	if req == nil {
+		req = &v1.GetPermissionsByUserReq{}
+	}
+	out, err := service.SysRole().GetPermissionsByUser(ctx, model.UserPermissionsIn{UserID: req.UserID})
+	if err != nil {
+		return nil, err
+	}
+	res = &v1.GetPermissionsByUserRes{UserPermissionsOut: out}
+	return
+}

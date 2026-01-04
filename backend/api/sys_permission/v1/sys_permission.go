@@ -1,8 +1,8 @@
 package v1
 
 import (
-	"github.com/gogf/gf/v2/frame/g"
 	"backend/internal/model"
+	"github.com/gogf/gf/v2/frame/g"
 )
 
 // CreatePermissionReq defines the request structure for creating a new permission.
@@ -45,3 +45,14 @@ type DeletePermissionReq struct {
 
 // DeletePermissionRes defines the response structure for deleting a permission.
 type DeletePermissionRes struct{}
+
+// GetPermissionsByUserReq defines the request structure for retrieving permissions of a user.
+type GetPermissionsByUserReq struct {
+	g.Meta `path:"/sys-permission/by-user/{userId}" method:"get" summary:"Get permissions by user" tags:"System Permission"`
+	UserID string `json:"userId" v:"required#用户ID不能为空"`
+}
+
+// GetPermissionsByUserRes defines the response structure for retrieving permissions of a user.
+type GetPermissionsByUserRes struct {
+	*model.UserPermissionsOut
+}
