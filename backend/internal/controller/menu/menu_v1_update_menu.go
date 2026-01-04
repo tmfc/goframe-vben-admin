@@ -9,6 +9,10 @@ import (
 )
 
 func (c *ControllerV1) UpdateMenu(ctx context.Context, req *v1.UpdateMenuReq) (res *v1.UpdateMenuRes, err error) {
-	err = service.Menu().UpdateMenu(ctx, req.SysMenuUpdateIn)
-	return nil, err
+	res = &v1.UpdateMenuRes{}
+	req.SysMenuUpdateIn.ID = req.ID
+	if err = service.Menu().UpdateMenu(ctx, req.SysMenuUpdateIn); err != nil {
+		return nil, err
+	}
+	return res, nil
 }

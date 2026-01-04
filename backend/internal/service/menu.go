@@ -3,11 +3,11 @@ package service
 import (
 	"context"
 	"encoding/json"
-	"strings"
 
 	"backend/api/menu/v1"
 	"backend/internal/dao"
 	"backend/internal/model"
+	"backend/internal/model/entity"
 
 	"github.com/gogf/gf/v2/errors/gcode"
 	"github.com/gogf/gf/v2/errors/gerror"
@@ -40,10 +40,10 @@ func NewMenu() *sMenu {
 // IMenu defines the menu service interface.
 type IMenu interface {
 	All(ctx context.Context) (v1.MenuAllRes, error)
-	CreateMenu(ctx context.Context, in model.SysMenuCreateIn) (id uint, err error)
-	GetMenu(ctx context.Context, id uint) (out *model.SysMenuGetOut, err error)
+	CreateMenu(ctx context.Context, in model.SysMenuCreateIn) (id string, err error)
+	GetMenu(ctx context.Context, id string) (out *model.SysMenuGetOut, err error)
 	UpdateMenu(ctx context.Context, in model.SysMenuUpdateIn) (err error)
-	DeleteMenu(ctx context.Context, id uint) (err error)
+	DeleteMenu(ctx context.Context, id string) (err error)
 	GetMenuList(ctx context.Context, in model.SysMenuGetListIn) (out *model.SysMenuGetListOut, err error)
 }
 
@@ -59,33 +59,50 @@ func (s *sMenu) All(ctx context.Context) (v1.MenuAllRes, error) {
 }
 
 // CreateMenu creates a new menu.
-func (s *sMenu) CreateMenu(ctx context.Context, in model.SysMenuCreateIn) (id uint, err error) {
+func (s *sMenu) CreateMenu(ctx context.Context, in model.SysMenuCreateIn) (id string, err error) {
 	if err = g.Validator().Data(in).Run(ctx); err != nil {
-		return 0, err
+		return "", err
 	}
 
-	result, err := dao.SysMenu.Ctx(ctx).Data(buildMenuCreateData(in)).Insert()
+	tenantID := resolveTenantID(ctx)
+	parentId := in.ParentId
+	if parentId == "0" {
+		parentId = ""
+	}
+
+	insertData := buildMenuCreateData(in, parentId)
+	insertData[dao.SysMenu.Columns().TenantId] = tenantID
+	_, err = dao.SysMenu.Ctx(ctx).Data(insertData).Insert()
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 
-	lastInsertId, err := result.LastInsertId()
-	if err != nil {
-		return 0, err
+	var insertedMenu entity.SysMenu
+	query := dao.SysMenu.Ctx(ctx).
+		Where(dao.SysMenu.Columns().TenantId, tenantID).
+		Where(dao.SysMenu.Columns().Name, in.Name).
+		OrderDesc(dao.SysMenu.Columns().CreatedAt).
+		Limit(1)
+	if parentId != "" {
+		query = query.Where(dao.SysMenu.Columns().ParentId, parentId)
+	} else {
+		query = query.WhereNull(dao.SysMenu.Columns().ParentId)
 	}
-
-	return uint(lastInsertId), nil
+	if err = query.Scan(&insertedMenu); err != nil {
+		return "", err
+	}
+	return insertedMenu.Id, nil
 }
 
 // GetMenu retrieves a menu by ID.
-func (s *sMenu) GetMenu(ctx context.Context, id uint) (out *model.SysMenuGetOut, err error) {
+func (s *sMenu) GetMenu(ctx context.Context, id string) (out *model.SysMenuGetOut, err error) {
 	out = &model.SysMenuGetOut{}
 	err = dao.SysMenu.Ctx(ctx).Where(dao.SysMenu.Columns().Id, id).Scan(&out.SysMenu)
 	if err != nil {
 		return nil, err
 	}
 	if out.SysMenu == nil {
-		return nil, gerror.NewCodef(gcode.CodeNotFound, "Menu with ID %d not found", id)
+		return nil, gerror.NewCodef(gcode.CodeNotFound, "Menu with ID %s not found", id)
 	}
 	return out, nil
 }
@@ -96,13 +113,18 @@ func (s *sMenu) UpdateMenu(ctx context.Context, in model.SysMenuUpdateIn) (err e
 		return err
 	}
 
-	_, err = dao.SysMenu.Ctx(ctx).Data(buildMenuUpdateData(in)).
+	parentId := in.ParentId
+	if parentId == "0" {
+		parentId = ""
+	}
+
+	_, err = dao.SysMenu.Ctx(ctx).Data(buildMenuUpdateData(in, parentId)).
 		Where(dao.SysMenu.Columns().Id, in.ID).Update()
 	return err
 }
 
 // DeleteMenu deletes a menu by ID.
-func (s *sMenu) DeleteMenu(ctx context.Context, id uint) (err error) {
+func (s *sMenu) DeleteMenu(ctx context.Context, id string) (err error) {
 	_, err = dao.SysMenu.Ctx(ctx).Where(dao.SysMenu.Columns().Id, id).Delete()
 	return err
 }
@@ -131,32 +153,38 @@ func (s *sMenu) GetMenuList(ctx context.Context, in model.SysMenuGetListIn) (out
 	return out, nil
 }
 
-func buildMenuCreateData(in model.SysMenuCreateIn) g.Map {
+func buildMenuCreateData(in model.SysMenuCreateIn, parentId string) g.Map {
 	columns := dao.SysMenu.Columns()
-	return g.Map{
+	data := g.Map{
 		columns.Name:      in.Name,
 		columns.Path:      in.Path,
 		columns.Component: in.Component,
 		columns.Icon:      in.Icon,
 		columns.Type:      in.Type,
-		columns.ParentId:  in.ParentId,
 		columns.Status:    in.Status,
 		columns.Order:     in.Order,
 	}
+	if parentId != "" {
+		data[columns.ParentId] = parentId
+	}
+	return data
 }
 
-func buildMenuUpdateData(in model.SysMenuUpdateIn) g.Map {
+func buildMenuUpdateData(in model.SysMenuUpdateIn, parentId string) g.Map {
 	columns := dao.SysMenu.Columns()
-	return g.Map{
+	data := g.Map{
 		columns.Name:      in.Name,
 		columns.Path:      in.Path,
 		columns.Component: in.Component,
 		columns.Icon:      in.Icon,
 		columns.Type:      in.Type,
-		columns.ParentId:  in.ParentId,
 		columns.Status:    in.Status,
 		columns.Order:     in.Order,
 	}
+	if parentId != "" {
+		data[columns.ParentId] = parentId
+	}
+	return data
 }
 
 func defaultMenuList() v1.MenuAllRes {
@@ -464,21 +492,4 @@ func fetchMenuFromDB(ctx context.Context) (v1.MenuAllRes, error) {
 	}
 
 	return roots, nil
-}
-
-func resolveTenantID(ctx context.Context) string {
-	const defaultTenantID = "00000000-0000-0000-0000-000000000000"
-	token, err := resolveAccessToken(ctx, "")
-	if err != nil {
-		return defaultTenantID
-	}
-	claims, err := parseToken(token)
-	if err != nil {
-		return defaultTenantID
-	}
-	tenantID, _ := claims["tenantId"].(string)
-	if strings.TrimSpace(tenantID) == "" {
-		return defaultTenantID
-	}
-	return tenantID
 }

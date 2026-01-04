@@ -11,7 +11,7 @@ type SysMenuCreateIn struct {
 	Component string `json:"component"`
 	Icon      string `json:"icon"`
 	Type      string `json:"type" v:"required#类型不能为空"`
-	ParentId  uint   `json:"parentId"`
+	ParentId  string `json:"parentId"`
 	Status    int    `json:"status"`
 	Order     int    `json:"order"`
 }
@@ -23,13 +23,13 @@ type SysMenuGetOut struct {
 
 // SysMenuUpdateIn is the input for updating a menu.
 type SysMenuUpdateIn struct {
-	ID        uint   `json:"id" v:"required#ID不能为空"`
+	ID        string `json:"id" v:"required#ID不能为空"`
 	Name      string `json:"name" v:"required#名称不能为空"`
 	Path      string `json:"path"`
 	Component string `json:"component"`
 	Icon      string `json:"icon"`
 	Type      string `json:"type" v:"required#类型不能为空"`
-	ParentId  uint   `json:"parentId"`
+	ParentId  string `json:"parentId"`
 	Status    int    `json:"status"`
 	Order     int    `json:"order"`
 }

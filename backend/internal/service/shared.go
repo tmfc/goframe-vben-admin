@@ -67,3 +67,20 @@ func ParseAccessToken(tokenStr string) (jwt.MapClaims, error) {
 func ResolveAccessToken(ctx context.Context, provided string) (string, error) {
 	return resolveAccessToken(ctx, provided)
 }
+
+func resolveTenantID(ctx context.Context) string {
+	const defaultTenantID = "00000000-0000-0000-0000-000000000000"
+	token, err := resolveAccessToken(ctx, "")
+	if err != nil {
+		return defaultTenantID
+	}
+	claims, err := parseToken(token)
+	if err != nil {
+		return defaultTenantID
+	}
+	tenantID, _ := claims["tenantId"].(string)
+	if strings.TrimSpace(tenantID) == "" {
+		return defaultTenantID
+	}
+	return tenantID
+}

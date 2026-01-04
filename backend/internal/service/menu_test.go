@@ -178,7 +178,7 @@ func TestMenu_CreateDataUsesOrderAndStringType(t *testing.T) {
 			Type:  "menu",
 			Order: 7,
 		}
-		data := buildMenuCreateData(in)
+		data := buildMenuCreateData(in, "")
 		columns := dao.SysMenu.Columns()
 
 		t.Assert(data[columns.Type], in.Type)
@@ -191,13 +191,13 @@ func TestMenu_CreateDataUsesOrderAndStringType(t *testing.T) {
 func TestMenu_UpdateDataUsesOrderAndStringType(t *testing.T) {
 	gtest.C(t, func(t *gtest.T) {
 		in := model.SysMenuUpdateIn{
-			ID:    1,
+			ID:    "1",
 			Name:  "menu-name",
 			Path:  "/menu-path",
 			Type:  "catalog",
 			Order: 11,
 		}
-		data := buildMenuUpdateData(in)
+		data := buildMenuUpdateData(in, "")
 		columns := dao.SysMenu.Columns()
 
 		t.Assert(data[columns.Type], in.Type)

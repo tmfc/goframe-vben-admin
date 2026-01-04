@@ -11,7 +11,7 @@ import (
 
 // SysMenu is the golang structure of table sys_menu for DAO operations like Where/Data.
 type SysMenu struct {
-	g.Meta         `orm:"table:sys_menu, do:true"`
+	GMeta          g.Meta `orm:"table:sys_menu, do:true"`
 	Id             any         //
 	TenantId       any         //
 	ParentId       any         //
@@ -24,7 +24,7 @@ type SysMenu struct {
 	Visible        any         //
 	Status         any         //
 	PermissionCode any         //
-	MetaData       any         `orm:"meta"` //
+	Meta           any         //
 	CreatedAt      *gtime.Time //
 	UpdatedAt      *gtime.Time //
 	DeletedAt      *gtime.Time //

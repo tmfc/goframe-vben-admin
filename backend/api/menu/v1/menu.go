@@ -13,13 +13,13 @@ type CreateMenuReq struct {
 
 // CreateMenuRes defines the response structure for creating a new menu.
 type CreateMenuRes struct {
-	Id uint `json:"id"`
+	Id string `json:"id"`
 }
 
 // GetMenuReq defines the request structure for retrieving a menu.
 type GetMenuReq struct {
 	g.Meta `path:"/sys-menu/{id}" method:"get" summary:"Retrieve a menu by ID" tags:"System Menu"`
-	ID     uint `json:"id" v:"required#ID不能为空"`
+	ID     string `json:"id" v:"required#ID不能为空"`
 }
 
 // GetMenuRes defines the response structure for retrieving a menu.
@@ -30,7 +30,7 @@ type GetMenuRes struct {
 // UpdateMenuReq defines the request structure for updating a menu.
 type UpdateMenuReq struct {
 	g.Meta `path:"/sys-menu/{id}" method:"put" summary:"Update a menu by ID" tags:"System Menu"`
-	ID     uint `json:"id" v:"required#ID不能为空"`
+	ID     string `json:"id" v:"required#ID不能为空"`
 	model.SysMenuUpdateIn
 }
 
@@ -40,7 +40,7 @@ type UpdateMenuRes struct{}
 // DeleteMenuReq defines the request structure for deleting a menu.
 type DeleteMenuReq struct {
 	g.Meta `path:"/sys-menu/{id}" method:"delete" summary:"Delete a menu by ID" tags:"System Menu"`
-	ID     uint `json:"id" v:"required#ID不能为空"`
+	ID     string `json:"id" v:"required#ID不能为空"`
 }
 
 // DeleteMenuRes defines the response structure for deleting a menu.
