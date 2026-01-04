@@ -11,6 +11,7 @@ import (
 
 	_ "github.com/gogf/gf/contrib/drivers/pgsql/v2"
 	"github.com/gogf/gf/v2/test/gtest"
+	"github.com/gogf/gf/v2/util/gconv"
 )
 
 func TestSysRole_CreateRole(t *testing.T) {
@@ -410,5 +411,272 @@ func TestSysRole_UpdateRoleWithSelfParent(t *testing.T) {
 		}
 		err = SysRole().UpdateRole(ctx, updateIn)
 		t.AssertNE(err, nil)
+	})
+}
+
+func TestSysRole_AssignPermissionToRole(t *testing.T) {
+	testutil.RequireDatabase(t)
+	ctx := context.TODO()
+
+	// Cleanup
+	t.Cleanup(func() {
+		dao.SysRole.Ctx(ctx).Unscoped().WhereLike(dao.SysRole.Columns().Name, "TestRole%").Delete()
+		dao.SysPermission.Ctx(ctx).Unscoped().WhereLike(dao.SysPermission.Columns().Name, "TestPerm%").Delete()
+		dao.SysRolePermission.Ctx(ctx).Unscoped().Where("1=1").Delete()
+	})
+
+	gtest.C(t, func(t *gtest.T) {
+		// 1. Setup: Create a role and a permission
+		roleIn := model.SysRoleCreateIn{Name: "TestRoleForAssign"}
+		roleID, err := SysRole().CreateRole(ctx, roleIn)
+		t.AssertNil(err)
+
+		permIn := model.SysPermissionCreateIn{Name: "TestPermForAssign"}
+		permID, err := SysPermission().CreatePermission(ctx, permIn)
+		t.AssertNil(err)
+
+		// 2. Test successful assignment
+		assignIn := model.SysRolePermissionIn{RoleID: roleID, PermissionID: permID}
+		err = SysRole().AssignPermissionToRole(ctx, assignIn)
+		t.AssertNil(err)
+
+		// 3. Verify the assignment
+		count, err := dao.SysRolePermission.Ctx(ctx).
+			Where(dao.SysRolePermission.Columns().RoleId, roleID).
+			Where(dao.SysRolePermission.Columns().PermissionId, permID).
+			Count()
+		t.AssertNil(err)
+		t.Assert(count, 1)
+
+		// 4. Test assigning the same permission again (should fail)
+		err = SysRole().AssignPermissionToRole(ctx, assignIn)
+		t.AssertNE(err, nil)
+
+		// 5. Test with non-existent role
+		err = SysRole().AssignPermissionToRole(ctx, model.SysRolePermissionIn{RoleID: 999, PermissionID: permID})
+		t.AssertNE(err, nil)
+
+		// 6. Test with non-existent permission
+		err = SysRole().AssignPermissionToRole(ctx, model.SysRolePermissionIn{RoleID: roleID, PermissionID: 999})
+		t.AssertNE(err, nil)
+	})
+}
+
+func TestSysRole_RemovePermissionFromRole(t *testing.T) {
+	testutil.RequireDatabase(t)
+	ctx := context.TODO()
+
+	// Cleanup
+	t.Cleanup(func() {
+		dao.SysRole.Ctx(ctx).Unscoped().WhereLike(dao.SysRole.Columns().Name, "TestRole%").Delete()
+		dao.SysPermission.Ctx(ctx).Unscoped().WhereLike(dao.SysPermission.Columns().Name, "TestPerm%").Delete()
+		dao.SysRolePermission.Ctx(ctx).Unscoped().Where("1=1").Delete()
+	})
+
+	gtest.C(t, func(t *gtest.T) {
+		// 1. Setup: Create a role, a permission, and assign it
+		roleIn := model.SysRoleCreateIn{Name: "TestRoleForRemove"}
+		roleID, err := SysRole().CreateRole(ctx, roleIn)
+		t.AssertNil(err)
+
+		permIn := model.SysPermissionCreateIn{Name: "TestPermForRemove"}
+		permID, err := SysPermission().CreatePermission(ctx, permIn)
+		t.AssertNil(err)
+
+		assignIn := model.SysRolePermissionIn{RoleID: roleID, PermissionID: permID}
+		err = SysRole().AssignPermissionToRole(ctx, assignIn)
+		t.AssertNil(err)
+
+		// 2. Test successful removal
+		err = SysRole().RemovePermissionFromRole(ctx, assignIn)
+		t.AssertNil(err)
+
+		// 3. Verify the removal
+		count, err := dao.SysRolePermission.Ctx(ctx).
+			Where(dao.SysRolePermission.Columns().RoleId, roleID).
+			Where(dao.SysRolePermission.Columns().PermissionId, permID).
+			Count()
+		t.AssertNil(err)
+		t.Assert(count, 0)
+
+		// 4. Test removing the same permission again (should fail)
+		err = SysRole().RemovePermissionFromRole(ctx, assignIn)
+		t.AssertNE(err, nil)
+	})
+}
+
+func TestSysRole_GetRolePermissions(t *testing.T) {
+	testutil.RequireDatabase(t)
+	ctx := context.TODO()
+
+	// Cleanup
+	t.Cleanup(func() {
+		dao.SysRole.Ctx(ctx).Unscoped().WhereLike(dao.SysRole.Columns().Name, "TestRole%").Delete()
+		dao.SysPermission.Ctx(ctx).Unscoped().WhereLike(dao.SysPermission.Columns().Name, "TestPerm%").Delete()
+		dao.SysRolePermission.Ctx(ctx).Unscoped().Where("1=1").Delete()
+	})
+
+	gtest.C(t, func(t *gtest.T) {
+		// 1. Setup: Create role and permissions
+		roleIn := model.SysRoleCreateIn{Name: "TestRoleForGetPerms"}
+		roleID, err := SysRole().CreateRole(ctx, roleIn)
+		t.AssertNil(err)
+
+		perm1In := model.SysPermissionCreateIn{Name: "TestPerm1ForGet"}
+		perm1ID, err := SysPermission().CreatePermission(ctx, perm1In)
+		t.AssertNil(err)
+
+		perm2In := model.SysPermissionCreateIn{Name: "TestPerm2ForGet"}
+		perm2ID, err := SysPermission().CreatePermission(ctx, perm2In)
+		t.AssertNil(err)
+
+		// Assign one permission
+		_ = SysRole().AssignPermissionToRole(ctx, model.SysRolePermissionIn{RoleID: roleID, PermissionID: perm1ID})
+
+		// 2. Get permissions for role
+		getIn := model.SysRoleGetIn{Id: roleID}
+		out, err := SysRole().GetRolePermissions(ctx, getIn)
+		t.AssertNil(err)
+		t.Assert(len(out.PermissionIDs), 1)
+		t.Assert(out.PermissionIDs[0], perm1ID)
+
+		// Assign another permission
+		_ = SysRole().AssignPermissionToRole(ctx, model.SysRolePermissionIn{RoleID: roleID, PermissionID: perm2ID})
+
+		// Get permissions again
+		out, err = SysRole().GetRolePermissions(ctx, getIn)
+		t.AssertNil(err)
+		t.Assert(len(out.PermissionIDs), 2)
+
+		// 3. Test with non-existent role
+		_, err = SysRole().GetRolePermissions(ctx, model.SysRoleGetIn{Id: 999})
+		t.AssertNE(err, nil)
+	})
+}
+
+func TestSysRole_AssignPermissionsToRole(t *testing.T) {
+	testutil.RequireDatabase(t)
+	ctx := context.TODO()
+
+	// Cleanup
+	t.Cleanup(func() {
+		dao.SysRole.Ctx(ctx).Unscoped().WhereLike(dao.SysRole.Columns().Name, "TestRole%").Delete()
+		dao.SysPermission.Ctx(ctx).Unscoped().WhereLike(dao.SysPermission.Columns().Name, "TestPerm%").Delete()
+		dao.SysRolePermission.Ctx(ctx).Unscoped().Where("1=1").Delete()
+	})
+
+	gtest.C(t, func(t *gtest.T) {
+		// 1. Setup
+		roleIn := model.SysRoleCreateIn{Name: "TestRoleForAssignMultiple"}
+		roleID, err := SysRole().CreateRole(ctx, roleIn)
+		t.AssertNil(err)
+
+		perm1In := model.SysPermissionCreateIn{Name: "TestPerm1ForMultiple"}
+		perm1ID, err := SysPermission().CreatePermission(ctx, perm1In)
+		t.AssertNil(err)
+
+		perm2In := model.SysPermissionCreateIn{Name: "TestPerm2ForMultiple"}
+		perm2ID, err := SysPermission().CreatePermission(ctx, perm2In)
+		t.AssertNil(err)
+
+		perm3In := model.SysPermissionCreateIn{Name: "TestPerm3ForMultiple"}
+		perm3ID, err := SysPermission().CreatePermission(ctx, perm3In)
+		t.AssertNil(err)
+
+		// Initially assign one permission
+		_ = SysRole().AssignPermissionToRole(ctx, model.SysRolePermissionIn{RoleID: roleID, PermissionID: perm1ID})
+
+		// 2. Assign multiple permissions, overwriting the old one
+		assignIn := model.SysRolePermissionsIn{
+			RoleID:        roleID,
+			PermissionIDs: []uint{perm2ID, perm3ID},
+		}
+		err = SysRole().AssignPermissionsToRole(ctx, assignIn)
+		t.AssertNil(err)
+
+		// 3. Verify
+		perms, err := SysRole().GetRolePermissions(ctx, model.SysRoleGetIn{Id: roleID})
+		t.AssertNil(err)
+		t.Assert(len(perms.PermissionIDs), 2)
+
+		// 4. Assign empty slice to remove all
+		assignIn.PermissionIDs = []uint{}
+		err = SysRole().AssignPermissionsToRole(ctx, assignIn)
+		t.AssertNil(err)
+		perms, err = SysRole().GetRolePermissions(ctx, model.SysRoleGetIn{Id: roleID})
+		t.AssertNil(err)
+		t.Assert(len(perms.PermissionIDs), 0)
+	})
+}
+
+func TestSysRole_GetPermissionsByUser(t *testing.T) {
+	testutil.RequireDatabase(t)
+	ctx := context.TODO()
+
+	// Cleanup
+	t.Cleanup(func() {
+		dao.SysUser.Ctx(ctx).Unscoped().WhereLike(dao.SysUser.Columns().Username, "testuser%").Delete()
+		dao.SysRole.Ctx(ctx).Unscoped().WhereLike(dao.SysRole.Columns().Name, "TestRole%").Delete()
+		dao.SysPermission.Ctx(ctx).Unscoped().WhereLike(dao.SysPermission.Columns().Name, "TestPerm%").Delete()
+		dao.SysRolePermission.Ctx(ctx).Unscoped().Where("1=1").Delete()
+		dao.CasbinRule.Ctx(ctx).Unscoped().Where("1=1").Delete()
+	})
+
+	gtest.C(t, func(t *gtest.T) {
+		// 1. Setup
+		// Create User
+		userIn := model.UserCreateIn{
+			Username: "testusergetperms",
+			Password: "password",
+		}
+		userID, err := User().Create(ctx, userIn)
+		t.AssertNil(err)
+
+		// Create Roles
+		role1In := model.SysRoleCreateIn{Name: "TestRole1ForUser"}
+		role1ID, err := SysRole().CreateRole(ctx, role1In)
+		t.AssertNil(err)
+
+		role2In := model.SysRoleCreateIn{Name: "TestRole2ForUser"}
+		role2ID, err := SysRole().CreateRole(ctx, role2In)
+		t.AssertNil(err)
+
+		// Create Permissions
+		perm1In := model.SysPermissionCreateIn{Name: "TestPerm1ForUser"}
+		perm1ID, err := SysPermission().CreatePermission(ctx, perm1In)
+		t.AssertNil(err)
+
+		perm2In := model.SysPermissionCreateIn{Name: "TestPerm2ForUser"}
+		perm2ID, err := SysPermission().CreatePermission(ctx, perm2In)
+		t.AssertNil(err)
+
+		// 2. Assign permissions to roles
+		_ = SysRole().AssignPermissionToRole(ctx, model.SysRolePermissionIn{RoleID: role1ID, PermissionID: perm1ID})
+		_ = SysRole().AssignPermissionToRole(ctx, model.SysRolePermissionIn{RoleID: role2ID, PermissionID: perm2ID})
+
+		// 3. Assign roles to user (using casbin)
+		enforcer, err := Casbin(ctx)
+		t.AssertNil(err)
+		_, err = enforcer.AddGroupingPolicy("u_"+userID, gconv.String(role1ID), "00000000-0000-0000-0000-000000000000")
+		t.AssertNil(err)
+		_, err = enforcer.AddGroupingPolicy("u_"+userID, gconv.String(role2ID), "00000000-0000-0000-0000-000000000000")
+		t.AssertNil(err)
+
+		// 4. Get permissions for user
+		permsOut, err := SysRole().GetPermissionsByUser(ctx, model.UserPermissionsIn{UserID: userID})
+		t.AssertNil(err)
+		t.Assert(len(permsOut.PermissionIDs), 2)
+
+		// 5. Test with a user with no roles
+		user2In := model.UserCreateIn{
+			Username: "testusergetpermsnoroles",
+			Password: "password",
+		}
+		user2ID, err := User().Create(ctx, user2In)
+		t.AssertNil(err)
+
+		permsOut2, err := SysRole().GetPermissionsByUser(ctx, model.UserPermissionsIn{UserID: user2ID})
+		t.AssertNil(err)
+		t.Assert(len(permsOut2.PermissionIDs), 0)
 	})
 }

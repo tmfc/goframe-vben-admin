@@ -1,23 +1,14 @@
 package service
 
 import (
-
 	"context"
 
-
-
+	"backend/internal/dao"
 	"backend/internal/model"
 
-	"backend/internal/dao"
-
-
-
-	"github.com/gogf/gf/v2/frame/g"
-
 	"github.com/gogf/gf/v2/errors/gcode"
-
 	"github.com/gogf/gf/v2/errors/gerror"
-
+	"github.com/gogf/gf/v2/frame/g"
 )
 
 type sSysRole struct{}
@@ -46,6 +37,11 @@ type ISysRole interface {
 	GetRole(ctx context.Context, in model.SysRoleGetIn) (out *model.SysRoleGetOut, err error)
 	UpdateRole(ctx context.Context, in model.SysRoleUpdateIn) (err error)
 	DeleteRole(ctx context.Context, in model.SysRoleDeleteIn) (err error)
+	AssignPermissionToRole(ctx context.Context, in model.SysRolePermissionIn) (err error)
+	RemovePermissionFromRole(ctx context.Context, in model.SysRolePermissionIn) (err error)
+	GetRolePermissions(ctx context.Context, in model.SysRoleGetIn) (out *model.SysRolePermissionOut, err error)
+	AssignPermissionsToRole(ctx context.Context, in model.SysRolePermissionsIn) (err error)
+	GetPermissionsByUser(ctx context.Context, in model.UserPermissionsIn) (out *model.UserPermissionsOut, err error)
 }
 
 // CreateRole creates a new role.
@@ -69,14 +65,14 @@ func (s *sSysRole) CreateRole(ctx context.Context, in model.SysRoleCreateIn) (id
 
 	columns := dao.SysRole.Columns()
 	result, err := dao.SysRole.Ctx(ctx).Data(g.Map{
-		"tenant_id":          tenantID,
-		columns.Name:         in.Name,
-		columns.Description:  in.Description,
-		columns.ParentId:     in.ParentId,
-		columns.Status:       in.Status,
-		columns.CreatorId:    in.CreatorId,
-		columns.ModifierId:   in.ModifierId,
-		columns.DeptId:       in.DeptId,
+		"tenant_id":         tenantID,
+		columns.Name:        in.Name,
+		columns.Description: in.Description,
+		columns.ParentId:    in.ParentId,
+		columns.Status:      in.Status,
+		columns.CreatorId:   in.CreatorId,
+		columns.ModifierId:  in.ModifierId,
+		columns.DeptId:      in.DeptId,
 	}).Insert()
 	if err != nil {
 		return 0, err
@@ -197,4 +193,199 @@ func (s *sSysRole) DeleteRole(ctx context.Context, in model.SysRoleDeleteIn) (er
 		Where(dao.SysRole.Columns().Id, in.Id).
 		Delete()
 	return err
+}
+
+// AssignPermissionToRole assigns a permission to a role.
+func (s *sSysRole) AssignPermissionToRole(ctx context.Context, in model.SysRolePermissionIn) (err error) {
+	// Validate input
+	if err = g.Validator().Data(in).Run(ctx); err != nil {
+		return err
+	}
+
+	// Check if role exists
+	roleCount, err := dao.SysRole.Ctx(ctx).Where(dao.SysRole.Columns().Id, in.RoleID).Count()
+	if err != nil {
+		return err
+	}
+	if roleCount == 0 {
+		return gerror.NewCodef(gcode.CodeNotFound, "Role with ID %d not found", in.RoleID)
+	}
+
+	// Check if permission exists
+	permissionCount, err := dao.SysPermission.Ctx(ctx).Where(dao.SysPermission.Columns().Id, in.PermissionID).Count()
+	if err != nil {
+		return err
+	}
+	if permissionCount == 0 {
+		return gerror.NewCodef(gcode.CodeNotFound, "Permission with ID %d not found", in.PermissionID)
+	}
+
+	// Check if association already exists
+	count, err := dao.SysRolePermission.Ctx(ctx).
+		Where(dao.SysRolePermission.Columns().RoleId, in.RoleID).
+		Where(dao.SysRolePermission.Columns().PermissionId, in.PermissionID).
+		Count()
+	if err != nil {
+		return err
+	}
+	if count > 0 {
+		return gerror.NewCodef(gcode.CodeValidationFailed, "Permission with ID %d is already assigned to role with ID %d", in.PermissionID, in.RoleID)
+	}
+
+	_, err = dao.SysRolePermission.Ctx(ctx).Data(g.Map{
+		dao.SysRolePermission.Columns().RoleId:       in.RoleID,
+		dao.SysRolePermission.Columns().PermissionId: in.PermissionID,
+	}).Insert()
+	return err
+}
+
+// RemovePermissionFromRole removes a permission from a role.
+func (s *sSysRole) RemovePermissionFromRole(ctx context.Context, in model.SysRolePermissionIn) (err error) {
+	// Validate input
+	if err = g.Validator().Data(in).Run(ctx); err != nil {
+		return err
+	}
+
+	// Check if association exists
+	count, err := dao.SysRolePermission.Ctx(ctx).
+		Where(dao.SysRolePermission.Columns().RoleId, in.RoleID).
+		Where(dao.SysRolePermission.Columns().PermissionId, in.PermissionID).
+		Count()
+	if err != nil {
+		return err
+	}
+	if count == 0 {
+		return gerror.NewCodef(gcode.CodeNotFound, "Permission with ID %d is not assigned to role with ID %d", in.PermissionID, in.RoleID)
+	}
+
+	_, err = dao.SysRolePermission.Ctx(ctx).
+		Where(dao.SysRolePermission.Columns().RoleId, in.RoleID).
+		Where(dao.SysRolePermission.Columns().PermissionId, in.PermissionID).
+		Delete()
+	return err
+}
+
+// GetRolePermissions retrieves all permissions for a role.
+func (s *sSysRole) GetRolePermissions(ctx context.Context, in model.SysRoleGetIn) (out *model.SysRolePermissionOut, err error) {
+	// Validate input
+	if err = g.Validator().Data(in).Run(ctx); err != nil {
+		return nil, err
+	}
+
+	// Check if role exists
+	roleCount, err := dao.SysRole.Ctx(ctx).Where(dao.SysRole.Columns().Id, in.Id).Count()
+	if err != nil {
+		return nil, err
+	}
+	if roleCount == 0 {
+		return nil, gerror.NewCodef(gcode.CodeNotFound, "Role with ID %d not found", in.Id)
+	}
+
+	var permissionIDs []uint
+	result, err := dao.SysRolePermission.Ctx(ctx).
+		Where(dao.SysRolePermission.Columns().RoleId, in.Id).
+		Fields(dao.SysRolePermission.Columns().PermissionId).
+		All()
+	if err != nil {
+		return nil, err
+	}
+	for _, row := range result {
+		permissionID := row[dao.SysRolePermission.Columns().PermissionId].Int64()
+		permissionIDs = append(permissionIDs, uint(permissionID))
+	}
+
+	out = &model.SysRolePermissionOut{
+		PermissionIDs: permissionIDs,
+	}
+	return out, nil
+}
+
+// AssignPermissionsToRole assigns multiple permissions to a role.
+func (s *sSysRole) AssignPermissionsToRole(ctx context.Context, in model.SysRolePermissionsIn) (err error) {
+	// Validate input
+	if err = g.Validator().Data(in).Run(ctx); err != nil {
+		return err
+	}
+
+	// Check if role exists
+	roleCount, err := dao.SysRole.Ctx(ctx).Where(dao.SysRole.Columns().Id, in.RoleID).Count()
+	if err != nil {
+		return err
+	}
+	if roleCount == 0 {
+		return gerror.NewCodef(gcode.CodeNotFound, "Role with ID %d not found", in.RoleID)
+	}
+
+	// Remove existing permissions
+	_, err = dao.SysRolePermission.Ctx(ctx).
+		Where(dao.SysRolePermission.Columns().RoleId, in.RoleID).
+		Delete()
+	if err != nil {
+		return err
+	}
+
+	// Add new permissions
+	if len(in.PermissionIDs) > 0 {
+		data := g.List{}
+		for _, permissionID := range in.PermissionIDs {
+			data = append(data, g.Map{
+				dao.SysRolePermission.Columns().RoleId:       in.RoleID,
+				dao.SysRolePermission.Columns().PermissionId: permissionID,
+			})
+		}
+		_, err = dao.SysRolePermission.Ctx(ctx).Data(data).Insert()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// GetPermissionsByUser retrieves all permissions for a user.
+func (s *sSysRole) GetPermissionsByUser(ctx context.Context, in model.UserPermissionsIn) (out *model.UserPermissionsOut, err error) {
+	// Validate input
+	if err = g.Validator().Data(in).Run(ctx); err != nil {
+		return nil, err
+	}
+
+	// Get user roles
+	var roleIDs []uint
+	// The role id is stored in v1, and the user id is stored in v0.
+	// The user id is prefixed with "u_".
+	casbinResult, err := dao.CasbinRule.Ctx(ctx).
+		Where(dao.CasbinRule.Columns().Ptype, "g").
+		Where(dao.CasbinRule.Columns().V0, "u_"+in.UserID).
+		Fields(dao.CasbinRule.Columns().V1).
+		All()
+	if err != nil {
+		return nil, err
+	}
+	for _, row := range casbinResult {
+		roleID := row[dao.CasbinRule.Columns().V1].Int64()
+		roleIDs = append(roleIDs, uint(roleID))
+	}
+
+	if len(roleIDs) == 0 {
+		return &model.UserPermissionsOut{PermissionIDs: []uint{}}, nil
+	}
+
+	// Get role permissions
+	var permissionIDs []uint
+	permResult, err := dao.SysRolePermission.Ctx(ctx).
+		WhereIn(dao.SysRolePermission.Columns().RoleId, roleIDs).
+		Fields(dao.SysRolePermission.Columns().PermissionId).
+		All()
+	if err != nil {
+		return nil, err
+	}
+	for _, row := range permResult {
+		permissionID := row[dao.SysRolePermission.Columns().PermissionId].Int64()
+		permissionIDs = append(permissionIDs, uint(permissionID))
+	}
+
+	out = &model.UserPermissionsOut{
+		PermissionIDs: permissionIDs,
+	}
+	return out, nil
 }
