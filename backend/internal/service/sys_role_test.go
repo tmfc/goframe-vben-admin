@@ -10,6 +10,7 @@ import (
 	"backend/internal/testutil"
 
 	_ "github.com/gogf/gf/contrib/drivers/pgsql/v2"
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/test/gtest"
 )
 
@@ -409,6 +410,412 @@ func TestSysRole_UpdateRoleWithSelfParent(t *testing.T) {
 			DeptId:      1,
 		}
 		err = SysRole().UpdateRole(ctx, updateIn)
+		t.AssertNE(err, nil)
+	})
+}
+
+func TestSysRole_AssignRoleToUser(t *testing.T) {
+	testutil.RequireDatabase(t)
+
+	ctx := context.TODO()
+
+	// Cleanup function
+	t.Cleanup(func() {
+		dao.SysUser.Ctx(ctx).Unscoped().WhereLike(dao.SysUser.Columns().Username, "TestUserRole%").Delete()
+		dao.SysRole.Ctx(ctx).Unscoped().WhereLike(dao.SysRole.Columns().Name, "TestUserRole%").Delete()
+	})
+
+	gtest.C(t, func(t *gtest.T) {
+		var err error
+		// Create a test user
+		userID := "550e8400-e29b-41d4-a716-446655440001"
+		_, err = dao.SysUser.Ctx(ctx).Data(g.Map{
+			dao.SysUser.Columns().Id:       userID,
+			dao.SysUser.Columns().TenantId: "00000000-0000-0000-0000-000000000000",
+			dao.SysUser.Columns().Username: "TestUserRole1",
+			dao.SysUser.Columns().Password: "password123",
+			dao.SysUser.Columns().RealName: "Test User",
+			dao.SysUser.Columns().Status:   1,
+		}).Insert()
+		t.AssertNil(err)
+
+		// Create a test role
+		roleID, err := SysRole().CreateRole(ctx, model.SysRoleCreateIn{
+			Name:        "TestUserRole1",
+			Description: "Test role",
+			Status:      1,
+			CreatorId:   1,
+		})
+		t.AssertNil(err)
+
+		// Test case 1: Successful assignment
+		assignIn := model.AssignRoleToUserIn{
+			UserId:    userID,
+			RoleId:    roleID,
+			CreatedBy: 1,
+		}
+		assignOut, err := SysRole().AssignRoleToUser(ctx, assignIn)
+		t.AssertNil(err)
+		t.AssertNE(assignOut, nil)
+		t.Assert(assignOut.Success, true)
+
+		// Verify assignment
+		var userRole *entity.SysUserRole
+		err = dao.SysUserRole.Ctx(ctx).
+			Where(dao.SysUserRole.Columns().UserId, userID).
+			Where(dao.SysUserRole.Columns().RoleId, roleID).
+			Scan(&userRole)
+		t.AssertNil(err)
+		t.AssertNE(userRole, nil)
+
+		// Test case 2: Duplicate assignment (should succeed but not create duplicate)
+		assignOut2, err := SysRole().AssignRoleToUser(ctx, assignIn)
+		t.AssertNil(err)
+		t.Assert(assignOut2.Success, true)
+
+		// Test case 3: Assign to non-existent user
+		assignInInvalidUser := model.AssignRoleToUserIn{
+			UserId:    "00000000-0000-0000-0000-000000000000",
+			RoleId:    roleID,
+			CreatedBy: 1,
+		}
+		_, err = SysRole().AssignRoleToUser(ctx, assignInInvalidUser)
+		t.AssertNE(err, nil)
+
+		// Test case 4: Assign non-existent role
+		assignInInvalidRole := model.AssignRoleToUserIn{
+			UserId:    userID,
+			RoleId:    99999,
+			CreatedBy: 1,
+		}
+		_, err = SysRole().AssignRoleToUser(ctx, assignInInvalidRole)
+		t.AssertNE(err, nil)
+	})
+}
+
+func TestSysRole_RemoveRoleFromUser(t *testing.T) {
+	testutil.RequireDatabase(t)
+
+	ctx := context.TODO()
+
+	// Cleanup function
+	t.Cleanup(func() {
+		dao.SysUser.Ctx(ctx).Unscoped().WhereLike(dao.SysUser.Columns().Username, "TestUserRoleRemove%").Delete()
+		dao.SysRole.Ctx(ctx).Unscoped().WhereLike(dao.SysRole.Columns().Name, "TestUserRoleRemove%").Delete()
+	})
+
+	gtest.C(t, func(t *gtest.T) {
+		var err error
+		// Create a test user
+		userID := "550e8400-e29b-41d4-a716-446655440002"
+		_, err = dao.SysUser.Ctx(ctx).Data(g.Map{
+			dao.SysUser.Columns().Id:       userID,
+			dao.SysUser.Columns().TenantId: "00000000-0000-0000-0000-000000000000",
+			dao.SysUser.Columns().Username: "TestUserRoleRemove1",
+			dao.SysUser.Columns().Password: "password123",
+			
+			dao.SysUser.Columns().RealName: "Test User",
+			dao.SysUser.Columns().Status:   1,
+		}).Insert()
+		t.AssertNil(err)
+
+		// Create a test role
+		roleID, err := SysRole().CreateRole(ctx, model.SysRoleCreateIn{
+			Name:        "TestUserRoleRemove1",
+			Description: "Test role",
+			Status:      1,
+			CreatorId:   1,
+		})
+		t.AssertNil(err)
+
+		// Assign role to user
+		_, _ = SysRole().AssignRoleToUser(ctx, model.AssignRoleToUserIn{
+			UserId: userID,
+			RoleId: roleID,
+		})
+
+		// Test case 1: Successful removal
+		removeIn := model.RemoveRoleFromUserIn{
+			UserId: userID,
+			RoleId: roleID,
+		}
+		removeOut, err := SysRole().RemoveRoleFromUser(ctx, removeIn)
+		t.AssertNil(err)
+		t.AssertNE(removeOut, nil)
+		t.Assert(removeOut.Success, true)
+
+		// Verify removal
+		var userRole *entity.SysUserRole
+		err = dao.SysUserRole.Ctx(ctx).
+			Where(dao.SysUserRole.Columns().UserId, userID).
+			Where(dao.SysUserRole.Columns().RoleId, roleID).
+			Scan(&userRole)
+		t.AssertNil(err)
+		t.AssertNil(userRole)
+
+		// Test case 2: Remove already removed assignment (should succeed)
+		removeOut2, err := SysRole().RemoveRoleFromUser(ctx, removeIn)
+		t.AssertNil(err)
+		t.Assert(removeOut2.Success, true)
+	})
+}
+
+func TestSysRole_GetUserRoles(t *testing.T) {
+	testutil.RequireDatabase(t)
+
+	ctx := context.TODO()
+
+	// Cleanup function
+	t.Cleanup(func() {
+		dao.SysUser.Ctx(ctx).Unscoped().WhereLike(dao.SysUser.Columns().Username, "TestUserRoleGet%").Delete()
+		dao.SysRole.Ctx(ctx).Unscoped().WhereLike(dao.SysRole.Columns().Name, "TestUserRoleGet%").Delete()
+	})
+
+	gtest.C(t, func(t *gtest.T) {
+		var err error
+		// Create a test user
+		userID := "550e8400-e29b-41d4-a716-446655440003"
+		_, err = dao.SysUser.Ctx(ctx).Data(g.Map{
+			dao.SysUser.Columns().Id:       userID,
+			dao.SysUser.Columns().TenantId: "00000000-0000-0000-0000-000000000000",
+			dao.SysUser.Columns().Username: "TestUserRoleGet1",
+			dao.SysUser.Columns().Password: "password123",
+			
+			dao.SysUser.Columns().RealName: "Test User",
+			dao.SysUser.Columns().Status:   1,
+		}).Insert()
+		t.AssertNil(err)
+
+		// Create test roles
+		roleID1, err := SysRole().CreateRole(ctx, model.SysRoleCreateIn{
+			Name:        "TestUserRoleGet1",
+			Description: "Test role 1",
+			Status:      1,
+			CreatorId:   1,
+		})
+		t.AssertNil(err)
+
+		roleID2, err := SysRole().CreateRole(ctx, model.SysRoleCreateIn{
+			Name:        "TestUserRoleGet2",
+			Description: "Test role 2",
+			Status:      1,
+			CreatorId:   1,
+		})
+		t.AssertNil(err)
+
+		// Assign roles to user
+		_, _ = SysRole().AssignRoleToUser(ctx, model.AssignRoleToUserIn{
+			UserId: userID,
+			RoleId: roleID1,
+		})
+		_, _ = SysRole().AssignRoleToUser(ctx, model.AssignRoleToUserIn{
+			UserId: userID,
+			RoleId: roleID2,
+		})
+
+		// Test case 1: Get user roles
+		getIn := model.GetUserRolesIn{UserId: userID}
+		getOut, err := SysRole().GetUserRoles(ctx, getIn)
+		t.AssertNil(err)
+		t.AssertNE(getOut, nil)
+		t.Assert(len(getOut.Roles), 2)
+
+		// Test case 2: Get roles for user with no roles
+		userID2 := "550e8400-e29b-41d4-a716-446655440004"
+		_, err = dao.SysUser.Ctx(ctx).Data(g.Map{
+			dao.SysUser.Columns().Id:       userID2,
+			dao.SysUser.Columns().TenantId: "00000000-0000-0000-0000-000000000000",
+			dao.SysUser.Columns().Username: "TestUserRoleGet2",
+			dao.SysUser.Columns().Password: "password123",
+			
+			dao.SysUser.Columns().RealName: "Test User 2",
+			dao.SysUser.Columns().Status:   1,
+		}).Insert()
+		t.AssertNil(err)
+
+		getIn2 := model.GetUserRolesIn{UserId: userID2}
+		getOut2, err := SysRole().GetUserRoles(ctx, getIn2)
+		t.AssertNil(err)
+		t.AssertNE(getOut2, nil)
+		t.Assert(len(getOut2.Roles), 0)
+	})
+}
+
+func TestSysRole_AssignRolesToUser(t *testing.T) {
+	testutil.RequireDatabase(t)
+
+	ctx := context.TODO()
+
+	// Cleanup function
+	t.Cleanup(func() {
+		dao.SysUser.Ctx(ctx).Unscoped().WhereLike(dao.SysUser.Columns().Username, "TestUserRoleAssign%").Delete()
+		dao.SysRole.Ctx(ctx).Unscoped().WhereLike(dao.SysRole.Columns().Name, "TestUserRoleAssign%").Delete()
+	})
+
+	gtest.C(t, func(t *gtest.T) {
+		var err error
+		// Create a test user
+		userID := "550e8400-e29b-41d4-a716-446655440003"
+		_, err = dao.SysUser.Ctx(ctx).Data(g.Map{
+			dao.SysUser.Columns().Id:       userID,
+			dao.SysUser.Columns().TenantId: "00000000-0000-0000-0000-000000000000",
+			dao.SysUser.Columns().Username: "TestUserRoleAssign1",
+			dao.SysUser.Columns().Password: "password123",
+
+			dao.SysUser.Columns().RealName: "Test User",
+			dao.SysUser.Columns().Status:   1,
+		}).Insert()
+		t.AssertNil(err)
+
+		// Create test roles
+		roleID1, err := SysRole().CreateRole(ctx, model.SysRoleCreateIn{
+			Name:        "TestUserRoleAssign1",
+			Description: "Test role 1",
+			Status:      1,
+			CreatorId:   1,
+		})
+		t.AssertNil(err)
+
+		roleID2, err := SysRole().CreateRole(ctx, model.SysRoleCreateIn{
+			Name:        "TestUserRoleAssign2",
+			Description: "Test role 2",
+			Status:      1,
+			CreatorId:   1,
+		})
+		t.AssertNil(err)
+
+		roleID3, err := SysRole().CreateRole(ctx, model.SysRoleCreateIn{
+			Name:        "TestUserRoleAssign3",
+			Description: "Test role 3",
+			Status:      1,
+			CreatorId:   1,
+		})
+		t.AssertNil(err)
+
+		// Test case 1: Assign multiple roles
+		assignIn := model.AssignRolesToUserIn{
+			UserId:    userID,
+			RoleIds:   []uint{roleID1, roleID2, roleID3},
+			CreatedBy: 1,
+		}
+		assignOut, err := SysRole().AssignRolesToUser(ctx, assignIn)
+		t.AssertNil(err)
+		t.AssertNE(assignOut, nil)
+		t.Assert(assignOut.Success, true)
+		t.Assert(assignOut.Count, 3)
+
+		// Verify assignments
+		getOut, err := SysRole().GetUserRoles(ctx, model.GetUserRolesIn{UserId: userID})
+		t.AssertNil(err)
+		t.Assert(len(getOut.Roles), 3)
+
+		// Test case 2: Replace roles
+		assignIn2 := model.AssignRolesToUserIn{
+			UserId:    userID,
+			RoleIds:   []uint{roleID1},
+			CreatedBy: 1,
+		}
+		assignOut2, err := SysRole().AssignRolesToUser(ctx, assignIn2)
+		t.AssertNil(err)
+		t.Assert(assignOut2.Count, 1)
+
+		getOut2, err := SysRole().GetUserRoles(ctx, model.GetUserRolesIn{UserId: userID})
+		t.AssertNil(err)
+		t.Assert(len(getOut2.Roles), 1)
+
+		// Test case 3: Empty role IDs (should fail)
+		assignInInvalid := model.AssignRolesToUserIn{
+			UserId:    userID,
+			RoleIds:   []uint{},
+			CreatedBy: 1,
+		}
+		_, err = SysRole().AssignRolesToUser(ctx, assignInInvalid)
+		t.AssertNE(err, nil)
+	})
+}
+
+func TestSysRole_GetUsersByRole(t *testing.T) {
+	testutil.RequireDatabase(t)
+
+	ctx := context.TODO()
+
+	// Cleanup function
+	t.Cleanup(func() {
+		dao.SysUser.Ctx(ctx).Unscoped().WhereLike(dao.SysUser.Columns().Username, "TestUsersByRole%").Delete()
+		dao.SysRole.Ctx(ctx).Unscoped().WhereLike(dao.SysRole.Columns().Name, "TestUsersByRole%").Delete()
+	})
+
+	gtest.C(t, func(t *gtest.T) {
+		var err error
+		// Create a test role
+		roleID, err := SysRole().CreateRole(ctx, model.SysRoleCreateIn{
+			Name:        "TestUsersByRole1",
+			Description: "Test role",
+			Status:      1,
+			CreatorId:   1,
+		})
+		t.AssertNil(err)
+
+		// Create test users
+		userID1 := "550e8400-e29b-41d4-a716-446655440004"
+		_, err = dao.SysUser.Ctx(ctx).Data(g.Map{
+			dao.SysUser.Columns().Id:       userID1,
+			dao.SysUser.Columns().TenantId: "00000000-0000-0000-0000-000000000000",
+			dao.SysUser.Columns().Username: "TestUsersByRole1",
+			dao.SysUser.Columns().Password: "password123",
+
+			dao.SysUser.Columns().RealName: "Test User 1",
+			dao.SysUser.Columns().Status:   1,
+		}).Insert()
+		t.AssertNil(err)
+
+		userID2 := "550e8400-e29b-41d4-a716-446655440005"
+		_, err = dao.SysUser.Ctx(ctx).Data(g.Map{
+			dao.SysUser.Columns().Id:       userID2,
+			dao.SysUser.Columns().TenantId: "00000000-0000-0000-0000-000000000000",
+			dao.SysUser.Columns().Username: "TestUsersByRole2",
+			dao.SysUser.Columns().Password: "password123",
+
+			dao.SysUser.Columns().RealName: "Test User 2",
+			dao.SysUser.Columns().Status:   1,
+		}).Insert()
+		t.AssertNil(err)
+
+		// Assign role to users
+		_, _ = SysRole().AssignRoleToUser(ctx, model.AssignRoleToUserIn{
+			UserId: userID1,
+			RoleId: roleID,
+		})
+		_, _ = SysRole().AssignRoleToUser(ctx, model.AssignRoleToUserIn{
+			UserId: userID2,
+			RoleId: roleID,
+		})
+
+		// Test case 1: Get users by role
+		getIn := model.GetUsersByRoleIn{RoleId: roleID}
+		getOut, err := SysRole().GetUsersByRole(ctx, getIn)
+		t.AssertNil(err)
+		t.AssertNE(getOut, nil)
+		t.Assert(len(getOut.Users), 2)
+
+		// Test case 2: Get users for role with no users
+		roleID2, err := SysRole().CreateRole(ctx, model.SysRoleCreateIn{
+			Name:        "TestUsersByRole2",
+			Description: "Test role 2",
+			Status:      1,
+			CreatorId:   1,
+		})
+		t.AssertNil(err)
+
+		getIn2 := model.GetUsersByRoleIn{RoleId: roleID2}
+		getOut2, err := SysRole().GetUsersByRole(ctx, getIn2)
+		t.AssertNil(err)
+		t.AssertNE(getOut2, nil)
+		t.Assert(len(getOut2.Users), 0)
+
+		// Test case 3: Get users for non-existent role
+		getInInvalid := model.GetUsersByRoleIn{RoleId: 99999}
+		_, err = SysRole().GetUsersByRole(ctx, getInInvalid)
 		t.AssertNE(err, nil)
 	})
 }
