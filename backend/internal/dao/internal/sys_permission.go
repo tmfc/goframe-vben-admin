@@ -31,6 +31,7 @@ type SysPermissionColumns struct {
 	CreatorId   string //
 	ModifierId  string //
 	DeptId      string //
+	TenantId    string //
 }
 
 // sysPermissionColumns holds the columns for the table sys_permission.
@@ -45,6 +46,7 @@ var sysPermissionColumns = SysPermissionColumns{
 	CreatorId:   "creator_id",
 	ModifierId:  "modifier_id",
 	DeptId:      "dept_id",
+	TenantId:    "tenant_id",
 }
 
 // NewSysPermissionDao creates and returns a new DAO object for table data access.

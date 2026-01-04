@@ -24,6 +24,7 @@ type SysMenu struct {
 	Visible        any         //
 	Status         any         //
 	PermissionCode any         //
+	Meta           any         //
 	CreatedAt      *gtime.Time //
 	UpdatedAt      *gtime.Time //
 	DeletedAt      *gtime.Time //

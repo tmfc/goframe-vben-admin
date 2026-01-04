@@ -22,4 +22,5 @@ type SysPermission struct {
 	CreatorId   any         //
 	ModifierId  any         //
 	DeptId      any         //
+	TenantId    any         //
 }

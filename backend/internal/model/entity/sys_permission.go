@@ -20,4 +20,5 @@ type SysPermission struct {
 	CreatorId   int64       `json:"creatorId"   orm:"creator_id"  ` //
 	ModifierId  int64       `json:"modifierId"  orm:"modifier_id" ` //
 	DeptId      int64       `json:"deptId"      orm:"dept_id"     ` //
+	TenantId    string      `json:"tenantId"    orm:"tenant_id"   ` //
 }
