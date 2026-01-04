@@ -1,15 +1,15 @@
 # 多 Agent 并行开发计划
 
 ## Agent 1: 用户-角色关联功能
-- [ ] 创建 `sys_user_role` 表迁移文件（如不存在）
-- [ ] 在 `sys_role` 服务中添加用户角色分配功能
-  - [ ] `AssignRoleToUser(ctx, userID, roleID)` 方法
-  - [ ] `RemoveRoleFromUser(ctx, userID, roleID)` 方法
-  - [ ] `GetUserRoles(ctx, userID)` 方法
-- [ ] 在 `sys_role` 服务中添加批量操作
-  - [ ] `AssignRolesToUser(ctx, userID, roleIDs)` 方法
-  - [ ] `GetUsersByRole(ctx, roleID)` 方法
-- [ ] 为用户角色关联功能编写单元测试
+- [x] 创建 `sys_user_role` 表迁移文件（如不存在）
+- [x] 在 `sys_role` 服务中添加用户角色分配功能
+  - [x] `AssignRoleToUser(ctx, userID, roleID)` 方法
+  - [x] `RemoveRoleFromUser(ctx, userID, roleID)` 方法
+  - [x] `GetUserRoles(ctx, userID)` 方法
+- [x] 在 `sys_role` 服务中添加批量操作
+  - [x] `AssignRolesToUser(ctx, userID, roleIDs)` 方法
+  - [x] `GetUsersByRole(ctx, roleID)` 方法
+- [x] 为用户角色关联功能编写单元测试
 
 ## Agent 2: 角色-权限关联功能
 - [ ] 创建 `sys_role_permission` 表迁移文件（如不存在）
