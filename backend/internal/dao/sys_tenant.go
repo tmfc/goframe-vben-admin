@@ -29,3 +29,8 @@ var (
 func (dao sysTenantDao) Ctx(ctx context.Context) *gdb.Model {
 	return dao.SysTenantDao.Ctx(ctx)
 }
+
+// CtxNoTenant returns model without tenant scoping (use carefully).
+func (dao sysTenantDao) CtxNoTenant(ctx context.Context) *gdb.Model {
+	return dao.SysTenantDao.Ctx(ctx)
+}

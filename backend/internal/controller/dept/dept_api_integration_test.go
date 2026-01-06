@@ -7,7 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"backend/api/dept/v1"
+	v1 "backend/api/dept/v1"
+	"backend/internal/consts"
 	"backend/internal/dao"
 	"backend/internal/testutil"
 
@@ -28,7 +29,7 @@ type apiEnvelope struct {
 func TestDeptAPIEndpoints(t *testing.T) {
 	testutil.RequireDatabase(t)
 
-	ctx := context.TODO()
+	ctx := context.WithValue(context.TODO(), consts.CtxKeyTenantID, consts.DefaultTenantID)
 	ensureTestTenant(t, ctx, "00000000-0000-0000-0000-000000000000")
 
 	t.Cleanup(func() {

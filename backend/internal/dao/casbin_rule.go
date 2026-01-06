@@ -6,12 +6,24 @@ package dao
 
 import (
 	"backend/internal/dao/internal"
+	"context"
+
+	"github.com/gogf/gf/v2/database/gdb"
 )
 
 // casbinRuleDao is the data access object for the table casbin_rule.
 // You can define custom methods on it to extend its functionality as needed.
 type casbinRuleDao struct {
 	*internal.CasbinRuleDao
+}
+
+func (dao casbinRuleDao) Ctx(ctx context.Context) *gdb.Model {
+	return dao.CasbinRuleDao.Ctx(ctx)
+}
+
+// CtxNoTenant returns model without tenant scoping (use carefully).
+func (dao casbinRuleDao) CtxNoTenant(ctx context.Context) *gdb.Model {
+	return dao.CasbinRuleDao.Ctx(ctx)
 }
 
 var (

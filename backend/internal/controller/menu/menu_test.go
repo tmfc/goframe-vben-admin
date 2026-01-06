@@ -4,7 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"backend/api/menu/v1"
+	v1 "backend/api/menu/v1"
+	"backend/internal/consts"
 	"backend/internal/testutil"
 
 	_ "github.com/gogf/gf/contrib/drivers/pgsql/v2"
@@ -14,7 +15,7 @@ import (
 func TestMenuController_All(t *testing.T) {
 	testutil.RequireDatabase(t)
 
-	ctx := context.TODO()
+	ctx := context.WithValue(context.TODO(), consts.CtxKeyTenantID, consts.DefaultTenantID)
 	ctrl := &ControllerV1{}
 
 	gtest.C(t, func(t *gtest.T) {
@@ -35,7 +36,7 @@ func TestMenuController_All(t *testing.T) {
 func TestMenuController_All_MenuStructure(t *testing.T) {
 	testutil.RequireDatabase(t)
 
-	ctx := context.TODO()
+	ctx := context.WithValue(context.TODO(), consts.CtxKeyTenantID, consts.DefaultTenantID)
 	ctrl := &ControllerV1{}
 
 	gtest.C(t, func(t *gtest.T) {
@@ -55,7 +56,7 @@ func TestMenuController_All_MenuStructure(t *testing.T) {
 func TestMenuController_All_HierarchicalStructure(t *testing.T) {
 	testutil.RequireDatabase(t)
 
-	ctx := context.TODO()
+	ctx := context.WithValue(context.TODO(), consts.CtxKeyTenantID, consts.DefaultTenantID)
 	ctrl := &ControllerV1{}
 
 	gtest.C(t, func(t *gtest.T) {
@@ -83,7 +84,7 @@ func TestMenuController_All_HierarchicalStructure(t *testing.T) {
 func TestMenuController_All_MetaFields(t *testing.T) {
 	testutil.RequireDatabase(t)
 
-	ctx := context.TODO()
+	ctx := context.WithValue(context.TODO(), consts.CtxKeyTenantID, consts.DefaultTenantID)
 	ctrl := &ControllerV1{}
 
 	gtest.C(t, func(t *gtest.T) {
@@ -104,7 +105,7 @@ func TestMenuController_All_MetaFields(t *testing.T) {
 func TestMenuController_All_NoEmptyPaths(t *testing.T) {
 	testutil.RequireDatabase(t)
 
-	ctx := context.TODO()
+	ctx := context.WithValue(context.TODO(), consts.CtxKeyTenantID, consts.DefaultTenantID)
 	ctrl := &ControllerV1{}
 
 	gtest.C(t, func(t *gtest.T) {
@@ -124,7 +125,7 @@ func TestMenuController_All_NoEmptyPaths(t *testing.T) {
 func TestMenuController_All_NoButtonTypes(t *testing.T) {
 	testutil.RequireDatabase(t)
 
-	ctx := context.TODO()
+	ctx := context.WithValue(context.TODO(), consts.CtxKeyTenantID, consts.DefaultTenantID)
 	ctrl := &ControllerV1{}
 
 	gtest.C(t, func(t *gtest.T) {

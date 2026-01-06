@@ -69,7 +69,7 @@ func (s *sMenu) CreateMenu(ctx context.Context, in model.SysMenuCreateIn) (id st
 		parentId = ""
 	}
 
-	insertData := buildMenuCreateData(in, parentId)
+	insertData := buildMenuCreateData(ctx, in, parentId)
 	_, err = dao.SysMenu.Ctx(ctx).Data(insertData).Insert()
 	if err != nil {
 		return "", err
@@ -150,7 +150,7 @@ func (s *sMenu) GetMenuList(ctx context.Context, in model.SysMenuGetListIn) (out
 	return out, nil
 }
 
-func buildMenuCreateData(in model.SysMenuCreateIn, parentId string) g.Map {
+func buildMenuCreateData(ctx context.Context, in model.SysMenuCreateIn, parentId string) g.Map {
 	columns := dao.SysMenu.Columns()
 	data := g.Map{
 		columns.Name:      in.Name,
@@ -160,6 +160,7 @@ func buildMenuCreateData(in model.SysMenuCreateIn, parentId string) g.Map {
 		columns.Type:      in.Type,
 		columns.Status:    in.Status,
 		columns.Order:     in.Order,
+		columns.TenantId:  resolveTenantID(ctx),
 	}
 	if parentId != "" {
 		data[columns.ParentId] = parentId

@@ -23,6 +23,7 @@ type SysRolePermissionDao struct {
 type SysRolePermissionColumns struct {
 	RoleId       string //
 	PermissionId string //
+	TenantId     string //
 	CreatedAt    string //
 	UpdatedAt    string //
 	Scope        string //
@@ -32,6 +33,7 @@ type SysRolePermissionColumns struct {
 var sysRolePermissionColumns = SysRolePermissionColumns{
 	RoleId:       "role_id",
 	PermissionId: "permission_id",
+	TenantId:     "tenant_id",
 	CreatedAt:    "created_at",
 	UpdatedAt:    "updated_at",
 	Scope:        "scope",

@@ -130,6 +130,10 @@ func authorizeCasbin(ctx context.Context, req authRequest) error {
 		if role == "" {
 			continue
 		}
+		if role == consts.RoleSuper {
+			// 超管直接放行，避免策略缺失或未同步导致阻断
+			return nil
+		}
 		allowed, err := enforcer.Enforce(role, domain, obj, act)
 		if err != nil {
 			return err

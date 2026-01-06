@@ -25,7 +25,12 @@ var (
 
 // Add your custom methods and functionality below.
 
-// Ctx returns model WITHOUT tenant scoping (this table没有 tenant_id 列).
+// Ctx returns tenant-scoped model by default.
 func (dao sysRolePermissionDao) Ctx(ctx context.Context) *gdb.Model {
+	return withTenant(ctx, dao.SysRolePermissionDao.Ctx(ctx))
+}
+
+// CtxNoTenant returns model without tenant scoping (use carefully).
+func (dao sysRolePermissionDao) CtxNoTenant(ctx context.Context) *gdb.Model {
 	return dao.SysRolePermissionDao.Ctx(ctx)
 }

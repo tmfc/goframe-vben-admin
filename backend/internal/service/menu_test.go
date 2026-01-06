@@ -4,7 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"backend/api/menu/v1"
+	v1 "backend/api/menu/v1"
+	"backend/internal/consts"
 	"backend/internal/dao"
 	"backend/internal/model"
 
@@ -172,13 +173,14 @@ func TestMenu_All_AboutMenu(t *testing.T) {
 
 func TestMenu_CreateDataUsesOrderAndStringType(t *testing.T) {
 	gtest.C(t, func(t *gtest.T) {
+		ctx := context.WithValue(context.TODO(), consts.CtxKeyTenantID, consts.DefaultTenantID)
 		in := model.SysMenuCreateIn{
 			Name:  "menu-name",
 			Path:  "/menu-path",
 			Type:  "menu",
 			Order: 7,
 		}
-		data := buildMenuCreateData(in, "")
+		data := buildMenuCreateData(ctx, in, "")
 		columns := dao.SysMenu.Columns()
 
 		t.Assert(data[columns.Type], in.Type)

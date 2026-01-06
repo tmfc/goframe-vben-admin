@@ -7,7 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"backend/api/menu/v1"
+	v1 "backend/api/menu/v1"
+	"backend/internal/consts"
 	"backend/internal/dao"
 	"backend/internal/testutil"
 
@@ -28,7 +29,7 @@ type menuAPIEnvelope struct {
 func TestMenuAPIEndpoints(t *testing.T) {
 	testutil.RequireDatabase(t)
 
-	ctx := context.TODO()
+	ctx := context.WithValue(context.TODO(), consts.CtxKeyTenantID, consts.DefaultTenantID)
 	ensureTestTenant(t, ctx, "00000000-0000-0000-0000-000000000000")
 
 	t.Cleanup(func() {

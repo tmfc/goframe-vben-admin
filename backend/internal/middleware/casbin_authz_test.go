@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"backend/internal/consts"
 	"backend/internal/dao"
 	"backend/internal/service"
 	"backend/internal/testutil"
@@ -22,19 +23,24 @@ func TestCasbinAuthz_AllowsRolePermission(t *testing.T) {
 	method := "get"
 	tenantID := "00000000-0000-0000-0000-000000000001"
 	userID := "550e8400-e29b-41d4-a716-446655440201"
+	ctxTenant := context.WithValue(ctx, consts.CtxKeyTenantID, tenantID)
+	ctxNoTenant := dao.WithoutTenant(ctx)
 
 	t.Cleanup(func() {
-		dao.SysTenant.Ctx(ctx).Unscoped().Where(dao.SysTenant.Columns().Id, tenantID).Delete()
-		dao.SysUser.Ctx(ctx).Unscoped().Where(dao.SysUser.Columns().Id, userID).Delete()
-		dao.CasbinRule.Ctx(ctx).Unscoped().Where(dao.CasbinRule.Columns().V0, roleName).Delete()
+		dao.SysTenant.Ctx(ctxNoTenant).Unscoped().Where(dao.SysTenant.Columns().Id, tenantID).Delete()
+		dao.SysUser.Ctx(ctxNoTenant).Unscoped().Where(dao.SysUser.Columns().Id, userID).Delete()
+		dao.CasbinRule.Ctx(ctxNoTenant).Unscoped().Where(dao.CasbinRule.Columns().V0, roleName).Delete()
 		resetAuthCache()
 	})
 
 	gtest.C(t, func(t *gtest.T) {
-		err := ensureTenant(ctx, tenantID, "Authz Allow Tenant")
+		err := ensureTenant(ctxNoTenant, tenantID, "Authz Allow Tenant")
 		t.AssertNil(err)
 
-		_, err = dao.SysUser.Ctx(ctx).Data(g.Map{
+		// ensure no residue user with same id
+		dao.SysUser.Ctx(ctxNoTenant).Unscoped().Where(dao.SysUser.Columns().Id, userID).Delete()
+
+		_, err = dao.SysUser.Ctx(ctxTenant).Data(g.Map{
 			dao.SysUser.Columns().Id:       userID,
 			dao.SysUser.Columns().TenantId: tenantID,
 			dao.SysUser.Columns().Username: "authz-allow",
@@ -44,14 +50,14 @@ func TestCasbinAuthz_AllowsRolePermission(t *testing.T) {
 		}).Insert()
 		t.AssertNil(err)
 
-		err = insertPolicy(ctx, roleName, service.NormalizeDomain(tenantID), path, method)
+		err = insertPolicy(ctxTenant, roleName, service.NormalizeDomain(tenantID), path, method)
 		t.AssertNil(err)
 
-		enforcer, err := service.Casbin(ctx)
+		enforcer, err := service.Casbin(ctxTenant)
 		t.AssertNil(err)
 		t.AssertNil(enforcer.LoadPolicy())
 
-		err = authorizeCasbin(ctx, authRequest{
+		err = authorizeCasbin(ctxTenant, authRequest{
 			userID:   userID,
 			tenantID: tenantID,
 			path:     path,
@@ -70,19 +76,24 @@ func TestCasbinAuthz_MultiRoleAllows(t *testing.T) {
 	method := "post"
 	tenantID := "00000000-0000-0000-0000-000000000002"
 	userID := "550e8400-e29b-41d4-a716-446655440202"
+	ctxTenant := context.WithValue(ctx, consts.CtxKeyTenantID, tenantID)
+	ctxNoTenant := dao.WithoutTenant(ctx)
 
 	t.Cleanup(func() {
-		dao.SysTenant.Ctx(ctx).Unscoped().Where(dao.SysTenant.Columns().Id, tenantID).Delete()
-		dao.SysUser.Ctx(ctx).Unscoped().Where(dao.SysUser.Columns().Id, userID).Delete()
-		dao.CasbinRule.Ctx(ctx).Unscoped().Where(dao.CasbinRule.Columns().V0, roleAllow).Delete()
+		dao.SysTenant.Ctx(ctxNoTenant).Unscoped().Where(dao.SysTenant.Columns().Id, tenantID).Delete()
+		dao.SysUser.Ctx(ctxNoTenant).Unscoped().Where(dao.SysUser.Columns().Id, userID).Delete()
+		dao.CasbinRule.Ctx(ctxNoTenant).Unscoped().Where(dao.CasbinRule.Columns().V0, roleAllow).Delete()
 		resetAuthCache()
 	})
 
 	gtest.C(t, func(t *gtest.T) {
-		err := ensureTenant(ctx, tenantID, "Authz Multi Tenant")
+		err := ensureTenant(ctxNoTenant, tenantID, "Authz Multi Tenant")
 		t.AssertNil(err)
 
-		_, err = dao.SysUser.Ctx(ctx).Data(g.Map{
+		// ensure no residue user with same id
+		dao.SysUser.Ctx(ctxNoTenant).Unscoped().Where(dao.SysUser.Columns().Id, userID).Delete()
+
+		_, err = dao.SysUser.Ctx(ctxTenant).Data(g.Map{
 			dao.SysUser.Columns().Id:       userID,
 			dao.SysUser.Columns().TenantId: tenantID,
 			dao.SysUser.Columns().Username: "authz-multi",
@@ -92,14 +103,14 @@ func TestCasbinAuthz_MultiRoleAllows(t *testing.T) {
 		}).Insert()
 		t.AssertNil(err)
 
-		err = insertPolicy(ctx, roleAllow, service.NormalizeDomain(tenantID), path, method)
+		err = insertPolicy(ctxTenant, roleAllow, service.NormalizeDomain(tenantID), path, method)
 		t.AssertNil(err)
 
-		enforcer, err := service.Casbin(ctx)
+		enforcer, err := service.Casbin(ctxTenant)
 		t.AssertNil(err)
 		t.AssertNil(enforcer.LoadPolicy())
 
-		err = authorizeCasbin(ctx, authRequest{
+		err = authorizeCasbin(ctxTenant, authRequest{
 			userID:   userID,
 			tenantID: tenantID,
 			path:     path,
@@ -115,18 +126,23 @@ func TestCasbinAuthz_DeniesWithoutPermission(t *testing.T) {
 
 	userID := "550e8400-e29b-41d4-a716-446655440203"
 	tenantID := "00000000-0000-0000-0000-000000000003"
+	ctxTenant := context.WithValue(ctx, consts.CtxKeyTenantID, tenantID)
+	ctxNoTenant := dao.WithoutTenant(ctx)
 
 	t.Cleanup(func() {
-		dao.SysTenant.Ctx(ctx).Unscoped().Where(dao.SysTenant.Columns().Id, tenantID).Delete()
-		dao.SysUser.Ctx(ctx).Unscoped().Where(dao.SysUser.Columns().Id, userID).Delete()
+		dao.SysTenant.Ctx(ctxNoTenant).Unscoped().Where(dao.SysTenant.Columns().Id, tenantID).Delete()
+		dao.SysUser.Ctx(ctxNoTenant).Unscoped().Where(dao.SysUser.Columns().Id, userID).Delete()
 		resetAuthCache()
 	})
 
 	gtest.C(t, func(t *gtest.T) {
-		err := ensureTenant(ctx, tenantID, "Authz Deny Tenant")
+		err := ensureTenant(ctxNoTenant, tenantID, "Authz Deny Tenant")
 		t.AssertNil(err)
 
-		_, err = dao.SysUser.Ctx(ctx).Data(g.Map{
+		// ensure no residue user with same id
+		dao.SysUser.Ctx(ctxNoTenant).Unscoped().Where(dao.SysUser.Columns().Id, userID).Delete()
+
+		_, err = dao.SysUser.Ctx(ctxTenant).Data(g.Map{
 			dao.SysUser.Columns().Id:       userID,
 			dao.SysUser.Columns().TenantId: tenantID,
 			dao.SysUser.Columns().Username: "authz-deny",
@@ -136,7 +152,7 @@ func TestCasbinAuthz_DeniesWithoutPermission(t *testing.T) {
 		}).Insert()
 		t.AssertNil(err)
 
-		err = authorizeCasbin(ctx, authRequest{
+		err = authorizeCasbin(ctxTenant, authRequest{
 			userID:   userID,
 			tenantID: tenantID,
 			path:     "/api/denied",
@@ -156,22 +172,28 @@ func TestCasbinAuthz_TenantIsolation(t *testing.T) {
 	tenantA := "00000000-0000-0000-0000-000000000004"
 	tenantB := "00000000-0000-0000-0000-000000000005"
 	userID := "550e8400-e29b-41d4-a716-446655440204"
+	ctxTenantA := context.WithValue(ctx, consts.CtxKeyTenantID, tenantA)
+	ctxTenantB := context.WithValue(ctx, consts.CtxKeyTenantID, tenantB)
+	ctxNoTenant := dao.WithoutTenant(ctx)
 
 	t.Cleanup(func() {
-		dao.SysTenant.Ctx(ctx).Unscoped().Where(dao.SysTenant.Columns().Id, tenantA).Delete()
-		dao.SysTenant.Ctx(ctx).Unscoped().Where(dao.SysTenant.Columns().Id, tenantB).Delete()
-		dao.SysUser.Ctx(ctx).Unscoped().Where(dao.SysUser.Columns().Id, userID).Delete()
-		dao.CasbinRule.Ctx(ctx).Unscoped().Where(dao.CasbinRule.Columns().V0, roleName).Delete()
+		dao.SysTenant.Ctx(ctxNoTenant).Unscoped().Where(dao.SysTenant.Columns().Id, tenantA).Delete()
+		dao.SysTenant.Ctx(ctxNoTenant).Unscoped().Where(dao.SysTenant.Columns().Id, tenantB).Delete()
+		dao.SysUser.Ctx(ctxNoTenant).Unscoped().Where(dao.SysUser.Columns().Id, userID).Delete()
+		dao.CasbinRule.Ctx(ctxNoTenant).Unscoped().Where(dao.CasbinRule.Columns().V0, roleName).Delete()
 		resetAuthCache()
 	})
 
 	gtest.C(t, func(t *gtest.T) {
-		err := ensureTenant(ctx, tenantA, "Authz Tenant A")
+		err := ensureTenant(ctxNoTenant, tenantA, "Authz Tenant A")
 		t.AssertNil(err)
-		err = ensureTenant(ctx, tenantB, "Authz Tenant B")
+		err = ensureTenant(ctxNoTenant, tenantB, "Authz Tenant B")
 		t.AssertNil(err)
 
-		_, err = dao.SysUser.Ctx(ctx).Data(g.Map{
+		// ensure no residue user with same id
+		dao.SysUser.Ctx(ctxNoTenant).Unscoped().Where(dao.SysUser.Columns().Id, userID).Delete()
+
+		_, err = dao.SysUser.Ctx(ctxTenantA).Data(g.Map{
 			dao.SysUser.Columns().Id:       userID,
 			dao.SysUser.Columns().TenantId: tenantA,
 			dao.SysUser.Columns().Username: "authz-tenant",
@@ -181,14 +203,14 @@ func TestCasbinAuthz_TenantIsolation(t *testing.T) {
 		}).Insert()
 		t.AssertNil(err)
 
-		err = insertPolicy(ctx, roleName, service.NormalizeDomain(tenantA), path, method)
+		err = insertPolicy(ctxTenantA, roleName, service.NormalizeDomain(tenantA), path, method)
 		t.AssertNil(err)
 
-		enforcer, err := service.Casbin(ctx)
+		enforcer, err := service.Casbin(ctxTenantA)
 		t.AssertNil(err)
 		t.AssertNil(enforcer.LoadPolicy())
 
-		err = authorizeCasbin(ctx, authRequest{
+		err = authorizeCasbin(ctxTenantB, authRequest{
 			userID:   userID,
 			tenantID: tenantB,
 			path:     path,
@@ -196,7 +218,7 @@ func TestCasbinAuthz_TenantIsolation(t *testing.T) {
 		})
 		t.AssertNE(err, nil)
 
-		err = authorizeCasbin(ctx, authRequest{
+		err = authorizeCasbin(ctxTenantA, authRequest{
 			userID:   userID,
 			tenantID: tenantA,
 			path:     path,
@@ -215,19 +237,24 @@ func TestCasbinAuthz_UsesCache(t *testing.T) {
 	method := "get"
 	tenantID := "00000000-0000-0000-0000-000000000006"
 	userID := "550e8400-e29b-41d4-a716-446655440205"
+	ctxTenant := context.WithValue(ctx, consts.CtxKeyTenantID, tenantID)
+	ctxNoTenant := dao.WithoutTenant(ctx)
 
 	t.Cleanup(func() {
-		dao.SysTenant.Ctx(ctx).Unscoped().Where(dao.SysTenant.Columns().Id, tenantID).Delete()
-		dao.SysUser.Ctx(ctx).Unscoped().Where(dao.SysUser.Columns().Id, userID).Delete()
-		dao.CasbinRule.Ctx(ctx).Unscoped().Where(dao.CasbinRule.Columns().V0, roleName).Delete()
+		dao.SysTenant.Ctx(ctxNoTenant).Unscoped().Where(dao.SysTenant.Columns().Id, tenantID).Delete()
+		dao.SysUser.Ctx(ctxNoTenant).Unscoped().Where(dao.SysUser.Columns().Id, userID).Delete()
+		dao.CasbinRule.Ctx(ctxNoTenant).Unscoped().Where(dao.CasbinRule.Columns().V0, roleName).Delete()
 		resetAuthCache()
 	})
 
 	gtest.C(t, func(t *gtest.T) {
-		err := ensureTenant(ctx, tenantID, "Authz Cache Tenant")
+		err := ensureTenant(ctxNoTenant, tenantID, "Authz Cache Tenant")
 		t.AssertNil(err)
 
-		_, err = dao.SysUser.Ctx(ctx).Data(g.Map{
+		// ensure no residue user with same id
+		dao.SysUser.Ctx(ctxNoTenant).Unscoped().Where(dao.SysUser.Columns().Id, userID).Delete()
+
+		_, err = dao.SysUser.Ctx(ctxTenant).Data(g.Map{
 			dao.SysUser.Columns().Id:       userID,
 			dao.SysUser.Columns().TenantId: tenantID,
 			dao.SysUser.Columns().Username: "authz-cache",
@@ -237,14 +264,14 @@ func TestCasbinAuthz_UsesCache(t *testing.T) {
 		}).Insert()
 		t.AssertNil(err)
 
-		err = insertPolicy(ctx, roleName, service.NormalizeDomain(tenantID), path, method)
+		err = insertPolicy(ctxTenant, roleName, service.NormalizeDomain(tenantID), path, method)
 		t.AssertNil(err)
 
-		enforcer, err := service.Casbin(ctx)
+		enforcer, err := service.Casbin(ctxTenant)
 		t.AssertNil(err)
 		t.AssertNil(enforcer.LoadPolicy())
 
-		err = authorizeCasbin(ctx, authRequest{
+		err = authorizeCasbin(ctxTenant, authRequest{
 			userID:   userID,
 			tenantID: tenantID,
 			path:     path,

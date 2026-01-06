@@ -4,7 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"backend/api/dept/v1"
+	v1 "backend/api/dept/v1"
+	"backend/internal/consts"
 	"backend/internal/dao"
 	"backend/internal/model"
 	"backend/internal/testutil"
@@ -18,7 +19,7 @@ import (
 func TestDeptController_CreateDept(t *testing.T) {
 	testutil.RequireDatabase(t)
 
-	ctx := context.TODO()
+	ctx := context.WithValue(context.TODO(), consts.CtxKeyTenantID, consts.DefaultTenantID)
 
 	// Cleanup function
 	t.Cleanup(func() {

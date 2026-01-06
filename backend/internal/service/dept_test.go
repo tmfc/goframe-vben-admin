@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"backend/internal/consts"
 	"backend/internal/dao"
 	"backend/internal/model"
 	"backend/internal/testutil"
@@ -18,7 +19,7 @@ import (
 func TestDept_CreateDept(t *testing.T) {
 	testutil.RequireDatabase(t)
 
-	ctx := context.TODO()
+	ctx := context.WithValue(context.TODO(), consts.CtxKeyTenantID, consts.DefaultTenantID)
 	testTenantId := "00000000-0000-0000-0000-000000000000"
 
 	// Ensure tenant exists
@@ -115,7 +116,7 @@ func TestDept_CreateDept(t *testing.T) {
 func TestDept_GetDept(t *testing.T) {
 	testutil.RequireDatabase(t)
 
-	ctx := context.TODO()
+	ctx := context.WithValue(context.TODO(), consts.CtxKeyTenantID, consts.DefaultTenantID)
 	testTenantId := "00000000-0000-0000-0000-000000000000"
 
 	// Ensure tenant exists
@@ -164,7 +165,7 @@ func TestDept_GetDept(t *testing.T) {
 func TestDept_UpdateDept(t *testing.T) {
 	testutil.RequireDatabase(t)
 
-	ctx := context.TODO()
+	ctx := context.WithValue(context.TODO(), consts.CtxKeyTenantID, consts.DefaultTenantID)
 	testTenantId := "00000000-0000-0000-0000-000000000000"
 
 	// Ensure tenant exists
@@ -195,11 +196,11 @@ func TestDept_UpdateDept(t *testing.T) {
 		t.AssertNil(err)
 
 		updateIn := model.SysDeptUpdateIn{
-			ID:        id,
-			Name:      "Updated Name",
-			ParentId:  "0",
-			Status:    1,
-			Order:     2,
+			ID:         id,
+			Name:       "Updated Name",
+			ParentId:   "0",
+			Status:     1,
+			Order:      2,
 			ModifierId: 2,
 		}
 		err = Dept().UpdateDept(ctx, updateIn)
@@ -228,11 +229,11 @@ func TestDept_UpdateDept(t *testing.T) {
 		t.AssertNil(err)
 
 		updateIn := model.SysDeptUpdateIn{
-			ID:        id,
-			Name:      "Test Dept",
-			ParentId:  "99999",
-			Status:    1,
-			Order:     1,
+			ID:         id,
+			Name:       "Test Dept",
+			ParentId:   "99999",
+			Status:     1,
+			Order:      1,
 			ModifierId: 1,
 		}
 		err = Dept().UpdateDept(ctx, updateIn)
@@ -255,11 +256,11 @@ func TestDept_UpdateDept(t *testing.T) {
 		t.AssertNil(err)
 
 		updateIn := model.SysDeptUpdateIn{
-			ID:        id,
-			Name:      "Test Dept",
-			ParentId:  id,
-			Status:    1,
-			Order:     1,
+			ID:         id,
+			Name:       "Test Dept",
+			ParentId:   id,
+			Status:     1,
+			Order:      1,
 			ModifierId: 1,
 		}
 		err = Dept().UpdateDept(ctx, updateIn)
@@ -272,11 +273,11 @@ func TestDept_UpdateDept(t *testing.T) {
 	gtest.C(t, func(t *gtest.T) {
 		// Test case 4: Update non-existent department
 		updateIn := model.SysDeptUpdateIn{
-			ID:        "99999",
-			Name:      "Non-existent",
-			ParentId:  "0",
-			Status:    1,
-			Order:     1,
+			ID:         "99999",
+			Name:       "Non-existent",
+			ParentId:   "0",
+			Status:     1,
+			Order:      1,
 			ModifierId: 1,
 		}
 		err := Dept().UpdateDept(ctx, updateIn)
@@ -287,7 +288,7 @@ func TestDept_UpdateDept(t *testing.T) {
 func TestDept_DeleteDept(t *testing.T) {
 	testutil.RequireDatabase(t)
 
-	ctx := context.TODO()
+	ctx := context.WithValue(context.TODO(), consts.CtxKeyTenantID, consts.DefaultTenantID)
 	testTenantId := "00000000-0000-0000-0000-000000000000"
 
 	// Ensure tenant exists
@@ -368,7 +369,7 @@ func TestDept_DeleteDept(t *testing.T) {
 func TestDept_GetDeptList(t *testing.T) {
 	testutil.RequireDatabase(t)
 
-	ctx := context.TODO()
+	ctx := context.WithValue(context.TODO(), consts.CtxKeyTenantID, consts.DefaultTenantID)
 	testTenantId := "00000000-0000-0000-0000-000000000000"
 
 	// Ensure tenant exists
@@ -471,7 +472,7 @@ func TestDept_GetDeptList(t *testing.T) {
 func TestDept_GetDeptTree(t *testing.T) {
 	testutil.RequireDatabase(t)
 
-	ctx := context.TODO()
+	ctx := context.WithValue(context.TODO(), consts.CtxKeyTenantID, consts.DefaultTenantID)
 	testTenantId := "00000000-0000-0000-0000-000000000000"
 
 	// Ensure tenant exists

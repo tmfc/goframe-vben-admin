@@ -72,6 +72,7 @@ func (s *sDept) CreateDept(ctx context.Context, in model.SysDeptCreateIn) (id st
 		columns.Status:    in.Status,
 		columns.Order:     in.Order,
 		columns.CreatorId: in.CreatorId,
+		columns.TenantId:  resolveTenantID(ctx),
 	}
 	if parentId != "" {
 		insertData[columns.ParentId] = parentId
@@ -231,6 +232,7 @@ func (s *sDept) GetDeptTree(ctx context.Context) (out []*model.SysDeptTreeOut, e
 	var allDepts []entity.SysDept
 	err = dao.SysDept.Ctx(ctx).
 		Where("deleted_at is null").
+		Where(dao.SysDept.Columns().Status, 1).
 		Order(dao.SysDept.Columns().Order + " asc").
 		Scan(&allDepts)
 	if err != nil {

@@ -53,7 +53,8 @@ func (a *CasbinAdapter) LoadPolicy(model model.Model) error {
 func (a *CasbinAdapter) SavePolicy(model model.Model) error {
 	records := policyRecordsFromModel(model)
 	return a.db.Transaction(a.ctx, func(ctx context.Context, tx gdb.TX) error {
-		if _, err := tx.Model(a.table).Ctx(ctx).Delete(); err != nil {
+		// 使用显式 WHERE 条件清空表，避免 GoFrame 对无 WHERE DELETE 的安全限制
+		if _, err := tx.Model(a.table).Ctx(ctx).Unscoped().Where("1=1").Delete(); err != nil {
 			return err
 		}
 		if len(records) == 0 {

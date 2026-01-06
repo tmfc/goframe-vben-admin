@@ -36,6 +36,8 @@ func Casbin(ctx context.Context) (*casbin.Enforcer, error) {
 			casbinInitError = err
 			return
 		}
+		// 确保策略/分组变更自动通过 Adapter 持久化到 casbin_rule
+		enforcer.EnableAutoSave(true)
 		casbinEnforcer = enforcer
 	})
 	return casbinEnforcer, casbinInitError

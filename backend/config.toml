@@ -5,7 +5,7 @@ port = 5666
 [database.default]
 link = "pgsql:gva:gva@tcp(127.0.0.1:5433)/gva?sslmode=disable"
 type = "pgsql"
-debug = true
+debug = false
 
 [casbin]
 model = "resource/casbin/model.conf"

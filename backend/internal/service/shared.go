@@ -10,28 +10,47 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-func parseRoles(raw string) []string {
+func parseRoles(raw any) []string {
 	roles := make([]string, 0)
-	if raw == "" {
+	switch v := raw.(type) {
+	case nil:
+		return roles
+	case []string:
+		return v
+	case []any:
+		for _, r := range v {
+			if s, ok := r.(string); ok && strings.TrimSpace(s) != "" {
+				roles = append(roles, strings.TrimSpace(s))
+			}
+		}
+		return roles
+	case string:
+		raw = v
+	default:
 		return roles
 	}
-	if err := json.Unmarshal([]byte(raw), &roles); err == nil {
+
+	rawStr := raw.(string)
+	if rawStr == "" {
 		return roles
 	}
-	if strings.Contains(raw, ",") {
-		for _, role := range strings.Split(raw, ",") {
+	if err := json.Unmarshal([]byte(rawStr), &roles); err == nil {
+		return roles
+	}
+	if strings.Contains(rawStr, ",") {
+		for _, role := range strings.Split(rawStr, ",") {
 			if trimmed := strings.TrimSpace(role); trimmed != "" {
 				roles = append(roles, trimmed)
 			}
 		}
 		return roles
 	}
-	roles = append(roles, raw)
+	roles = append(roles, rawStr)
 	return roles
 }
 
 // ParseRoles exposes role parsing for middleware usage.
-func ParseRoles(raw string) []string {
+func ParseRoles(raw any) []string {
 	return parseRoles(raw)
 }
 

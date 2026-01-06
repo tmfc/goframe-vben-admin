@@ -307,7 +307,7 @@ func fetchRole(ctx context.Context, roleID uint) (*entity.SysRole, error) {
 
 func fetchRolePermissions(ctx context.Context, roleID uint) ([]rolePermissionRecord, error) {
 	var records []rolePermissionRecord
-	err := dao.SysRolePermission.Ctx(ctx).
+	err := dao.SysRolePermission.CtxNoTenant(ctx).
 		As("rp").
 		LeftJoin("sys_permission p", "rp.permission_id = p.id").
 		Fields("p.name as code", "rp.scope as scope").
@@ -734,10 +734,8 @@ func (s *sSysRole) GetPermissionsByUser(ctx context.Context, in model.UserPermis
 		return nil, err
 	}
 
-	// Get user roles
+	// 1) 从 casbin_rule 的 g 规则获取用户绑定的角色 ID（v1 存 role_id）
 	var roleIDs []uint
-	// The role id is stored in v1, and the user id is stored in v0.
-	// The user id is prefixed with "u_".
 	casbinResult, err := dao.CasbinRule.Ctx(ctx).
 		Where(dao.CasbinRule.Columns().Ptype, "g").
 		Where(dao.CasbinRule.Columns().V0, "u_"+in.UserID).
@@ -748,14 +746,16 @@ func (s *sSysRole) GetPermissionsByUser(ctx context.Context, in model.UserPermis
 	}
 	for _, row := range casbinResult {
 		roleID := row[dao.CasbinRule.Columns().V1].Int64()
+		if roleID == 0 {
+			continue
+		}
 		roleIDs = append(roleIDs, uint(roleID))
 	}
-
 	if len(roleIDs) == 0 {
 		return &model.UserPermissionsOut{PermissionIDs: []uint{}}, nil
 	}
 
-	// Get role permissions
+	// 2) 根据 role_id 从 sys_role_permission 直接查出权限 ID
 	var permissionIDs []uint
 	permResult, err := dao.SysRolePermission.Ctx(ctx).
 		WhereIn(dao.SysRolePermission.Columns().RoleId, roleIDs).
@@ -766,11 +766,12 @@ func (s *sSysRole) GetPermissionsByUser(ctx context.Context, in model.UserPermis
 	}
 	for _, row := range permResult {
 		permissionID := row[dao.SysRolePermission.Columns().PermissionId].Int64()
+		if permissionID == 0 {
+			continue
+		}
 		permissionIDs = append(permissionIDs, uint(permissionID))
 	}
 
-	out = &model.UserPermissionsOut{
-		PermissionIDs: permissionIDs,
-	}
+	out = &model.UserPermissionsOut{PermissionIDs: permissionIDs}
 	return out, nil
 }
