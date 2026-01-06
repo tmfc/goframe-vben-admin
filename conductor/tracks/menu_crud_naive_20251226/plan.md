@@ -2,7 +2,7 @@
 
 ## Phase 1: Backend API Implementation [ ]
 
-- [ ] Task: Define Menu API Structures (GoFrame `api` layer)
+- [x] Task: Define Menu API Structures (GoFrame `api` layer) [SHA: 9c22db4]
     - [x] Write Failing Tests: Define test cases for request/response structs.
     - [x] Implement: Create `backend/api/menu/v1/menu.go` with request/response structs for menu CRUD operations.
     - [x] Refactor
