@@ -13,10 +13,10 @@
     - [ ] Commit Plan Update
 
 - [ ] Task: Implement Menu CRUD Logic (GoFrame `service` and `dao` layers)
-    - [ ] Write Failing Tests: Write unit tests for creating, retrieving, updating, and deleting menu items.
-    - [ ] Implement: Create `backend/internal/service/menu.go` and corresponding `dao` methods for menu CRUD.
-    - [ ] Refactor
-    - [ ] Verify Coverage
+    - [x] Write Failing Tests: Write unit tests for creating, retrieving, updating, and deleting menu items.
+    - [x] Implement: Create `backend/internal/service/menu.go` and corresponding `dao` methods for menu CRUD.
+    - [x] Refactor
+    - [x] Verify Coverage
     - [ ] Commit Code Changes
     - [ ] Attach Task Summary
     - [ ] Record Commit SHA
