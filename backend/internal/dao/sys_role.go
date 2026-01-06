@@ -6,6 +6,10 @@ package dao
 
 import (
 	"backend/internal/dao/internal"
+
+	"context"
+
+	"github.com/gogf/gf/v2/database/gdb"
 )
 
 // sysRoleDao is the data access object for the table sys_role.
@@ -20,3 +24,13 @@ var (
 )
 
 // Add your custom methods and functionality below.
+
+// Ctx returns tenant-scoped model by default.
+func (dao sysRoleDao) Ctx(ctx context.Context) *gdb.Model {
+	return withTenant(ctx, dao.SysRoleDao.Ctx(ctx))
+}
+
+// CtxNoTenant returns model without tenant scoping (use carefully).
+func (dao sysRoleDao) CtxNoTenant(ctx context.Context) *gdb.Model {
+	return dao.SysRoleDao.Ctx(ctx)
+}

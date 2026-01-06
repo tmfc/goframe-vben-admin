@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"backend/api/user/v1"
+	v1 "backend/api/user/v1"
 	"backend/internal/consts"
 	"backend/internal/dao"
 	"backend/internal/model"
@@ -101,7 +101,7 @@ func (s *sUser) Create(ctx context.Context, in model.UserCreateIn) (id string, e
 	tenantID := resolveTenantID(ctx)
 	// Check if username already exists
 	count, err := dao.SysUser.Ctx(ctx).
-		Where("tenant_id", tenantID).
+		Where(dao.SysUser.Columns().TenantId, tenantID).
 		Where(dao.SysUser.Columns().Username, in.Username).
 		Count()
 	if err != nil {
@@ -128,8 +128,8 @@ func (s *sUser) Create(ctx context.Context, in model.UserCreateIn) (id string, e
 	// Query the inserted user to get the UUID
 	var user entity.SysUser
 	err = dao.SysUser.Ctx(ctx).
-		Where(dao.SysUser.Columns().Username, in.Username).
 		Where(dao.SysUser.Columns().TenantId, tenantID).
+		Where(dao.SysUser.Columns().Username, in.Username).
 		Scan(&user)
 	if err != nil {
 		return "", err

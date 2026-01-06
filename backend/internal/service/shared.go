@@ -7,7 +7,6 @@ import (
 
 	"backend/internal/consts"
 
-	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/golang-jwt/jwt/v4"
 )
 
@@ -37,25 +36,7 @@ func ParseRoles(raw string) []string {
 }
 
 func parseToken(tokenStr string) (jwt.MapClaims, error) {
-	if tokenStr == "" {
-		return nil, gerror.NewCode(consts.ErrorCodeUnauthorized, "token is empty")
-	}
-	if err := ensureJWTSecret(); err != nil {
-		return nil, gerror.NewCode(consts.ErrorCodeUnauthorized, err.Error())
-	}
-	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
-		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, gerror.NewCode(consts.ErrorCodeUnauthorized, "unexpected signing method")
-		}
-		return jwtSecret, nil
-	})
-	if err != nil {
-		return nil, gerror.NewCode(consts.ErrorCodeUnauthorized, err.Error())
-	}
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		return claims, nil
-	}
-	return nil, gerror.NewCode(consts.ErrorCodeUnauthorized, "invalid token")
+	return tokenSvc.ParseAccessToken(tokenStr)
 }
 
 // ParseAccessToken exposes JWT parsing for middleware usage.
@@ -63,14 +44,21 @@ func ParseAccessToken(tokenStr string) (jwt.MapClaims, error) {
 	return parseToken(tokenStr)
 }
 
-// ResolveAccessToken exposes access token extraction for middleware usage.
-func ResolveAccessToken(ctx context.Context, provided string) (string, error) {
-	return resolveAccessToken(ctx, provided)
+// TenantID returns resolved tenant ID with default fallback.
+func TenantID(ctx context.Context) string {
+	return resolveTenantID(ctx)
 }
 
 func resolveTenantID(ctx context.Context) string {
-	const defaultTenantID = "00000000-0000-0000-0000-000000000000"
-	token, err := resolveAccessToken(ctx, "")
+	const defaultTenantID = consts.DefaultTenantID
+
+	if v := ctx.Value(consts.CtxKeyTenantID); v != nil {
+		if tenantID, ok := v.(string); ok && strings.TrimSpace(tenantID) != "" {
+			return tenantID
+		}
+	}
+
+	token, err := ResolveAccessToken(ctx, "")
 	if err != nil {
 		return defaultTenantID
 	}

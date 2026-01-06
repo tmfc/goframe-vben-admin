@@ -60,10 +60,8 @@ func (s *sSysRole) CreateRole(ctx context.Context, in model.SysRoleCreateIn) (id
 	if err = g.Validator().Data(in).Run(ctx); err != nil {
 		return 0, err
 	}
-	tenantID := resolveTenantID(ctx)
 	// Check if role name already exists
 	count, err := dao.SysRole.Ctx(ctx).
-		Where("tenant_id", tenantID).
 		Where(dao.SysRole.Columns().Name, in.Name).
 		Count()
 	if err != nil {
@@ -75,7 +73,6 @@ func (s *sSysRole) CreateRole(ctx context.Context, in model.SysRoleCreateIn) (id
 
 	columns := dao.SysRole.Columns()
 	result, err := dao.SysRole.Ctx(ctx).Data(g.Map{
-		"tenant_id":         tenantID,
 		columns.Name:        in.Name,
 		columns.Description: in.Description,
 		columns.ParentId:    in.ParentId,
@@ -118,13 +115,11 @@ func (s *sSysRole) UpdateRole(ctx context.Context, in model.SysRoleUpdateIn) (er
 		return err
 	}
 
-	tenantID := resolveTenantID(ctx)
 	if in.ParentId != 0 {
 		if in.ParentId == in.Id {
 			return gerror.NewCodef(gcode.CodeValidationFailed, "Role parent cannot be itself")
 		}
 		parentCount, err := dao.SysRole.Ctx(ctx).
-			Where("tenant_id", tenantID).
 			Where(dao.SysRole.Columns().Id, in.ParentId).
 			Count()
 		if err != nil {
@@ -137,7 +132,6 @@ func (s *sSysRole) UpdateRole(ctx context.Context, in model.SysRoleUpdateIn) (er
 	// Check if role exists
 	var existingRole entity.SysRole
 	err = dao.SysRole.Ctx(ctx).
-		Where("tenant_id", tenantID).
 		Where(dao.SysRole.Columns().Id, in.Id).
 		Scan(&existingRole)
 	if err != nil {
@@ -161,7 +155,6 @@ func (s *sSysRole) UpdateRole(ctx context.Context, in model.SysRoleUpdateIn) (er
 	}
 	_, err = dao.SysRole.Ctx(ctx).
 		Data(updateData).
-		Where("tenant_id", tenantID).
 		Where(dao.SysRole.Columns().Id, in.Id).
 		Update()
 	if err != nil {
@@ -177,11 +170,9 @@ func (s *sSysRole) UpdateRole(ctx context.Context, in model.SysRoleUpdateIn) (er
 
 // DeleteRole deletes a role by ID.
 func (s *sSysRole) DeleteRole(ctx context.Context, in model.SysRoleDeleteIn) (err error) {
-	tenantID := resolveTenantID(ctx)
 	// Check if role exists
 	var existingRole entity.SysRole
 	err = dao.SysRole.Ctx(ctx).
-		Where("tenant_id", tenantID).
 		Where(dao.SysRole.Columns().Id, in.Id).
 		Scan(&existingRole)
 	if err != nil {
@@ -192,7 +183,6 @@ func (s *sSysRole) DeleteRole(ctx context.Context, in model.SysRoleDeleteIn) (er
 	}
 
 	childCount, err := dao.SysRole.Ctx(ctx).
-		Where("tenant_id", tenantID).
 		Where(dao.SysRole.Columns().ParentId, in.Id).
 		Count()
 	if err != nil {
@@ -213,7 +203,6 @@ func (s *sSysRole) DeleteRole(ctx context.Context, in model.SysRoleDeleteIn) (er
 	}
 
 	_, err = dao.SysRole.Ctx(ctx).
-		Where("tenant_id", tenantID).
 		Where(dao.SysRole.Columns().Id, in.Id).
 		Delete()
 	if err != nil {

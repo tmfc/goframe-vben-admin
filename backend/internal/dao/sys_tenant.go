@@ -6,6 +6,10 @@ package dao
 
 import (
 	"backend/internal/dao/internal"
+
+	"context"
+
+	"github.com/gogf/gf/v2/database/gdb"
 )
 
 // sysTenantDao is the data access object for the table sys_tenant.
@@ -20,3 +24,8 @@ var (
 )
 
 // Add your custom methods and functionality below.
+
+// Ctx returns model WITHOUT tenant scoping (tenant table is global).
+func (dao sysTenantDao) Ctx(ctx context.Context) *gdb.Model {
+	return dao.SysTenantDao.Ctx(ctx)
+}

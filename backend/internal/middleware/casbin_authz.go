@@ -46,8 +46,31 @@ func CasbinAuthz() ghttp.HandlerFunc {
 			return
 		}
 
+		rawRoles, _ := claims["roles"].(string)
+		roles := service.ParseRoles(rawRoles)
+		isSuper := false
+		for _, rname := range roles {
+			if rname == consts.RoleSuper {
+				isSuper = true
+				break
+			}
+		}
+
 		tenantID, _ := claims["tenantId"].(string)
-		err = authorizeCasbin(r.Context(), authRequest{
+		if isSuper {
+			headerTenant := strings.TrimSpace(r.Header.Get("X-TENANT-ID"))
+			if headerTenant != "" {
+				tenantID = headerTenant
+			}
+		}
+		if strings.TrimSpace(tenantID) == "" {
+			tenantID = consts.DefaultTenantID
+		}
+
+		// Inject tenant into context for downstream usage.
+		ctxWithTenant := context.WithValue(r.Context(), consts.CtxKeyTenantID, tenantID)
+		r.SetCtx(ctxWithTenant)
+		err = authorizeCasbin(ctxWithTenant, authRequest{
 			userID:   userID,
 			tenantID: tenantID,
 			path:     r.URL.Path,

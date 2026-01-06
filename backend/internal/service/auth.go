@@ -2,22 +2,18 @@ package service
 
 import (
 	"context"
-	"net/http"
 	"os"
 	"sort"
 	"strings"
-	"sync"
 	"time"
 
-	"backend/api/auth/v1"
+	v1 "backend/api/auth/v1"
 	"backend/internal/consts"
 	"backend/internal/dao"
 	"backend/internal/model/entity"
 
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
-	"github.com/gogf/gf/v2/net/ghttp"
-	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -34,12 +30,7 @@ const (
 	cfgRefreshSecretKey    = "auth.refresh_secret"
 )
 
-var (
-	jwtSecret          []byte
-	refreshTokenSecret []byte
-	refreshTokenCache  RefreshTokenStore = newRefreshTokenStore()
-	localAuth          IAuth
-)
+var localAuth IAuth
 
 var roleAccessCodes = map[string][]string{
 	consts.RoleSuper: {
@@ -75,78 +66,31 @@ func RegisterAuth(i IAuth) {
 	localAuth = i
 }
 
-type refreshTokenStore struct {
-	sync.RWMutex
-	tokens map[string]string
+type sAuth struct {
+	tokens TokenService
+	store  RefreshTokenStore
 }
-
-type RefreshTokenStore interface {
-	Add(token, userID string)
-	Remove(token string)
-	Replace(oldToken, newToken, userID string)
-	Valid(token, userID string) bool
-}
-
-func newRefreshTokenStore() *refreshTokenStore {
-	return &refreshTokenStore{
-		tokens: make(map[string]string),
-	}
-}
-
-func (s *refreshTokenStore) Add(token, userID string) {
-	s.Lock()
-	defer s.Unlock()
-	s.tokens[token] = userID
-}
-
-func (s *refreshTokenStore) Remove(token string) {
-	s.Lock()
-	defer s.Unlock()
-	delete(s.tokens, token)
-}
-
-func (s *refreshTokenStore) Replace(oldToken, newToken, userID string) {
-	s.Lock()
-	defer s.Unlock()
-	delete(s.tokens, oldToken)
-	s.tokens[newToken] = userID
-}
-
-func (s *refreshTokenStore) Valid(token, userID string) bool {
-	s.RLock()
-	defer s.RUnlock()
-	if stored, ok := s.tokens[token]; ok {
-		return stored == userID
-	}
-	return false
-}
-
-type sAuth struct{}
 
 func init() {
 	RegisterAuth(NewAuth())
 }
 
 func NewAuth() *sAuth {
-	return &sAuth{}
+	if tokenSvc == nil {
+		tokenSvc = NewJWTTokenService()
+	}
+	if refreshTokenCache == nil {
+		refreshTokenCache = newRefreshTokenStore()
+	}
+	return &sAuth{
+		tokens: tokenSvc,
+		store:  refreshTokenCache,
+	}
 }
 
 func RegisterRefreshTokenStore(store RefreshTokenStore) {
 	if store != nil {
 		refreshTokenCache = store
-	}
-}
-
-func loadJWTSecrets() {
-	if jwtSecret == nil {
-		if value, err := loadSecretFromConfigOrEnv(envJWTSecret, cfgJWTSecretKey); err == nil {
-			jwtSecret = value
-		}
-	}
-	if refreshTokenSecret == nil {
-		if value, err := loadSecretFromConfigOrEnv(envRefreshTokenSecret, cfgRefreshSecretKey); err == nil {
-			refreshTokenSecret = value
-		}
 	}
 }
 
@@ -161,30 +105,6 @@ func loadSecretFromConfigOrEnv(envName, cfgKey string) ([]byte, error) {
 		return nil, gerror.New("missing required secret in config or environment: " + envName)
 	}
 	return []byte(value), nil
-}
-
-func ensureJWTSecret() error {
-	if len(jwtSecret) > 0 {
-		return nil
-	}
-	if value, err := loadSecretFromConfigOrEnv(envJWTSecret, cfgJWTSecretKey); err == nil {
-		jwtSecret = value
-		return nil
-	} else {
-		return err
-	}
-}
-
-func ensureRefreshSecret() error {
-	if len(refreshTokenSecret) > 0 {
-		return nil
-	}
-	if value, err := loadSecretFromConfigOrEnv(envRefreshTokenSecret, cfgRefreshSecretKey); err == nil {
-		refreshTokenSecret = value
-		return nil
-	} else {
-		return err
-	}
 }
 
 // IAuth defines the interface for authentication service.
@@ -218,17 +138,17 @@ func (s *sAuth) Login(ctx context.Context, in v1.LoginReq) (out *v1.LoginRes, er
 		roles = []string{consts.DefaultRole()}
 	}
 
-	accessToken, err := s.generateAccessToken(user)
+	accessToken, err := s.tokens.GenerateAccessToken(user)
 	if err != nil {
 		return nil, err
 	}
-	refreshToken, err := s.generateRefreshToken(user)
+	refreshToken, err := s.tokens.GenerateRefreshToken(user)
 	if err != nil {
 		return nil, err
 	}
 
-	refreshTokenCache.Add(refreshToken, user.Id)
-	setRefreshTokenCookie(ctx, refreshToken)
+	s.store.Add(refreshToken, user.Id)
+	SetRefreshTokenCookie(ctx, refreshToken)
 
 	homePath := user.HomePath
 	if homePath == "" {
@@ -278,7 +198,7 @@ func (s *sAuth) RefreshToken(ctx context.Context, in v1.RefreshTokenReq) (out *v
 		return nil, gerror.NewCode(consts.ErrorCodeRefreshTokenRequired, "refresh token is required")
 	}
 
-	claims, err := parseRefreshToken(tokenStr)
+	claims, err := s.tokens.ParseRefreshToken(tokenStr)
 	if err != nil {
 		return nil, err
 	}
@@ -287,7 +207,7 @@ func (s *sAuth) RefreshToken(ctx context.Context, in v1.RefreshTokenReq) (out *v
 	if userID == "" {
 		return nil, gerror.NewCode(consts.ErrorCodeUnauthorized, "invalid refresh token")
 	}
-	if !refreshTokenCache.Valid(tokenStr, userID) {
+	if !s.store.Valid(tokenStr, userID) {
 		return nil, gerror.NewCode(consts.ErrorCodeRefreshTokenInvalid, "invalid refresh token")
 	}
 
@@ -300,24 +220,24 @@ func (s *sAuth) RefreshToken(ctx context.Context, in v1.RefreshTokenReq) (out *v
 		return nil, gerror.NewCode(consts.ErrorCodeUserNotFound, "user not found")
 	}
 
-	accessToken, err := s.generateAccessToken(&user)
+	accessToken, err := s.tokens.GenerateAccessToken(&user)
 	if err != nil {
 		return nil, err
 	}
-	refreshToken, err := s.generateRefreshToken(&user)
+	refreshToken, err := s.tokens.GenerateRefreshToken(&user)
 	if err != nil {
 		return nil, err
 	}
 
-	refreshTokenCache.Replace(tokenStr, refreshToken, userID)
-	setRefreshTokenCookie(ctx, refreshToken)
+	s.store.Replace(tokenStr, refreshToken, userID)
+	SetRefreshTokenCookie(ctx, refreshToken)
 
 	out = &v1.RefreshTokenRes{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}
 
-	writeAccessTokenResponse(ctx, accessToken)
+	WriteAccessTokenResponse(ctx, accessToken)
 	return
 }
 
@@ -325,20 +245,20 @@ func (s *sAuth) RefreshToken(ctx context.Context, in v1.RefreshTokenReq) (out *v
 func (s *sAuth) Logout(ctx context.Context, in v1.LogoutReq) (out *v1.LogoutRes, err error) {
 	tokenStr := resolveRefreshToken(ctx, in.RefreshToken)
 	if tokenStr != "" {
-		refreshTokenCache.Remove(tokenStr)
+		s.store.Remove(tokenStr)
 	}
-	clearRefreshTokenCookie(ctx)
+	ClearRefreshTokenCookie(ctx)
 	return &v1.LogoutRes{}, nil
 }
 
 // GetAccessCodes implements interface IAuth.GetAccessCodes.
 func (s *sAuth) GetAccessCodes(ctx context.Context, in v1.GetAccessCodesReq) (out *v1.GetAccessCodesRes, err error) {
-	token, err := resolveAccessToken(ctx, in.Token)
+	token, err := ResolveAccessToken(ctx, in.Token)
 	if err != nil {
 		return nil, err
 	}
 
-	claims, err := parseToken(token)
+	claims, err := s.tokens.ParseAccessToken(token)
 	if err != nil {
 		return nil, err
 	}
@@ -369,121 +289,8 @@ func (s *sAuth) GetAccessCodes(ctx context.Context, in v1.GetAccessCodesReq) (ou
 	return
 }
 
-func (s *sAuth) generateAccessToken(user *entity.SysUser) (string, error) {
-	if err := ensureJWTSecret(); err != nil {
-		return "", gerror.NewCode(consts.ErrorCodeUnauthorized, err.Error())
-	}
-	claims := jwt.MapClaims{
-		"id":       user.Id,
-		"username": user.Username,
-		"tenantId": user.TenantId,
-		"exp":      time.Now().Add(AccessTokenTTL).Unix(),
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(jwtSecret)
-}
-
-func (s *sAuth) generateRefreshToken(user *entity.SysUser) (string, error) {
-	if err := ensureRefreshSecret(); err != nil {
-		return "", gerror.NewCode(consts.ErrorCodeUnauthorized, err.Error())
-	}
-	claims := jwt.MapClaims{
-		"id":       user.Id,
-		"username": user.Username,
-		"exp":      time.Now().Add(RefreshTokenTTL).Unix(),
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(refreshTokenSecret)
-}
-
 func resolveRefreshToken(ctx context.Context, provided string) string {
-	if provided != "" {
-		return provided
-	}
-	req := g.RequestFromCtx(ctx)
-	if req == nil {
-		return ""
-	}
-	return req.Cookie.Get(refreshTokenCookieName).String()
-}
-
-func resolveAccessToken(ctx context.Context, provided string) (string, error) {
-	if provided != "" {
-		return provided, nil
-	}
-	req := g.RequestFromCtx(ctx)
-	if req == nil {
-		return "", gerror.NewCode(consts.ErrorCodeUnauthorized, "missing authorization token")
-	}
-	header := req.Header.Get("Authorization")
-	token := strings.TrimSpace(strings.TrimPrefix(header, "Bearer"))
-	if token == "" {
-		return "", gerror.NewCode(consts.ErrorCodeUnauthorized, "missing authorization token")
-	}
-	return token, nil
-}
-
-func setRefreshTokenCookie(ctx context.Context, token string) {
-	if token == "" {
-		return
-	}
-	req := g.RequestFromCtx(ctx)
-	if req == nil {
-		return
-	}
-	req.Cookie.SetCookie(
-		refreshTokenCookieName,
-		token,
-		"",
-		"/",
-		RefreshTokenTTL,
-		ghttp.CookieOptions{
-			SameSite: http.SameSiteNoneMode,
-			Secure:   true,
-			HttpOnly: true,
-		},
-	)
-}
-
-func clearRefreshTokenCookie(ctx context.Context) {
-	req := g.RequestFromCtx(ctx)
-	if req == nil {
-		return
-	}
-	req.Cookie.Remove(refreshTokenCookieName)
-}
-
-func parseRefreshToken(tokenStr string) (jwt.MapClaims, error) {
-	if tokenStr == "" {
-		return nil, gerror.NewCode(consts.ErrorCodeRefreshTokenRequired, "refresh token is empty")
-	}
-	if err := ensureRefreshSecret(); err != nil {
-		return nil, gerror.NewCode(consts.ErrorCodeUnauthorized, err.Error())
-	}
-	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
-		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, gerror.NewCode(consts.ErrorCodeUnauthorized, "unexpected signing method")
-		}
-		return refreshTokenSecret, nil
-	})
-	if err != nil {
-		return nil, gerror.NewCode(consts.ErrorCodeUnauthorized, err.Error())
-	}
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		return claims, nil
-	}
-	return nil, gerror.NewCode(consts.ErrorCodeUnauthorized, "invalid refresh token")
-}
-
-func writeAccessTokenResponse(ctx context.Context, token string) {
-	if token == "" {
-		return
-	}
-	req := g.RequestFromCtx(ctx)
-	if req == nil {
-		return
-	}
-	req.Response.Write(token)
+	return ResolveRefreshToken(ctx, provided)
 }
 
 func buildAccessCodes(roles []string) []string {

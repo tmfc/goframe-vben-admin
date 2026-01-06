@@ -48,8 +48,6 @@ func (s *sDept) CreateDept(ctx context.Context, in model.SysDeptCreateIn) (id st
 		return "", err
 	}
 
-	tenantID := resolveTenantID(ctx)
-
 	// Prepare parent_id value (convert "0" to NULL for root departments)
 	parentId := in.ParentId
 	if parentId == "0" {
@@ -58,7 +56,6 @@ func (s *sDept) CreateDept(ctx context.Context, in model.SysDeptCreateIn) (id st
 
 	if parentId != "" {
 		parentCount, err := dao.SysDept.Ctx(ctx).
-			Where(dao.SysDept.Columns().TenantId, tenantID).
 			Where(dao.SysDept.Columns().Id, parentId).
 			Count()
 		if err != nil {
@@ -71,7 +68,6 @@ func (s *sDept) CreateDept(ctx context.Context, in model.SysDeptCreateIn) (id st
 
 	columns := dao.SysDept.Columns()
 	insertData := g.Map{
-		"tenant_id":   tenantID,
 		columns.Name:      in.Name,
 		columns.Status:    in.Status,
 		columns.Order:     in.Order,
@@ -88,10 +84,8 @@ func (s *sDept) CreateDept(ctx context.Context, in model.SysDeptCreateIn) (id st
 	}
 
 	// For UUID columns, we need to retrieve the inserted record to get the ID
-	// Use the name and tenant_id to find the newly created record
 	var insertedDept entity.SysDept
 	query := dao.SysDept.Ctx(ctx).
-		Where(dao.SysDept.Columns().TenantId, tenantID).
 		Where(dao.SysDept.Columns().Name, in.Name).
 		OrderDesc(dao.SysDept.Columns().CreatedAt).
 		Limit(1)
@@ -125,8 +119,6 @@ func (s *sDept) UpdateDept(ctx context.Context, in model.SysDeptUpdateIn) (err e
 		return err
 	}
 
-	tenantID := resolveTenantID(ctx)
-
 	// Prepare parent_id value (convert "0" to NULL for root departments)
 	parentId := in.ParentId
 	if parentId == "0" {
@@ -138,7 +130,6 @@ func (s *sDept) UpdateDept(ctx context.Context, in model.SysDeptUpdateIn) (err e
 			return gerror.NewCodef(gcode.CodeValidationFailed, "Department parent cannot be itself")
 		}
 		parentCount, err := dao.SysDept.Ctx(ctx).
-			Where(dao.SysDept.Columns().TenantId, tenantID).
 			Where(dao.SysDept.Columns().Id, parentId).
 			Count()
 		if err != nil {
@@ -151,7 +142,6 @@ func (s *sDept) UpdateDept(ctx context.Context, in model.SysDeptUpdateIn) (err e
 
 	var existingDept entity.SysDept
 	err = dao.SysDept.Ctx(ctx).
-		Where(dao.SysDept.Columns().TenantId, tenantID).
 		Where(dao.SysDept.Columns().Id, in.ID).
 		Scan(&existingDept)
 	if err != nil {
@@ -163,9 +153,9 @@ func (s *sDept) UpdateDept(ctx context.Context, in model.SysDeptUpdateIn) (err e
 
 	columns := dao.SysDept.Columns()
 	updateData := g.Map{
-		columns.Name:      in.Name,
-		columns.Status:    in.Status,
-		columns.Order:     in.Order,
+		columns.Name:       in.Name,
+		columns.Status:     in.Status,
+		columns.Order:      in.Order,
 		columns.ModifierId: in.ModifierId,
 	}
 	if parentId != "" {
@@ -176,7 +166,6 @@ func (s *sDept) UpdateDept(ctx context.Context, in model.SysDeptUpdateIn) (err e
 
 	_, err = dao.SysDept.Ctx(ctx).
 		Data(updateData).
-		Where(dao.SysDept.Columns().TenantId, tenantID).
 		Where(dao.SysDept.Columns().Id, in.ID).
 		Update()
 
@@ -184,11 +173,8 @@ func (s *sDept) UpdateDept(ctx context.Context, in model.SysDeptUpdateIn) (err e
 }
 
 func (s *sDept) DeleteDept(ctx context.Context, id string) (err error) {
-	tenantID := resolveTenantID(ctx)
-
 	var existingDept entity.SysDept
 	err = dao.SysDept.Ctx(ctx).
-		Where(dao.SysDept.Columns().TenantId, tenantID).
 		Where(dao.SysDept.Columns().Id, id).
 		Scan(&existingDept)
 	if err != nil {
@@ -199,7 +185,6 @@ func (s *sDept) DeleteDept(ctx context.Context, id string) (err error) {
 	}
 
 	childCount, err := dao.SysDept.Ctx(ctx).
-		Where(dao.SysDept.Columns().TenantId, tenantID).
 		Where(dao.SysDept.Columns().ParentId, id).
 		Count()
 	if err != nil {
@@ -213,7 +198,6 @@ func (s *sDept) DeleteDept(ctx context.Context, id string) (err error) {
 	// This should be fixed in a future migration to align the data types
 
 	_, err = dao.SysDept.Ctx(ctx).
-		Where(dao.SysDept.Columns().TenantId, tenantID).
 		Where(dao.SysDept.Columns().Id, id).
 		Delete()
 
@@ -223,9 +207,6 @@ func (s *sDept) DeleteDept(ctx context.Context, id string) (err error) {
 func (s *sDept) GetDeptList(ctx context.Context, in model.SysDeptGetListIn) (out *model.SysDeptGetListOut, err error) {
 	out = &model.SysDeptGetListOut{}
 	query := dao.SysDept.Ctx(ctx).OmitEmpty()
-
-	tenantID := resolveTenantID(ctx)
-	query = query.Where(dao.SysDept.Columns().TenantId, tenantID)
 
 	if in.Name != "" {
 		query = query.WhereLike(dao.SysDept.Columns().Name, "%"+in.Name+"%")
@@ -247,12 +228,8 @@ func (s *sDept) GetDeptList(ctx context.Context, in model.SysDeptGetListIn) (out
 }
 
 func (s *sDept) GetDeptTree(ctx context.Context) (out []*model.SysDeptTreeOut, err error) {
-	tenantID := resolveTenantID(ctx)
-
 	var allDepts []entity.SysDept
 	err = dao.SysDept.Ctx(ctx).
-		Where(dao.SysDept.Columns().TenantId, tenantID).
-		Where(dao.SysDept.Columns().Status, 1).
 		Where("deleted_at is null").
 		Order(dao.SysDept.Columns().Order + " asc").
 		Scan(&allDepts)

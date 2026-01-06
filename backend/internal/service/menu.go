@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"backend/api/menu/v1"
+	v1 "backend/api/menu/v1"
 	"backend/internal/dao"
 	"backend/internal/model"
 	"backend/internal/model/entity"
@@ -64,14 +64,12 @@ func (s *sMenu) CreateMenu(ctx context.Context, in model.SysMenuCreateIn) (id st
 		return "", err
 	}
 
-	tenantID := resolveTenantID(ctx)
 	parentId := in.ParentId
 	if parentId == "0" {
 		parentId = ""
 	}
 
 	insertData := buildMenuCreateData(in, parentId)
-	insertData[dao.SysMenu.Columns().TenantId] = tenantID
 	_, err = dao.SysMenu.Ctx(ctx).Data(insertData).Insert()
 	if err != nil {
 		return "", err
@@ -79,7 +77,6 @@ func (s *sMenu) CreateMenu(ctx context.Context, in model.SysMenuCreateIn) (id st
 
 	var insertedMenu entity.SysMenu
 	query := dao.SysMenu.Ctx(ctx).
-		Where(dao.SysMenu.Columns().TenantId, tenantID).
 		Where(dao.SysMenu.Columns().Name, in.Name).
 		OrderDesc(dao.SysMenu.Columns().CreatedAt).
 		Limit(1)
@@ -431,10 +428,8 @@ type menuRecord struct {
 
 func fetchMenuFromDB(ctx context.Context) (v1.MenuAllRes, error) {
 
-	tenantID := resolveTenantID(ctx)
 	var records []menuRecord
-	err := g.DB().Ctx(ctx).Model("sys_menu").
-		Where("tenant_id", tenantID).
+	err := dao.SysMenu.Ctx(ctx).
 		Where("status", 1).
 		Where("deleted_at is null").
 		Order("\"order\" asc").

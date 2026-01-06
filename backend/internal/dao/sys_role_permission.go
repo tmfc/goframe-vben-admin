@@ -6,6 +6,10 @@ package dao
 
 import (
 	"backend/internal/dao/internal"
+
+	"context"
+
+	"github.com/gogf/gf/v2/database/gdb"
 )
 
 // sysRolePermissionDao is the data access object for the table sys_role_permission.
@@ -20,3 +24,8 @@ var (
 )
 
 // Add your custom methods and functionality below.
+
+// Ctx returns model WITHOUT tenant scoping (this table没有 tenant_id 列).
+func (dao sysRolePermissionDao) Ctx(ctx context.Context) *gdb.Model {
+	return dao.SysRolePermissionDao.Ctx(ctx)
+}
