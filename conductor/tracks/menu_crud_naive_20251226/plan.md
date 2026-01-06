@@ -12,7 +12,7 @@
     - [ ] Record Task Commit SHA
     - [ ] Commit Plan Update
 
-- [ ] Task: Implement Menu CRUD Logic (GoFrame `service` and `dao` layers)
+- [x] Task: Implement Menu CRUD Logic (GoFrame `service` and `dao` layers) [SHA: 8daa10a]
     - [x] Write Failing Tests: Write unit tests for creating, retrieving, updating, and deleting menu items.
     - [x] Implement: Create `backend/internal/service/menu.go` and corresponding `dao` methods for menu CRUD.
     - [x] Refactor
