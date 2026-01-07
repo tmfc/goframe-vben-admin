@@ -1,0 +1,86 @@
+{
+  "title": "系统管理",
+  "menu": {
+    "title": "菜单管理",
+    "filters": {
+      "name": "名称",
+      "status": "状态",
+      "all": "全部",
+      "searchByName": "按名称搜索"
+    },
+    "columns": {
+      "name": "名称",
+      "path": "路径",
+      "component": "组件",
+      "type": "类型",
+      "order": "排序",
+      "status": "状态",
+      "action": "操作"
+    },
+    "types": {
+      "menu": "菜单",
+      "catalog": "目录",
+      "link": "外链",
+      "embedded": "内嵌",
+      "button": "按钮"
+    },
+    "status": {
+      "enabled": "启用",
+      "disabled": "禁用"
+    },
+    "form": {
+      "name": "名称",
+      "namePlaceholder": "菜单名称",
+      "type": "类型",
+      "path": "路径",
+      "component": "组件",
+      "icon": "图标",
+      "iconPlaceholder": "图标名称",
+      "parent": "父级",
+      "root": "顶级",
+      "order": "排序",
+      "status": "状态"
+    },
+    "actions": {
+      "new": "新增菜单",
+      "create": "新增菜单",
+      "edit": "编辑菜单",
+      "deleteConfirm": "确认删除该菜单？"
+    },
+    "validation": {
+      "nameRequired": "名称不能为空",
+      "typeRequired": "类型不能为空"
+    }
+  },
+  "dept": {
+    "title": "部门管理",
+    "filters": {
+      "name": "名称",
+      "searchByName": "按名称搜索"
+    },
+    "columns": {
+      "name": "名称",
+      "status": "状态",
+      "order": "排序",
+      "actions": "操作"
+    },
+    "actions": {
+      "create": "新增"
+    },
+    "status": {
+      "enabled": "启用",
+      "disabled": "禁用"
+    },
+    "dialog": {
+      "deleteTitle": "提示",
+      "deleteConfirm": "确认删除该部门？"
+    },
+    "form": {
+      "name": "部门名称",
+      "order": "排序",
+      "status": "状态",
+      "createTitle": "新增部门",
+      "editTitle": "编辑部门"
+    }
+  }
+}

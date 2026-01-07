@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import { computed } from 'vue';
 
-import { useDrawer } from '@vben/common-ui';
+import { useVbenDrawer } from '@vben/common-ui';
+import { $t } from '#/locales';
 
 import { useVbenForm } from '#/adapter/form';
 import { createDept, updateDept } from '#/api/sys/dept';
@@ -10,13 +11,15 @@ import { useFormSchema } from '../data';
 
 const emits = defineEmits(['success']);
 
-const [Drawer, drawerApi] = useDrawer();
+const [Drawer, drawerApi] = useVbenDrawer();
 const [Form, formApi] = useVbenForm({
   schema: useFormSchema(),
 });
 
 const getDrawerTitle = computed(() => {
-  return drawerApi.isUpdate ? 'Edit Department' : 'Create Department';
+  return drawerApi.isUpdate
+    ? $t('system.dept.form.editTitle')
+    : $t('system.dept.form.createTitle');
 });
 
 async function handleSubmit() {

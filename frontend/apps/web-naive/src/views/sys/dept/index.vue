@@ -7,14 +7,17 @@ import type { Dept } from '#/api/sys/dept';
 
 import { h, onMounted, ref } from 'vue';
 
-import { useDrawer } from '@vben/common-ui';
+import { useVbenDrawer } from '@vben/common-ui';
+import { $t } from '#/locales';
 
 import {
   NButton,
+  NCard,
   NDataTable,
   NForm,
   NFormItem,
   NInput,
+  NSpace,
   useDialog,
 } from 'naive-ui';
 
@@ -33,22 +36,24 @@ function createColumns({
 }) {
   return [
     {
-      title: 'Name',
+      title: $t('system.dept.columns.name'),
       key: 'name',
     },
     {
-      title: 'Status',
+      title: $t('system.dept.columns.status'),
       key: 'status',
       render(row: Dept) {
-        return row.status === 1 ? 'Enabled' : 'Disabled';
+        return row.status === 1
+          ? $t('system.dept.status.enabled')
+          : $t('system.dept.status.disabled');
       },
     },
     {
-      title: 'Order',
+      title: $t('system.dept.columns.order'),
       key: 'order',
     },
     {
-      title: 'Actions',
+      title: $t('system.dept.columns.actions'),
       key: 'actions',
       render(row: Dept) {
         return h('div', [
@@ -60,7 +65,7 @@ function createColumns({
               style: 'margin-right: 8px;',
               onClick: () => edit(row),
             },
-            { default: () => 'Edit' },
+            { default: () => $t('common.edit') },
           ),
           h(
             NButton,
@@ -69,7 +74,7 @@ function createColumns({
               type: 'error',
               onClick: () => del(row.id),
             },
-            { default: () => 'Delete' },
+            { default: () => $t('common.delete') },
           ),
         ]);
       },
@@ -85,7 +90,9 @@ const pagination = ref<PaginationProps>({
 });
 const loading = ref(false);
 
-const [, drawerApi] = useDrawer();
+const [Drawer, drawerApi] = useVbenDrawer({
+  connectedComponent: DeptFormModal,
+});
 
 const formValue = ref({
   name: '',
@@ -101,10 +108,10 @@ function handleEdit(record: Recordable) {
 
 function handleDelete(id: string) {
   dialog.warning({
-    title: 'Warning',
-    content: 'Are you sure you want to delete this department?',
-    positiveText: 'Yes',
-    negativeText: 'No',
+    title: $t('system.dept.dialog.deleteTitle'),
+    content: $t('system.dept.dialog.deleteConfirm'),
+    positiveText: $t('common.confirm'),
+    negativeText: $t('common.cancel'),
     onPositiveClick: async () => {
       try {
         await deleteDept(id);
@@ -154,27 +161,50 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
-    <div class="mb-2">
-      <NForm inline :model="formValue" @submit.prevent="handleSearch">
-        <NFormItem>
-          <NInput v-model:value="formValue.name" placeholder="Search by Name" />
-        </NFormItem>
-        <NFormItem>
-          <NButton type="primary" attr-type="submit"> Search </NButton>
-        </NFormItem>
-        <NFormItem>
-          <NButton type="primary" @click="handleCreate"> Create </NButton>
-        </NFormItem>
-      </NForm>
-    </div>
-    <NDataTable
-      :columns="columns"
-      :data="data"
-      :pagination="pagination"
-      :loading="loading"
-      @update:page="handlePageChange"
-    />
-    <DeptFormModal @success="fetchData" />
+  <div class="dept-page">
+    <NCard :title="$t('system.dept.title')" size="small">
+      <div class="dept-toolbar">
+        <NForm inline :model="formValue" @submit.prevent="handleSearch">
+          <NFormItem :label="$t('system.dept.filters.name')">
+            <NInput
+              v-model:value="formValue.name"
+              :placeholder="$t('system.dept.filters.searchByName')"
+            />
+          </NFormItem>
+          <NFormItem>
+            <NSpace>
+              <NButton type="primary" attr-type="submit">
+                {{ $t('common.search') }}
+              </NButton>
+              <NButton type="primary" @click="handleCreate">
+                {{ $t('system.dept.actions.create') }}
+              </NButton>
+            </NSpace>
+          </NFormItem>
+        </NForm>
+      </div>
+      <NDataTable
+        :columns="columns"
+        :data="data"
+        :pagination="pagination"
+        :loading="loading"
+        @update:page="handlePageChange"
+      />
+    </NCard>
+    <Drawer @success="fetchData" />
   </div>
 </template>
+
+<style scoped>
+.dept-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dept-toolbar {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+</style>

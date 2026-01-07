@@ -26,6 +26,7 @@ import {
   getMenuList,
   updateMenu,
 } from '#/api/sys/menu';
+import { $t } from '#/locales';
 
 const loading = ref(false);
 const saving = ref(false);
@@ -50,28 +51,62 @@ const form = reactive({
 });
 
 const rules: FormRules = {
-  name: [{ required: true, message: 'Name is required', trigger: 'blur' }],
-  type: [{ required: true, message: 'Type is required', trigger: 'change' }],
+  name: [
+    {
+      required: true,
+      message: $t('system.menu.validation.nameRequired'),
+      trigger: 'blur',
+    },
+  ],
+  type: [
+    {
+      required: true,
+      message: $t('system.menu.validation.typeRequired'),
+      trigger: 'change',
+    },
+  ],
 };
 
 const statusOptions = [
-  { label: 'Enabled', value: 1 },
-  { label: 'Disabled', value: 0 },
+  { label: $t('system.menu.status.enabled'), value: 1 },
+  { label: $t('system.menu.status.disabled'), value: 0 },
 ];
 
 const typeOptions = [
-  { label: 'Menu', value: 'menu' },
-  { label: 'Catalog', value: 'catalog' },
-  { label: 'Link', value: 'link' },
-  { label: 'Embedded', value: 'embedded' },
-  { label: 'Button', value: 'button' },
+  { label: $t('system.menu.types.menu'), value: 'menu' },
+  { label: $t('system.menu.types.catalog'), value: 'catalog' },
+  { label: $t('system.menu.types.link'), value: 'link' },
+  { label: $t('system.menu.types.embedded'), value: 'embedded' },
+  { label: $t('system.menu.types.button'), value: 'button' },
 ];
 
 const data = ref<any[]>([]);
 
+function getMenuTitle(row: any) {
+  if (!row) {
+    return '';
+  }
+  const rawMeta = row.meta;
+  let meta: Record<string, any> | null = null;
+  if (typeof rawMeta === 'string') {
+    try {
+      meta = JSON.parse(rawMeta);
+    } catch {
+      meta = null;
+    }
+  } else if (rawMeta && typeof rawMeta === 'object') {
+    meta = rawMeta;
+  }
+  const titleKey = meta?.title;
+  if (titleKey) {
+    return $t(titleKey);
+  }
+  return row.name ?? '';
+}
+
 const parentOptions = computed(() =>
   data.value.map((item) => ({
-    label: item.name,
+    label: getMenuTitle(item),
     value: item.id,
   })),
 );
@@ -92,25 +127,43 @@ const pagination = reactive({
 });
 
 const columns = reactive<DataTableColumns<any>>([
-  { title: 'Name', key: 'name' },
-  { title: 'Path', key: 'path' },
-  { title: 'Component', key: 'component' },
-  { title: 'Type', key: 'type' },
-  { title: 'Order', key: 'order' },
   {
-    title: 'Status',
+    title: $t('system.menu.columns.name'),
+    key: 'name',
+    render(row) {
+      return getMenuTitle(row);
+    },
+  },
+  { title: $t('system.menu.columns.path'), key: 'path' },
+  { title: $t('system.menu.columns.component'), key: 'component' },
+  {
+    title: $t('system.menu.columns.type'),
+    key: 'type',
+    render(row) {
+      const option = typeOptions.find((item) => item.value === row.type);
+      return option?.label ?? row.type ?? '';
+    },
+  },
+  { title: $t('system.menu.columns.order'), key: 'order' },
+  {
+    title: $t('system.menu.columns.status'),
     key: 'status',
     render(row) {
       const isActive = row.status === 1;
       return h(
         NTag,
         { type: isActive ? 'success' : 'default', size: 'small' },
-        { default: () => (isActive ? 'Enabled' : 'Disabled') },
+        {
+          default: () =>
+            isActive
+              ? $t('system.menu.status.enabled')
+              : $t('system.menu.status.disabled'),
+        },
       );
     },
   },
   {
-    title: 'Action',
+    title: $t('system.menu.columns.action'),
     key: 'action',
     render(row) {
       return h(
@@ -126,7 +179,7 @@ const columns = reactive<DataTableColumns<any>>([
                 secondary: true,
                 onClick: () => openEdit(row),
               },
-              { default: () => 'Edit' },
+              { default: () => $t('common.edit') },
             ),
             h(
               NPopconfirm,
@@ -136,9 +189,9 @@ const columns = reactive<DataTableColumns<any>>([
                   h(
                     NButton,
                     { size: 'small', type: 'error', secondary: true },
-                    { default: () => 'Delete' },
+                    { default: () => $t('common.delete') },
                   ),
-                default: () => 'Delete this menu?',
+                default: () => $t('system.menu.actions.deleteConfirm'),
               },
             ),
           ],
@@ -148,8 +201,12 @@ const columns = reactive<DataTableColumns<any>>([
   },
 ]);
 
+const rowKey = (row: any) => row.id;
+
 const modalTitle = computed(() =>
-  editingId.value ? 'Edit Menu' : 'Create Menu',
+  editingId.value
+    ? $t('system.menu.actions.edit')
+    : $t('system.menu.actions.create'),
 );
 
 async function fetchMenuList() {
@@ -258,33 +315,37 @@ onMounted(() => {
 
 <template>
   <div class="menu-page">
-    <NCard title="Menu Management" size="small">
+    <NCard :title="$t('system.menu.title')" size="small">
       <NForm inline :model="filters" label-placement="left" label-width="auto">
-        <NFormItem label="Name">
+        <NFormItem :label="$t('system.menu.filters.name')">
           <NInput
             v-model:value="filters.name"
-            placeholder="Search by name"
+            :placeholder="$t('system.menu.filters.searchByName')"
             clearable
           />
         </NFormItem>
-        <NFormItem label="Status">
+        <NFormItem :label="$t('system.menu.filters.status')">
           <NSelect
             v-model:value="filters.status"
             :options="statusOptions"
-            placeholder="All"
+            :placeholder="$t('system.menu.filters.all')"
             clearable
           />
         </NFormItem>
         <NFormItem>
           <NSpace>
-            <NButton type="primary" @click="handleSearch">Search</NButton>
-            <NButton @click="resetFilters">Reset</NButton>
+            <NButton type="primary" @click="handleSearch">
+              {{ $t('common.search') }}
+            </NButton>
+            <NButton @click="resetFilters">{{ $t('common.reset') }}</NButton>
           </NSpace>
         </NFormItem>
       </NForm>
 
       <div class="menu-toolbar">
-        <NButton type="primary" @click="openCreate">New Menu</NButton>
+        <NButton type="primary" @click="openCreate">
+          {{ $t('system.menu.actions.new') }}
+        </NButton>
       </div>
 
       <NDataTable
@@ -293,7 +354,7 @@ onMounted(() => {
         :pagination="pagination"
         :loading="loading"
         :bordered="false"
-        row-key="id"
+        :row-key="rowKey"
       />
     </NCard>
 
@@ -305,45 +366,51 @@ onMounted(() => {
     >
       <NForm ref="formRef" :model="form" :rules="rules" label-placement="top">
         <NGrid cols="2" x-gap="16" y-gap="8">
-          <NFormItemGi label="Name" path="name">
-            <NInput v-model:value="form.name" placeholder="Menu name" />
+          <NFormItemGi :label="$t('system.menu.form.name')" path="name">
+            <NInput
+              v-model:value="form.name"
+              :placeholder="$t('system.menu.form.namePlaceholder')"
+            />
           </NFormItemGi>
-          <NFormItemGi label="Type" path="type">
+          <NFormItemGi :label="$t('system.menu.form.type')" path="type">
             <NSelect v-model:value="form.type" :options="typeOptions" />
           </NFormItemGi>
-          <NFormItemGi label="Path" path="path">
+          <NFormItemGi :label="$t('system.menu.form.path')" path="path">
             <NInput v-model:value="form.path" placeholder="/system/menu" />
           </NFormItemGi>
-          <NFormItemGi label="Component" path="component">
+          <NFormItemGi :label="$t('system.menu.form.component')" path="component">
             <NInput
               v-model:value="form.component"
               placeholder="/system/menu/list"
             />
           </NFormItemGi>
-          <NFormItemGi label="Icon">
-            <NInput v-model:value="form.icon" placeholder="icon name" />
+          <NFormItemGi :label="$t('system.menu.form.icon')">
+            <NInput
+              v-model:value="form.icon"
+              :placeholder="$t('system.menu.form.iconPlaceholder')"
+            />
           </NFormItemGi>
-          <NFormItemGi label="Parent">
+          <NFormItemGi :label="$t('system.menu.form.parent')">
             <NSelect
               v-model:value="form.parentId"
               :options="parentOptions"
-              placeholder="Root"
+              :placeholder="$t('system.menu.form.root')"
               clearable
             />
           </NFormItemGi>
-          <NFormItemGi label="Order">
+          <NFormItemGi :label="$t('system.menu.form.order')">
             <NInputNumber v-model:value="form.order" :min="0" />
           </NFormItemGi>
-          <NFormItemGi label="Status">
+          <NFormItemGi :label="$t('system.menu.form.status')">
             <NSelect v-model:value="form.status" :options="statusOptions" />
           </NFormItemGi>
         </NGrid>
       </NForm>
       <template #action>
         <NSpace>
-          <NButton @click="closeModal">Cancel</NButton>
+          <NButton @click="closeModal">{{ $t('common.cancel') }}</NButton>
           <NButton type="primary" :loading="saving" @click="submitForm">
-            Save
+            {{ $t('common.confirm') }}
           </NButton>
         </NSpace>
       </template>

@@ -1,0 +1,86 @@
+{
+  "title": "System",
+  "menu": {
+    "title": "Menu Management",
+    "filters": {
+      "name": "Name",
+      "status": "Status",
+      "all": "All",
+      "searchByName": "Search by name"
+    },
+    "columns": {
+      "name": "Name",
+      "path": "Path",
+      "component": "Component",
+      "type": "Type",
+      "order": "Order",
+      "status": "Status",
+      "action": "Action"
+    },
+    "types": {
+      "menu": "Menu",
+      "catalog": "Catalog",
+      "link": "Link",
+      "embedded": "Embedded",
+      "button": "Button"
+    },
+    "status": {
+      "enabled": "Enabled",
+      "disabled": "Disabled"
+    },
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "Menu name",
+      "type": "Type",
+      "path": "Path",
+      "component": "Component",
+      "icon": "Icon",
+      "iconPlaceholder": "Icon name",
+      "parent": "Parent",
+      "root": "Root",
+      "order": "Order",
+      "status": "Status"
+    },
+    "actions": {
+      "new": "New Menu",
+      "create": "Create Menu",
+      "edit": "Edit Menu",
+      "deleteConfirm": "Delete this menu?"
+    },
+    "validation": {
+      "nameRequired": "Name is required",
+      "typeRequired": "Type is required"
+    }
+  },
+  "dept": {
+    "title": "Department Management",
+    "filters": {
+      "name": "Name",
+      "searchByName": "Search by name"
+    },
+    "columns": {
+      "name": "Name",
+      "status": "Status",
+      "order": "Order",
+      "actions": "Actions"
+    },
+    "actions": {
+      "create": "Create"
+    },
+    "status": {
+      "enabled": "Enabled",
+      "disabled": "Disabled"
+    },
+    "dialog": {
+      "deleteTitle": "Warning",
+      "deleteConfirm": "Are you sure you want to delete this department?"
+    },
+    "form": {
+      "name": "Department Name",
+      "order": "Order",
+      "status": "Status",
+      "createTitle": "Create Department",
+      "editTitle": "Edit Department"
+    }
+  }
+}

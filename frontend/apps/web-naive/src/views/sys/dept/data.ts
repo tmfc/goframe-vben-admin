@@ -1,30 +1,32 @@
 import type { VbenFormSchema } from '#/adapter/form';
 
+import { $t } from '#/locales';
+
 export function useFormSchema(): VbenFormSchema[] {
   return [
     {
       component: 'Input',
       fieldName: 'name',
-      label: 'Department Name',
+      label: $t('system.dept.form.name'),
       rules: 'required',
     },
     {
       component: 'InputNumber',
       fieldName: 'order',
-      label: 'Order',
+      label: $t('system.dept.form.order'),
       rules: 'required',
     },
     {
       component: 'RadioGroup',
       componentProps: {
         options: [
-          { label: 'Enabled', value: 1 },
-          { label: 'Disabled', value: 0 },
+          { label: $t('system.dept.status.enabled'), value: 1 },
+          { label: $t('system.dept.status.disabled'), value: 0 },
         ],
       },
       defaultValue: 1,
       fieldName: 'status',
-      label: 'Status',
+      label: $t('system.dept.form.status'),
     },
   ];
 }
