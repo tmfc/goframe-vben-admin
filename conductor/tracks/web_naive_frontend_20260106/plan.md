@@ -7,7 +7,7 @@ This plan outlines the steps to implement the Department, User, and Role managem
 - [x] **Task: Setup & Code Analysis** [SHA: 82e9f87]
         - [x] Sub-task: Analyze the existing `@frontend/apps/web-naive/` structure to identify where to add new pages and routes.
         - [x] Sub-task: Locate the relevant API definition files in `frontend/packages/@core/src/api` to understand how to call the department management endpoints.
--   [ ] **Task: Write Failing Tests (Red Phase)**
+- [x] **Task: Write Failing Tests (Red Phase)** [SHA: 1f288c8]
         - [x] Sub-task: Write unit tests for the Department Management Vue component, covering the listing of departments.
         - [x] Sub-task: Write unit tests for the creation of a new department.
         - [x] Sub-task: Write unit tests for editing and deleting a department.
