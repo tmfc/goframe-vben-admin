@@ -46,13 +46,23 @@ func CasbinAuthz() ghttp.HandlerFunc {
 			return
 		}
 
-		rawRoles, _ := claims["roles"].(string)
-		roles := service.ParseRoles(rawRoles)
 		isSuper := false
-		for _, rname := range roles {
-			if rname == consts.RoleSuper {
-				isSuper = true
-				break
+		if rawSuper, ok := claims["isSuper"]; ok {
+			switch v := rawSuper.(type) {
+			case bool:
+				isSuper = v
+			case string:
+				isSuper = strings.EqualFold(strings.TrimSpace(v), "true")
+			case float64:
+				isSuper = v != 0
+			}
+		} else {
+			roles := service.ParseRoles(claims["roles"])
+			for _, rname := range roles {
+				if rname == consts.RoleSuper {
+					isSuper = true
+					break
+				}
 			}
 		}
 

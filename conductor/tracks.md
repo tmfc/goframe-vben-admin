@@ -10,6 +10,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [ ] Track: Frontend development for web-naive, connecting remaining pages to backend APIs.
+## [~] Track: Frontend development for web-naive, connecting remaining pages to backend APIs.
 *Link: [./conductor/tracks/web_naive_frontend_20260106/](./conductor/tracks/web_naive_frontend_20260106/)*
 

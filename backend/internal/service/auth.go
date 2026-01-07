@@ -236,8 +236,6 @@ func (s *sAuth) RefreshToken(ctx context.Context, in v1.RefreshTokenReq) (out *v
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}
-
-	WriteAccessTokenResponse(ctx, accessToken)
 	return
 }
 

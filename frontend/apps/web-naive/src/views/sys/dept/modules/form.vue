@@ -1,8 +1,11 @@
 <script lang="ts" setup>
 import { computed } from 'vue';
+
+import { useDrawer } from '@vben/common-ui';
+
 import { useVbenForm } from '#/adapter/form';
 import { createDept, updateDept } from '#/api/sys/dept';
-import { useDrawer } from '@vben/common-ui';
+
 import { useFormSchema } from '../data';
 
 const emits = defineEmits(['success']);
@@ -23,11 +26,9 @@ async function handleSubmit() {
   const values = await formApi.getValues();
   drawerApi.lock();
   try {
-    if (drawerApi.isUpdate) {
-      await updateDept(values.id, values);
-    } else {
-      await createDept(values);
-    }
+    await (drawerApi.isUpdate
+      ? updateDept(values.id, values)
+      : createDept(values));
     emits('success');
     drawerApi.close();
   } finally {

@@ -20,8 +20,15 @@ func ResolveAccessToken(ctx context.Context, provided string) (string, error) {
 	if req == nil {
 		return "", gerror.NewCode(consts.ErrorCodeUnauthorized, "missing authorization token")
 	}
-	header := req.Header.Get("Authorization")
-	token := strings.TrimSpace(strings.TrimPrefix(header, "Bearer"))
+	header := strings.TrimSpace(req.Header.Get("Authorization"))
+	if header == "" {
+		return "", gerror.NewCode(consts.ErrorCodeUnauthorized, "missing authorization token")
+	}
+	lower := strings.ToLower(header)
+	if !strings.HasPrefix(lower, "bearer ") {
+		return "", gerror.NewCode(consts.ErrorCodeUnauthorized, "invalid authorization token")
+	}
+	token := strings.TrimSpace(header[len("Bearer "):])
 	if token == "" {
 		return "", gerror.NewCode(consts.ErrorCodeUnauthorized, "missing authorization token")
 	}

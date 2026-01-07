@@ -1,7 +1,4 @@
-import { h } from 'vue';
-import { NButton } from 'naive-ui';
 import type { VbenFormSchema } from '#/adapter/form';
-import { $t } from '#/locales';
 
 export function useFormSchema(): VbenFormSchema[] {
   return [

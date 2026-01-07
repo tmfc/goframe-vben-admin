@@ -34,7 +34,7 @@ func TestCreateMenuReq_Validation(t *testing.T) {
 		}
 		err := g.Validator().Data(req).Run(context.Background())
 		t.AssertNE(err, nil)
-		t.Assert(err.Error(), "名称不能为空") // Assuming "名称不能为空" is the first error
+		t.Assert(err.Error(), "名称不能为空; 类型不能为空")
 
 		// Test case 2: Name is provided, Type is missing (should fail)
 		req.SysMenuCreateIn.Name = "Test Menu"
@@ -58,15 +58,17 @@ func TestUpdateMenuReq_Validation(t *testing.T) {
 		}
 		err := g.Validator().Data(req).Run(context.Background())
 		t.AssertNE(err, nil)
-		t.Assert(err.Error(), "ID不能为空") // Assuming "ID不能为空" is the first error
+		t.Assert(err.Error(), "ID不能为空; 名称不能为空; 类型不能为空")
 
 		// Test case 2: ID is provided, Name and Type are missing (should fail)
+		req.ID = "123"
 		req.SysMenuUpdateIn.ID = "123"
 		err = g.Validator().Data(req).Run(context.Background())
 		t.AssertNE(err, nil)
-		t.Assert(err.Error(), "名称不能为空")
+		t.Assert(err.Error(), "名称不能为空; 类型不能为空")
 
 		// Test case 3: ID and Name are provided, Type is missing (should fail)
+		req.ID = "123"
 		req.SysMenuUpdateIn.ID = "123"
 		req.SysMenuUpdateIn.Name = "Updated Menu"
 		err = g.Validator().Data(req).Run(context.Background())
@@ -74,6 +76,7 @@ func TestUpdateMenuReq_Validation(t *testing.T) {
 		t.Assert(err.Error(), "类型不能为空")
 
 		// Test case 4: All required fields are provided (should pass)
+		req.ID = "123"
 		req.SysMenuUpdateIn.ID = "123"
 		req.SysMenuUpdateIn.Name = "Updated Menu"
 		req.SysMenuUpdateIn.Type = "menu"

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"strings"
 	"sync"
 	"time"
 
@@ -59,10 +60,19 @@ func (s *jwtTokenService) GenerateAccessToken(user *entity.SysUser) (string, err
 	if err := s.ensureSecrets(); err != nil {
 		return "", gerror.NewCode(consts.ErrorCodeUnauthorized, err.Error())
 	}
+	roles := parseRoles(user.Roles)
+	isSuper := false
+	for _, role := range roles {
+		if strings.TrimSpace(role) == consts.RoleSuper {
+			isSuper = true
+			break
+		}
+	}
 	claims := jwt.MapClaims{
 		"id":       user.Id,
 		"username": user.Username,
 		"tenantId": user.TenantId,
+		"isSuper":  isSuper,
 		"exp":      time.Now().Add(AccessTokenTTL).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
