@@ -33,10 +33,10 @@
     - [ ] Commit Plan Update
 
 - [ ] Task: Integrate Menu API Endpoints into Main Router
-    - [ ] Write Failing Tests: Write tests to ensure routes are correctly registered.
-    - [ ] Implement: Register the new menu controller in `backend/internal/cmd/cmd.go`.
-    - [ ] Refactor
-    - [ ] Verify Coverage
+    - [x] Write Failing Tests: Write tests to ensure routes are correctly registered.
+    - [x] Implement: Register the new menu controller in `backend/internal/cmd/cmd.go`.
+    - [x] Refactor
+    - [x] Verify Coverage
     - [ ] Commit Code Changes
     - [ ] Attach Task Summary
     - [ ] Record Commit SHA
