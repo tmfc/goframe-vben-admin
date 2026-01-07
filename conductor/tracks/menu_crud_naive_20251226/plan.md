@@ -22,7 +22,7 @@
     - [ ] Record Commit SHA
     - [ ] Commit Plan Update
 
-- [ ] Task: Implement Menu Controller (GoFrame `controller` layer)
+- [x] Task: Implement Menu Controller (GoFrame `controller` layer) [SHA: 57c33ec]
     - [x] Write Failing Tests: Write integration tests for menu controller endpoints.
     - [x] Implement: Create `backend/internal/controller/menu.go` to handle HTTP requests for menu CRUD.
     - [x] Refactor
