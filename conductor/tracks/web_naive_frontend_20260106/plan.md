@@ -11,7 +11,7 @@ This plan outlines the steps to implement the Department, User, and Role managem
         - [x] Sub-task: Write unit tests for the Department Management Vue component, covering the listing of departments.
         - [x] Sub-task: Write unit tests for the creation of a new department.
         - [x] Sub-task: Write unit tests for editing and deleting a department.
--   [ ] **Task: Implement Department UI (Green Phase)**
+- [x] **Task: Implement Department UI (Green Phase)** [SHA: 4813dbf]
         - [x] Sub-task: Create the basic Vue component for the Department Management page.
         - [x] Sub-task: Implement the UI to display a list or tree of departments fetched from the API.
         - [x] Sub-task: Implement the form/modal for creating a new department and connect it to the API.
