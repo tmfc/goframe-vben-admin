@@ -4,7 +4,7 @@ This plan outlines the steps to implement the Department, User, and Role managem
 
 ## Phase 1: Department Management UI
 
--   [ ] **Task: Setup & Code Analysis**
+- [x] **Task: Setup & Code Analysis** [SHA: 82e9f87]
         - [x] Sub-task: Analyze the existing `@frontend/apps/web-naive/` structure to identify where to add new pages and routes.
         - [x] Sub-task: Locate the relevant API definition files in `frontend/packages/@core/src/api` to understand how to call the department management endpoints.
 -   [ ] **Task: Write Failing Tests (Red Phase)**
