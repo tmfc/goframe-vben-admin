@@ -21,6 +21,15 @@ const routes: RouteRecordRaw[] = [
           title: 'Menu Management',
         },
       },
+      {
+        name: 'Dept',
+        path: '/system/dept',
+        component: () => import('#/views/sys/dept/index.vue'),
+        meta: {
+          icon: 'ant-design:cluster-outlined',
+          title: 'Department Management',
+        },
+      },
     ],
   },
 ];
