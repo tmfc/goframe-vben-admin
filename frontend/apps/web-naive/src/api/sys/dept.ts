@@ -2,18 +2,31 @@ import { requestClient } from '#/api/request';
 
 const API_URL = '/sys-dept';
 
+export interface Dept {
+  id: string;
+  name: string;
+  order: number;
+  status: number;
+}
+
 /**
  * Get department list
  */
 export function getDeptList(params?: any) {
-  return requestClient.get({ url: `${API_URL}/list`, params });
+  return requestClient.get<{ list: Dept[]; total: number }>({
+    url: `${API_URL}/list`,
+    params,
+  });
 }
 
 /**
  * Get department tree
  */
 export function getDeptTree(params?: any) {
-  return requestClient.get({ url: `${API_URL}/tree`, params });
+  return requestClient.get<{ list: Dept[] }>({
+    url: `${API_URL}/tree`,
+    params,
+  });
 }
 
 /**
@@ -27,7 +40,7 @@ export function createDept(data: any) {
  * Get department details
  */
 export function getDept(id: string) {
-  return requestClient.get({ url: `${API_URL}/${id}` });
+  return requestClient.get<Dept>({ url: `${API_URL}/${id}` });
 }
 
 /**

@@ -19,8 +19,8 @@ This plan outlines the steps to implement the Department, User, and Role managem
         - [x] Sub-task: Implement the logic for deleting a department, including a confirmation dialog.
         - [x] Sub-task: Implement the search and filtering functionality.
 -   [ ] **Task: Refactor & Review**
-    -   [ ] Sub-task: Refactor the Department Management component for clarity and maintainability.
-    -   [ ] Sub-task: Ensure all new code adheres to the project's style and linting rules.
+        - [x] Sub-task: Refactor the Department Management component for clarity and maintainability.
+        - [x] Sub-task: Ensure all new code adheres to the project's style and linting rules.
 -   [ ] **Task: Conductor - User Manual Verification 'Phase 1: Department Management UI' (Protocol in workflow.md)**
 
 ## Phase 2: User Management UI

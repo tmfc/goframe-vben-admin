@@ -1,96 +1,91 @@
-<template>
-  <div>
-    <div class="mb-2">
-      <n-form inline :model="formValue" @submit.prevent="handleSearch">
-        <n-form-item>
-          <n-input v-model:value="formValue.name" placeholder="Search by Name" />
-        </n-form-item>
-        <n-form-item>
-          <n-button type="primary" attr-type="submit">
-            Search
-          </n-button>
-        </n-form-item>
-        <n-form-item>
-          <n-button type="primary" @click="handleCreate">
-            Create
-          </n-button>
-        </n-form-item>
-      </n-form>
-    </div>
-    <n-data-table
-      :columns="columns"
-      :data="data"
-      :pagination="pagination"
-      :loading="loading"
-      @update:page="handlePageChange"
-    />
-    <Drawer @success="fetchData" />
-  </div>
-</template>
-
 <script lang="ts" setup>
-import { ref, onMounted, h } from 'vue';
-import { NDataTable, NButton, NForm, NFormItem, NInput, useDialog } from 'naive-ui';
-import { getDeptList, deleteDept } from '#/api/sys/dept';
-import Drawer from './modules/form.vue';
+import type { PaginationProps } from 'naive-ui';
+
+import type { Recordable } from '@vben/types';
+
+import type { Dept } from '#/api/sys/dept';
+
+import { h, onMounted, ref } from 'vue';
+
 import { useDrawer } from '@vben/common-ui';
+
+import {
+  NButton,
+  NDataTable,
+  NForm,
+  NFormItem,
+  NInput,
+  useDialog,
+} from 'naive-ui';
+
+import { deleteDept, getDeptList } from '#/api/sys/dept';
+
+import DeptFormModal from './modules/form.vue';
 
 const dialog = useDialog();
 
-const columns = [
-  {
-    title: 'Name',
-    key: 'name',
-  },
-  {
-    title: 'Status',
-    key: 'status',
-    render(row) {
-      return row.status === 1 ? 'Enabled' : 'Disabled';
+function createColumns({
+  edit,
+  del,
+}: {
+  del: (id: string) => void;
+  edit: (record: Dept) => void;
+}) {
+  return [
+    {
+      title: 'Name',
+      key: 'name',
     },
-  },
-  {
-    title: 'Order',
-    key: 'order',
-  },
-  {
-    title: 'Actions',
-    key: 'actions',
-    render(row) {
-      return h('div', [
-        h(
-          NButton,
-          {
-            size: 'small',
-            type: 'primary',
-            style: 'margin-right: 8px;',
-            onClick: () => handleEdit(row),
-          },
-          { default: () => 'Edit' }
-        ),
-        h(
-          NButton,
-          {
-            size: 'small',
-            type: 'error',
-            onClick: () => handleDelete(row.id),
-          },
-          { default: () => 'Delete' }
-        ),
-      ]);
+    {
+      title: 'Status',
+      key: 'status',
+      render(row: Dept) {
+        return row.status === 1 ? 'Enabled' : 'Disabled';
+      },
     },
-  },
-];
+    {
+      title: 'Order',
+      key: 'order',
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render(row: Dept) {
+        return h('div', [
+          h(
+            NButton,
+            {
+              size: 'small',
+              type: 'primary',
+              style: 'margin-right: 8px;',
+              onClick: () => edit(row),
+            },
+            { default: () => 'Edit' },
+          ),
+          h(
+            NButton,
+            {
+              size: 'small',
+              type: 'error',
+              onClick: () => del(row.id),
+            },
+            { default: () => 'Delete' },
+          ),
+        ]);
+      },
+    },
+  ];
+}
 
-const data = ref([]);
-const pagination = ref({
+const data = ref<Dept[]>([]);
+const pagination = ref<PaginationProps>({
   page: 1,
   pageSize: 10,
   itemCount: 0,
 });
 const loading = ref(false);
 
-const [DrawerRef, drawerApi] = useDrawer();
+const [, drawerApi] = useDrawer();
 
 const formValue = ref({
   name: '',
@@ -148,7 +143,38 @@ async function fetchData() {
   }
 }
 
+const columns = createColumns({
+  edit: handleEdit,
+  del: handleDelete,
+});
+
 onMounted(() => {
   fetchData();
 });
 </script>
+
+<template>
+  <div>
+    <div class="mb-2">
+      <NForm inline :model="formValue" @submit.prevent="handleSearch">
+        <NFormItem>
+          <NInput v-model:value="formValue.name" placeholder="Search by Name" />
+        </NFormItem>
+        <NFormItem>
+          <NButton type="primary" attr-type="submit"> Search </NButton>
+        </NFormItem>
+        <NFormItem>
+          <NButton type="primary" @click="handleCreate"> Create </NButton>
+        </NFormItem>
+      </NForm>
+    </div>
+    <NDataTable
+      :columns="columns"
+      :data="data"
+      :pagination="pagination"
+      :loading="loading"
+      @update:page="handlePageChange"
+    />
+    <DeptFormModal @success="fetchData" />
+  </div>
+</template>
