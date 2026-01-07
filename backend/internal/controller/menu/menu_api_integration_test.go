@@ -143,3 +143,33 @@ func hasMenuName(items []struct {
 	}
 	return false
 }
+
+func TestMenuAPIValidation(t *testing.T) {
+	testutil.RequireDatabase(t)
+
+	ctx := context.WithValue(context.TODO(), consts.CtxKeyTenantID, consts.DefaultTenantID)
+	ensureTestTenant(t, ctx, "00000000-0000-0000-0000-000000000000")
+
+	s := startMenuAPIServer(t)
+	client := g.Client().ContentJson()
+	client.SetPrefix(fmt.Sprintf("http://127.0.0.1:%d", s.GetListenedPort()))
+
+	gtest.C(t, func(t *gtest.T) {
+		// Test creating a menu with a missing name
+		createContent := client.PostContent(ctx, "/sys-menu", `{"path":"/api-menu-validation","type":"menu"}`)
+		createEnv := decodeMenuEnvelope(t, createContent)
+		t.AssertNE(createEnv.Code, gcode.CodeOK.Code())
+
+		// Test creating a menu with a missing type
+		createContent = client.PostContent(ctx, "/sys-menu", `{"name":"ApiMenuValidation","path":"/api-menu-validation"}`)
+		createEnv = decodeMenuEnvelope(t, createContent)
+		t.AssertNE(createEnv.Code, gcode.CodeOK.Code())
+
+		// Test updating a menu with a missing name
+		updatePayload := `{"path":"/api-menu-updated"}`
+		updateContent := client.PutContent(ctx, "/sys-menu/some-id", updatePayload)
+		updateEnv := decodeMenuEnvelope(t, updateContent)
+		t.AssertNE(updateEnv.Code, gcode.CodeOK.Code())
+	})
+}
+

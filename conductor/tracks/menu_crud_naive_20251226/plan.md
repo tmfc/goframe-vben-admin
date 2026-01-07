@@ -23,10 +23,10 @@
     - [ ] Commit Plan Update
 
 - [ ] Task: Implement Menu Controller (GoFrame `controller` layer)
-    - [ ] Write Failing Tests: Write integration tests for menu controller endpoints.
-    - [ ] Implement: Create `backend/internal/controller/menu.go` to handle HTTP requests for menu CRUD.
-    - [ ] Refactor
-    - [ ] Verify Coverage
+    - [x] Write Failing Tests: Write integration tests for menu controller endpoints.
+    - [x] Implement: Create `backend/internal/controller/menu.go` to handle HTTP requests for menu CRUD.
+    - [x] Refactor
+    - [x] Verify Coverage
     - [ ] Commit Code Changes
     - [ ] Attach Task Summary
     - [ ] Record Commit SHA
