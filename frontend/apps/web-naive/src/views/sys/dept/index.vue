@@ -1,15 +1,28 @@
 <template>
   <div>
     <div class="mb-2">
-      <n-button type="primary" @click="handleCreate">
-        Create
-      </n-button>
+      <n-form inline :model="formValue" @submit.prevent="handleSearch">
+        <n-form-item>
+          <n-input v-model:value="formValue.name" placeholder="Search by Name" />
+        </n-form-item>
+        <n-form-item>
+          <n-button type="primary" attr-type="submit">
+            Search
+          </n-button>
+        </n-form-item>
+        <n-form-item>
+          <n-button type="primary" @click="handleCreate">
+            Create
+          </n-button>
+        </n-form-item>
+      </n-form>
     </div>
     <n-data-table
       :columns="columns"
       :data="data"
       :pagination="pagination"
       :loading="loading"
+      @update:page="handlePageChange"
     />
     <Drawer @success="fetchData" />
   </div>
@@ -17,7 +30,7 @@
 
 <script lang="ts" setup>
 import { ref, onMounted, h } from 'vue';
-import { NDataTable, NButton, useDialog } from 'naive-ui';
+import { NDataTable, NButton, NForm, NFormItem, NInput, useDialog } from 'naive-ui';
 import { getDeptList, deleteDept } from '#/api/sys/dept';
 import Drawer from './modules/form.vue';
 import { useDrawer } from '@vben/common-ui';
@@ -79,6 +92,10 @@ const loading = ref(false);
 
 const [DrawerRef, drawerApi] = useDrawer();
 
+const formValue = ref({
+  name: '',
+});
+
 function handleCreate() {
   drawerApi.open();
 }
@@ -104,12 +121,23 @@ function handleDelete(id: string) {
   });
 }
 
+function handleSearch() {
+  pagination.value.page = 1;
+  fetchData();
+}
+
+function handlePageChange(page: number) {
+  pagination.value.page = page;
+  fetchData();
+}
+
 async function fetchData() {
   loading.value = true;
   try {
     const response = await getDeptList({
       page: pagination.value.page,
       pageSize: pagination.value.pageSize,
+      name: formValue.value.name,
     });
     data.value = response.list;
     pagination.value.itemCount = response.total;

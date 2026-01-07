@@ -17,7 +17,7 @@ This plan outlines the steps to implement the Department, User, and Role managem
         - [x] Sub-task: Implement the form/modal for creating a new department and connect it to the API.
         - [x] Sub-task: Implement the form/modal for editing an existing department and connect it to the API.
         - [x] Sub-task: Implement the logic for deleting a department, including a confirmation dialog.
-    -   [ ] Sub-task: Implement the search and filtering functionality.
+        - [x] Sub-task: Implement the search and filtering functionality.
 -   [ ] **Task: Refactor & Review**
     -   [ ] Sub-task: Refactor the Department Management component for clarity and maintainability.
     -   [ ] Sub-task: Ensure all new code adheres to the project's style and linting rules.
