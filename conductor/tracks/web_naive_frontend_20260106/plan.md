@@ -21,7 +21,7 @@ This plan outlines the steps to implement the Department, User, and Role managem
 - [x] **Task: Refactor & Review** [SHA: a548f36]
         - [x] Sub-task: Refactor the Department Management component for clarity and maintainability.
         - [x] Sub-task: Ensure all new code adheres to the project's style and linting rules.
--   [ ] **Task: Conductor - User Manual Verification 'Phase 1: Department Management UI' (Protocol in workflow.md)**
+- [~] **Task: Conductor - User Manual Verification 'Phase 1: Department Management UI' (Protocol in workflow.md)**
 
 ## Phase 2: User Management UI
 
