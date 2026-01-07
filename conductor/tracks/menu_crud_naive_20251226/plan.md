@@ -32,7 +32,7 @@
     - [ ] Record Commit SHA
     - [ ] Commit Plan Update
 
-- [ ] Task: Integrate Menu API Endpoints into Main Router
+- [x] Task: Integrate Menu API Endpoints into Main Router [SHA: cf462f2]
     - [x] Write Failing Tests: Write tests to ensure routes are correctly registered.
     - [x] Implement: Register the new menu controller in `backend/internal/cmd/cmd.go`.
     - [x] Refactor
