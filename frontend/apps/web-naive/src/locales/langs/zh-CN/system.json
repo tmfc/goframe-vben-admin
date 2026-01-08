@@ -1,5 +1,54 @@
 {
   "title": "系统管理",
+  "user": {
+    "title": "用户管理",
+    "filters": {
+      "username": "用户名",
+      "searchByUsername": "按用户名搜索"
+    },
+    "columns": {
+      "username": "用户名",
+      "realName": "姓名",
+      "status": "状态",
+      "roles": "角色",
+      "deptId": "所属部门",
+      "actions": "操作"
+    },
+    "actions": {
+      "create": "新增",
+      "changePassword": "修改密码"
+    },
+    "status": {
+      "enabled": "启用",
+      "disabled": "禁用"
+    },
+    "dialog": {
+      "deleteTitle": "提示",
+      "deleteConfirm": "确认删除该用户？"
+    },
+    "form": {
+      "username": "用户名",
+      "password": "密码",
+      "realName": "姓名",
+      "roles": "角色",
+      "rolesPlaceholder": "角色1, 角色2",
+      "homePath": "首页路径",
+      "homePathPlaceholder": "默认 /dashboard",
+      "avatar": "头像",
+      "avatarPlaceholder": "头像地址",
+      "deptId": "部门 ID",
+      "status": "状态",
+      "createTitle": "新增用户",
+      "editTitle": "编辑用户"
+    },
+    "password": {
+      "title": "修改密码",
+      "newPassword": "新密码"
+    }
+  },
+  "role": {
+    "title": "角色管理"
+  },
   "menu": {
     "title": "菜单管理",
     "filters": {
@@ -31,6 +80,8 @@
     "form": {
       "name": "名称",
       "namePlaceholder": "菜单名称",
+      "titleKey": "标题 Key",
+      "titleKeyPlaceholder": "例如: system.menu.title",
       "type": "类型",
       "path": "路径",
       "component": "组件",

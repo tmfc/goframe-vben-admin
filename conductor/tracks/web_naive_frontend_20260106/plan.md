@@ -2,7 +2,7 @@
 
 This plan outlines the steps to implement the Department, User, and Role management frontends for the `web-naive` application.
 
-## Phase 1: Department Management UI
+## Phase 1: Department Management UI [checkpoint: 757de89]
 
 - [x] **Task: Setup & Code Analysis** [SHA: 82e9f87]
         - [x] Sub-task: Analyze the existing `@frontend/apps/web-naive/` structure to identify where to add new pages and routes.
@@ -21,7 +21,7 @@ This plan outlines the steps to implement the Department, User, and Role managem
 - [x] **Task: Refactor & Review** [SHA: a548f36]
         - [x] Sub-task: Refactor the Department Management component for clarity and maintainability.
         - [x] Sub-task: Ensure all new code adheres to the project's style and linting rules.
-- [~] **Task: Conductor - User Manual Verification 'Phase 1: Department Management UI' (Protocol in workflow.md)**
+- [x] **Task: Conductor - User Manual Verification 'Phase 1: Department Management UI' (Protocol in workflow.md)**
 
 ## Phase 2: User Management UI
 

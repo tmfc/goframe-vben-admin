@@ -1,5 +1,54 @@
 {
-  "title": "System",
+  "title": "System Management",
+  "user": {
+    "title": "User Management",
+    "filters": {
+      "username": "Username",
+      "searchByUsername": "Search by username"
+    },
+    "columns": {
+      "username": "Username",
+      "realName": "Real Name",
+      "status": "Status",
+      "roles": "Roles",
+      "deptId": "Department",
+      "actions": "Actions"
+    },
+    "actions": {
+      "create": "Create",
+      "changePassword": "Change Password"
+    },
+    "status": {
+      "enabled": "Enabled",
+      "disabled": "Disabled"
+    },
+    "dialog": {
+      "deleteTitle": "Warning",
+      "deleteConfirm": "Are you sure you want to delete this user?"
+    },
+    "form": {
+      "username": "Username",
+      "password": "Password",
+      "realName": "Real Name",
+      "roles": "Roles",
+      "rolesPlaceholder": "role1, role2",
+      "homePath": "Home Path",
+      "homePathPlaceholder": "Default /dashboard",
+      "avatar": "Avatar",
+      "avatarPlaceholder": "Avatar URL",
+      "deptId": "Dept ID",
+      "status": "Status",
+      "createTitle": "Create User",
+      "editTitle": "Edit User"
+    },
+    "password": {
+      "title": "Change Password",
+      "newPassword": "New Password"
+    }
+  },
+  "role": {
+    "title": "Role Management"
+  },
   "menu": {
     "title": "Menu Management",
     "filters": {
@@ -31,6 +80,8 @@
     "form": {
       "name": "Name",
       "namePlaceholder": "Menu name",
+      "titleKey": "Title Key",
+      "titleKeyPlaceholder": "e.g. system.menu.title",
       "type": "Type",
       "path": "Path",
       "component": "Component",

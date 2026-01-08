@@ -1,8 +1,9 @@
 package v1
 
 import (
-	"github.com/gogf/gf/v2/frame/g"
 	"backend/internal/model"
+
+	"github.com/gogf/gf/v2/frame/g"
 )
 
 // CreateMenuReq defines the request structure for creating a new menu.
@@ -85,7 +86,7 @@ type MenuMeta struct {
 	Icon          string `json:"icon,omitempty"`
 	Title         string `json:"title,omitempty"`
 	AffixTab      bool   `json:"affixTab,omitempty"`
-	Order         int    `json:"order,omitempty"`
+	Order         int    `json:"order"`
 	Badge         string `json:"badge,omitempty"`
 	BadgeType     string `json:"badgeType,omitempty"`
 	BadgeVariants string `json:"badgeVariants,omitempty"`

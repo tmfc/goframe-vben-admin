@@ -1,11 +1,8 @@
 <script lang="ts" setup>
 import type { PaginationProps } from 'naive-ui';
-
-import type { Dept } from '#/api/sys/dept';
+import type { Role } from '#/api/sys/role';
 
 import { h, onMounted, ref } from 'vue';
-
-import { $t } from '#/locales';
 
 import {
   NButton,
@@ -18,9 +15,8 @@ import {
   useDialog,
 } from 'naive-ui';
 
-import { deleteDept, getDeptList } from '#/api/sys/dept';
-
-import DeptFormModal from './modules/form.vue';
+import { getRoleList, deleteRole } from '#/api/sys/role';
+import RoleFormModal from './modules/form.vue';
 
 const dialog = useDialog();
 
@@ -29,30 +25,28 @@ function createColumns({
   del,
 }: {
   del: (id: string) => void;
-  edit: (record: Dept) => void;
+  edit: (record: Role) => void;
 }) {
   return [
     {
-      title: $t('system.dept.columns.name'),
+      title: 'Role Name',
       key: 'name',
     },
     {
-      title: $t('system.dept.columns.status'),
+      title: 'Description',
+      key: 'description',
+    },
+    {
+      title: 'Status',
       key: 'status',
-      render(row: Dept) {
-        return row.status === 1
-          ? $t('system.dept.status.enabled')
-          : $t('system.dept.status.disabled');
+      render(row: Role) {
+        return row.status === 1 ? 'Enabled' : 'Disabled';
       },
     },
     {
-      title: $t('system.dept.columns.order'),
-      key: 'order',
-    },
-    {
-      title: $t('system.dept.columns.actions'),
+      title: 'Actions',
       key: 'actions',
-      render(row: Dept) {
+      render(row: Role) {
         return h('div', [
           h(
             NButton,
@@ -62,7 +56,7 @@ function createColumns({
               style: 'margin-right: 8px;',
               onClick: () => edit(row),
             },
-            { default: () => $t('common.edit') },
+            { default: () => 'Edit' },
           ),
           h(
             NButton,
@@ -71,7 +65,7 @@ function createColumns({
               type: 'error',
               onClick: () => del(row.id),
             },
-            { default: () => $t('common.delete') },
+            { default: () => 'Delete' },
           ),
         ]);
       },
@@ -79,7 +73,7 @@ function createColumns({
   ];
 }
 
-const data = ref<Dept[]>([]);
+const data = ref<Role[]>([]);
 const pagination = ref<PaginationProps>({
   page: 1,
   pageSize: 10,
@@ -88,7 +82,7 @@ const pagination = ref<PaginationProps>({
 const loading = ref(false);
 
 const showModal = ref(false);
-const editingRecord = ref<Dept | null>(null);
+const editingRecord = ref<Role | null>(null);
 
 const formValue = ref({
   name: '',
@@ -99,20 +93,20 @@ function handleCreate() {
   showModal.value = true;
 }
 
-function handleEdit(record: Dept) {
+function handleEdit(record: Role) {
   editingRecord.value = record;
   showModal.value = true;
 }
 
 function handleDelete(id: string) {
   dialog.warning({
-    title: $t('system.dept.dialog.deleteTitle'),
-    content: $t('system.dept.dialog.deleteConfirm'),
-    positiveText: $t('common.confirm'),
-    negativeText: $t('common.cancel'),
+    title: 'Delete Role',
+    content: 'Are you sure you want to delete this role?',
+    positiveText: 'Confirm',
+    negativeText: 'Cancel',
     onPositiveClick: async () => {
       try {
-        await deleteDept(id);
+        await deleteRole(id);
         fetchData();
       } catch (error) {
         console.error(error);
@@ -134,12 +128,12 @@ function handlePageChange(page: number) {
 async function fetchData() {
   loading.value = true;
   try {
-    const response = await getDeptList({
+    const response = await getRoleList({
       page: pagination.value.page,
       pageSize: pagination.value.pageSize,
       name: formValue.value.name,
     });
-    data.value = response.list;
+    data.value = response.items;
     pagination.value.itemCount = response.total;
   } catch (error) {
     console.error(error);
@@ -159,23 +153,23 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="dept-page">
-    <NCard :title="$t('system.dept.title')" size="small">
-      <div class="dept-toolbar">
+  <div class="role-page">
+    <NCard title="Role Management" size="small">
+      <div class="role-toolbar">
         <NForm inline :model="formValue" @submit.prevent="handleSearch">
-          <NFormItem :label="$t('system.dept.filters.name')">
+          <NFormItem label="Role Name">
             <NInput
               v-model:value="formValue.name"
-              :placeholder="$t('system.dept.filters.searchByName')"
+              placeholder="Search by role name"
             />
           </NFormItem>
           <NFormItem>
             <NSpace>
               <NButton type="primary" attr-type="submit">
-                {{ $t('common.search') }}
+                Search
               </NButton>
               <NButton type="primary" @click="handleCreate">
-                {{ $t('system.dept.actions.create') }}
+                Create
               </NButton>
             </NSpace>
           </NFormItem>
@@ -189,7 +183,7 @@ onMounted(() => {
         @update:page="handlePageChange"
       />
     </NCard>
-    <DeptFormModal
+    <RoleFormModal
       v-model:show="showModal"
       :record="editingRecord"
       @success="fetchData"
@@ -198,13 +192,13 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.dept-page {
+.role-page {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.dept-toolbar {
+.role-toolbar {
   display: flex;
   justify-content: space-between;
   margin-bottom: 12px;

@@ -18,6 +18,7 @@ import {
   NSelect,
   NSpace,
   NTag,
+  NTreeSelect,
 } from 'naive-ui';
 
 import {
@@ -46,6 +47,7 @@ const form = reactive({
   icon: '',
   type: 'menu',
   parentId: null as null | string,
+  metaTitle: '',
   status: 1,
   order: 0,
 });
@@ -81,6 +83,7 @@ const typeOptions = [
 ];
 
 const data = ref<any[]>([]);
+const menuTreeOptions = ref<any[]>([]);
 
 function getMenuTitle(row: any) {
   if (!row) {
@@ -104,12 +107,35 @@ function getMenuTitle(row: any) {
   return row.name ?? '';
 }
 
-const parentOptions = computed(() =>
-  data.value.map((item) => ({
-    label: getMenuTitle(item),
-    value: item.id,
-  })),
-);
+function buildMenuTreeFromList(list: any[]) {
+  const nodeMap = new Map<string, any>();
+  const roots: any[] = [];
+
+  for (const item of list || []) {
+    const id = String(item.id);
+    nodeMap.set(id, {
+      id,
+      label: getMenuTitle(item),
+      children: [],
+    });
+  }
+
+  for (const item of list || []) {
+    const id = String(item.id);
+    const parentId = item.parentId ? String(item.parentId) : '';
+    const node = nodeMap.get(id);
+    if (!node) {
+      continue;
+    }
+    if (!parentId || parentId === '0' || !nodeMap.has(parentId)) {
+      roots.push(node);
+      continue;
+    }
+    nodeMap.get(parentId).children.push(node);
+  }
+
+  return roots;
+}
 
 const pagination = reactive({
   page: 1,
@@ -225,6 +251,18 @@ async function fetchMenuList() {
   }
 }
 
+async function fetchMenuTree() {
+  const res = await getMenuList({
+    page: 1,
+    pageSize: 1000,
+  });
+  const list = res?.list || [];
+  menuTreeOptions.value = [
+    { id: '0', label: $t('system.menu.form.root') },
+    ...buildMenuTreeFromList(list),
+  ];
+}
+
 function handleSearch() {
   pagination.page = 1;
   fetchMenuList();
@@ -240,6 +278,7 @@ function resetFilters() {
 function openCreate() {
   editingId.value = null;
   resetForm();
+  fetchMenuTree();
   showModal.value = true;
 }
 
@@ -251,8 +290,21 @@ function openEdit(row: any) {
   form.icon = row.icon ?? '';
   form.type = row.type ?? 'menu';
   form.parentId = row.parentId || null;
+  if (row.meta && typeof row.meta === 'string') {
+    try {
+      const parsed = JSON.parse(row.meta);
+      form.metaTitle = parsed?.title ?? '';
+    } catch {
+      form.metaTitle = '';
+    }
+  } else if (row.meta && typeof row.meta === 'object') {
+    form.metaTitle = row.meta?.title ?? '';
+  } else {
+    form.metaTitle = '';
+  }
   form.status = row.status ?? 1;
   form.order = row.order ?? 0;
+  fetchMenuTree();
   showModal.value = true;
 }
 
@@ -263,6 +315,7 @@ function resetForm() {
   form.icon = '';
   form.type = 'menu';
   form.parentId = null;
+  form.metaTitle = '';
   form.status = 1;
   form.order = 0;
   formRef.value?.restoreValidation();
@@ -292,6 +345,9 @@ async function submitForm() {
       parentId: form.parentId || 0,
       status: form.status,
       order: form.order,
+      ...(form.metaTitle
+        ? { meta: JSON.stringify({ title: form.metaTitle }) }
+        : {}),
     };
     await (editingId.value
       ? updateMenu(editingId.value, { ...payload, id: editingId.value })
@@ -310,6 +366,7 @@ async function handleDelete(row: any) {
 
 onMounted(() => {
   fetchMenuList();
+  fetchMenuTree();
 });
 </script>
 
@@ -378,6 +435,12 @@ onMounted(() => {
           <NFormItemGi :label="$t('system.menu.form.path')" path="path">
             <NInput v-model:value="form.path" placeholder="/system/menu" />
           </NFormItemGi>
+          <NFormItemGi :label="$t('system.menu.form.titleKey')">
+            <NInput
+              v-model:value="form.metaTitle"
+              :placeholder="$t('system.menu.form.titleKeyPlaceholder')"
+            />
+          </NFormItemGi>
           <NFormItemGi :label="$t('system.menu.form.component')" path="component">
             <NInput
               v-model:value="form.component"
@@ -391,9 +454,12 @@ onMounted(() => {
             />
           </NFormItemGi>
           <NFormItemGi :label="$t('system.menu.form.parent')">
-            <NSelect
+            <NTreeSelect
               v-model:value="form.parentId"
-              :options="parentOptions"
+              :options="menuTreeOptions"
+              key-field="id"
+              label-field="label"
+              children-field="children"
               :placeholder="$t('system.menu.form.root')"
               clearable
             />

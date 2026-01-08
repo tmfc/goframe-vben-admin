@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"sort"
 
 	v1 "backend/api/menu/v1"
 	"backend/internal/dao"
@@ -132,7 +133,9 @@ func (s *sMenu) GetMenuList(ctx context.Context, in model.SysMenuGetListIn) (out
 	query := dao.SysMenu.Ctx(ctx).OmitEmpty()
 
 	if in.Name != "" {
-		query = query.WhereLike(dao.SysMenu.Columns().Name, "%"+in.Name+"%")
+		// Use case-insensitive matching for PostgreSQL so that queries like
+		// "manage" can match names such as "Manage".
+		query = query.Where(dao.SysMenu.Columns().Name+" ILIKE ?", "%"+in.Name+"%")
 	}
 	if in.Status != "" {
 		query = query.Where(dao.SysMenu.Columns().Status, in.Status)
@@ -162,6 +165,9 @@ func buildMenuCreateData(ctx context.Context, in model.SysMenuCreateIn, parentId
 		columns.Order:     in.Order,
 		columns.TenantId:  resolveTenantID(ctx),
 	}
+	if in.Meta != "" {
+		data[columns.Meta] = in.Meta
+	}
 	if parentId != "" {
 		data[columns.ParentId] = parentId
 	}
@@ -178,6 +184,9 @@ func buildMenuUpdateData(in model.SysMenuUpdateIn, parentId string) g.Map {
 		columns.Type:      in.Type,
 		columns.Status:    in.Status,
 		columns.Order:     in.Order,
+	}
+	if in.Meta != "" {
+		data[columns.Meta] = in.Meta
 	}
 	if parentId != "" {
 		data[columns.ParentId] = parentId
@@ -456,18 +465,30 @@ func fetchMenuFromDB(ctx context.Context) (v1.MenuAllRes, error) {
 			AuthCode:  record.PermissionCode,
 		}
 
+		// Align built-in system menu names/components with frontend routes
+		switch record.Path {
+		case "/system/menu":
+			item.Name = "SystemMenu"
+			if item.Component == "" {
+				item.Component = "/sys/menu/index"
+			}
+		case "/system/dept":
+			item.Name = "SystemDept"
+			if item.Component == "" || item.Component == "/sys/dept/index" {
+				item.Component = "/system/dept/list"
+			}
+		}
+
 		if record.Meta != "" {
 			var meta v1.MenuMeta
 			if err := json.Unmarshal([]byte(record.Meta), &meta); err == nil {
 				item.Meta = &meta
 			}
 		}
-		if item.Meta == nil && record.Order != 0 {
+		if item.Meta == nil {
 			item.Meta = &v1.MenuMeta{}
 		}
-		if item.Meta != nil {
-			item.Meta.Order = record.Order
-		}
+		item.Meta.Order = record.Order
 
 		itemsByID[record.Id] = item
 	}
@@ -487,5 +508,25 @@ func fetchMenuFromDB(ctx context.Context) (v1.MenuAllRes, error) {
 		parent.Children = append(parent.Children, item)
 	}
 
-	return roots, nil
+	return sortMenuItems(roots), nil
+}
+
+func sortMenuItems(items []*v1.MenuItem) []*v1.MenuItem {
+	if len(items) == 0 {
+		return items
+	}
+	sort.SliceStable(items, func(i, j int) bool {
+		return menuOrder(items[i]) < menuOrder(items[j])
+	})
+	for _, item := range items {
+		item.Children = sortMenuItems(item.Children)
+	}
+	return items
+}
+
+func menuOrder(item *v1.MenuItem) int {
+	if item == nil || item.Meta == nil {
+		return 9999
+	}
+	return item.Meta.Order
 }

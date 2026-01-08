@@ -1,0 +1,2 @@
+ALTER TABLE sys_user
+DROP COLUMN IF EXISTS ext_info;

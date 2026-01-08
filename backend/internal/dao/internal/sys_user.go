@@ -30,6 +30,7 @@ type SysUserColumns struct {
 	HomePath   string //
 	Status     string //
 	Roles      string //
+	ExtInfo    string //
 	CreatedAt  string //
 	UpdatedAt  string //
 	DeletedAt  string //
@@ -49,6 +50,7 @@ var sysUserColumns = SysUserColumns{
 	HomePath:   "home_path",
 	Status:     "status",
 	Roles:      "roles",
+	ExtInfo:    "ext_info",
 	CreatedAt:  "created_at",
 	UpdatedAt:  "updated_at",
 	DeletedAt:  "deleted_at",

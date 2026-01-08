@@ -1,13 +1,11 @@
 import type { RouteRecordRaw } from 'vue-router';
 
-import { $t } from '#/locales';
-
 const routes: RouteRecordRaw[] = [
   {
     meta: {
       icon: 'ant-design:setting-outlined',
       order: 10,
-      title: $t('system.title'),
+      title: 'system.title',
     },
     name: 'System',
     path: '/system',
@@ -18,7 +16,7 @@ const routes: RouteRecordRaw[] = [
         component: () => import('#/views/sys/menu/index.vue'),
         meta: {
           icon: 'ant-design:menu-outlined',
-          title: $t('system.menu.title'),
+          title: 'system.menu.title',
         },
       },
       {
@@ -27,7 +25,7 @@ const routes: RouteRecordRaw[] = [
         component: () => import('#/views/sys/dept/index.vue'),
         meta: {
           icon: 'ant-design:cluster-outlined',
-          title: $t('system.dept.title'),
+          title: 'system.dept.title',
         },
       },
     ],

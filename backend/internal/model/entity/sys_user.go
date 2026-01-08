@@ -19,10 +19,11 @@ type SysUser struct {
 	HomePath   string      `json:"homePath"   orm:"home_path"   ` //
 	Status     int         `json:"status"     orm:"status"      ` //
 	Roles      string      `json:"roles"      orm:"roles"       ` //
+	ExtInfo    string      `json:"extInfo"    orm:"ext_info"    ` //
 	CreatedAt  *gtime.Time `json:"createdAt"  orm:"created_at"  ` //
 	UpdatedAt  *gtime.Time `json:"updatedAt"  orm:"updated_at"  ` //
 	DeletedAt  *gtime.Time `json:"deletedAt"  orm:"deleted_at"  ` //
 	CreatorId  int64       `json:"creatorId"  orm:"creator_id"  ` //
 	ModifierId int64       `json:"modifierId" orm:"modifier_id" ` //
-	DeptId     int64       `json:"deptId"     orm:"dept_id"     ` //
+	DeptId     string      `json:"deptId"     orm:"dept_id"     ` //
 }

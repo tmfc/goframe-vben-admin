@@ -87,10 +87,12 @@ export function useTabbar() {
 
   function wrapperTabLocale(tab: RouteLocationNormalizedGeneric) {
     const rawTitle = tab?.meta?.title;
-    const resolvedTitle =
-      typeof rawTitle === 'string' && rawTitle.length > 0
-        ? $t(rawTitle)
-        : rawTitle;
+    let resolvedTitle = rawTitle;
+    if (typeof rawTitle === 'string' && rawTitle.length > 0) {
+      resolvedTitle = $t(rawTitle);
+    } else if (typeof tab?.name === 'string' && tab.name.includes('.')) {
+      resolvedTitle = $t(tab.name);
+    }
     return {
       ...tab,
       meta: {

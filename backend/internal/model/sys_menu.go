@@ -12,6 +12,7 @@ type SysMenuCreateIn struct {
 	Icon      string `json:"icon"`
 	Type      string `json:"type" v:"required#类型不能为空"`
 	ParentId  string `json:"parentId"`
+	Meta      string `json:"meta"`
 	Status    int    `json:"status"`
 	Order     int    `json:"order"`
 }
@@ -30,6 +31,7 @@ type SysMenuUpdateIn struct {
 	Icon      string `json:"icon"`
 	Type      string `json:"type" v:"required#类型不能为空"`
 	ParentId  string `json:"parentId"`
+	Meta      string `json:"meta"`
 	Status    int    `json:"status"`
 	Order     int    `json:"order"`
 }
