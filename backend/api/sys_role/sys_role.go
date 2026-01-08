@@ -9,6 +9,7 @@ import (
 type ISysRoleV1 interface {
 	CreateRole(ctx context.Context, req *v1.CreateRoleReq) (res *v1.CreateRoleRes, err error)
 	GetRole(ctx context.Context, req *v1.GetRoleReq) (res *v1.GetRoleRes, err error)
+	GetRoleList(ctx context.Context, req *v1.GetRoleListReq) (res *v1.GetRoleListRes, err error)
 	UpdateRole(ctx context.Context, req *v1.UpdateRoleReq) (res *v1.UpdateRoleRes, err error)
 	DeleteRole(ctx context.Context, req *v1.DeleteRoleReq) (res *v1.DeleteRoleRes, err error)
 	AssignUsersToRole(ctx context.Context, req *v1.AssignUsersToRoleReq) (res *v1.AssignUsersToRoleRes, err error)

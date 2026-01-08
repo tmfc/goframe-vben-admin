@@ -12,9 +12,13 @@ import {
   NFormItem,
   NInput,
   NSpace,
+  NTag,
   useDialog,
 } from 'naive-ui';
 
+import { $t } from '#/locales';
+
+import { getDeptTree } from '#/api/sys/dept';
 import { getRoleList, deleteRole } from '#/api/sys/role';
 import RoleFormModal from './modules/form.vue';
 
@@ -29,22 +33,54 @@ function createColumns({
 }) {
   return [
     {
-      title: 'Role Name',
+      title: $t('system.role.columns.name'),
       key: 'name',
     },
     {
-      title: 'Description',
-      key: 'description',
-    },
-    {
-      title: 'Status',
-      key: 'status',
+      title: $t('system.role.columns.parent'),
+      key: 'parentId',
       render(row: Role) {
-        return row.status === 1 ? 'Enabled' : 'Disabled';
+        const parentId = row?.parentId;
+        if (!parentId) {
+          return '';
+        }
+        return roleNameMap.value.get(String(parentId)) || String(parentId);
       },
     },
     {
-      title: 'Actions',
+      title: $t('system.role.columns.description'),
+      key: 'description',
+    },
+    {
+      title: $t('system.role.columns.dept'),
+      key: 'deptId',
+      render(row: Role) {
+        const deptId = row?.deptId;
+        if (!deptId) {
+          return '';
+        }
+        return deptNameMap.value.get(String(deptId)) || String(deptId);
+      },
+    },
+    {
+      title: $t('system.role.columns.status'),
+      key: 'status',
+      render(row: Role) {
+        const isActive = row.status === 1;
+        return h(
+          NTag,
+          { type: isActive ? 'success' : 'default', size: 'small' },
+          {
+            default: () =>
+              isActive
+                ? $t('system.role.status.enabled')
+                : $t('system.role.status.disabled'),
+          },
+        );
+      },
+    },
+    {
+      title: $t('system.role.columns.actions'),
       key: 'actions',
       render(row: Role) {
         return h('div', [
@@ -56,7 +92,7 @@ function createColumns({
               style: 'margin-right: 8px;',
               onClick: () => edit(row),
             },
-            { default: () => 'Edit' },
+            { default: () => $t('common.edit') },
           ),
           h(
             NButton,
@@ -65,7 +101,7 @@ function createColumns({
               type: 'error',
               onClick: () => del(row.id),
             },
-            { default: () => 'Delete' },
+            { default: () => $t('common.delete') },
           ),
         ]);
       },
@@ -74,6 +110,8 @@ function createColumns({
 }
 
 const data = ref<Role[]>([]);
+const deptNameMap = ref(new Map<string, string>());
+const roleNameMap = ref(new Map<string, string>());
 const pagination = ref<PaginationProps>({
   page: 1,
   pageSize: 10,
@@ -100,10 +138,10 @@ function handleEdit(record: Role) {
 
 function handleDelete(id: string) {
   dialog.warning({
-    title: 'Delete Role',
-    content: 'Are you sure you want to delete this role?',
-    positiveText: 'Confirm',
-    negativeText: 'Cancel',
+    title: $t('system.role.dialog.deleteTitle'),
+    content: $t('system.role.dialog.deleteConfirm'),
+    positiveText: $t('common.confirm'),
+    negativeText: $t('common.cancel'),
     onPositiveClick: async () => {
       try {
         await deleteRole(id);
@@ -142,38 +180,84 @@ async function fetchData() {
   }
 }
 
+function flattenDeptTree(
+  list: Array<{ id: string; name: string; children?: any[] }> = [],
+) {
+  const map = new Map<string, string>();
+  const walk = (items: any[]) => {
+    for (const item of items || []) {
+      if (item?.id) {
+        map.set(String(item.id), item.name ?? '');
+      }
+      if (item?.children?.length) {
+        walk(item.children);
+      }
+    }
+  };
+  walk(list);
+  return map;
+}
+
+async function fetchRoleNameMap() {
+  try {
+    const response = await getRoleList({ page: 1, pageSize: 5000 });
+    roleNameMap.value = new Map(
+      (response.items || []).map((item: Role) => [
+        String(item.id),
+        item.name ?? '',
+      ]),
+    );
+  } catch (error) {
+    console.error(error);
+  }
+}
+
 const columns = createColumns({
   edit: handleEdit,
   del: handleDelete,
 });
 
 onMounted(() => {
+  getDeptTree()
+    .then((res) => {
+      deptNameMap.value = flattenDeptTree(res?.list || []);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+  fetchRoleNameMap();
   fetchData();
 });
 </script>
 
 <template>
   <div class="role-page">
-    <NCard title="Role Management" size="small">
+    <NCard :title="$t('system.role.title')" size="small">
       <div class="role-toolbar">
-        <NForm inline :model="formValue" @submit.prevent="handleSearch">
-          <NFormItem label="Role Name">
+        <NForm
+          inline
+          :model="formValue"
+          label-placement="left"
+          label-width="auto"
+          @submit.prevent="handleSearch"
+        >
+          <NFormItem :label="$t('system.role.filters.name')">
             <NInput
               v-model:value="formValue.name"
-              placeholder="Search by role name"
+              :placeholder="$t('system.role.filters.searchByName')"
             />
           </NFormItem>
           <NFormItem>
             <NSpace>
               <NButton type="primary" attr-type="submit">
-                Search
-              </NButton>
-              <NButton type="primary" @click="handleCreate">
-                Create
+                {{ $t('common.search') }}
               </NButton>
             </NSpace>
           </NFormItem>
         </NForm>
+        <NButton type="primary" @click="handleCreate">
+          {{ $t('system.role.actions.create') }}
+        </NButton>
       </div>
       <NDataTable
         :columns="columns"

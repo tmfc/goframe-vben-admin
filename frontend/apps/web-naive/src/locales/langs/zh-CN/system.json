@@ -47,7 +47,40 @@
     }
   },
   "role": {
-    "title": "角色管理"
+    "title": "角色管理",
+    "index": "角色管理",
+    "filters": {
+      "name": "角色名称",
+      "searchByName": "按角色名称搜索"
+    },
+    "columns": {
+      "name": "角色名称",
+      "parent": "上级角色",
+      "description": "描述",
+      "dept": "所属部门",
+      "status": "状态",
+      "actions": "操作"
+    },
+    "status": {
+      "enabled": "启用",
+      "disabled": "禁用"
+    },
+    "actions": {
+      "create": "新增"
+    },
+    "dialog": {
+      "deleteTitle": "提示",
+      "deleteConfirm": "确认删除该角色？"
+    },
+    "form": {
+      "name": "角色名称",
+      "description": "描述",
+      "parentId": "上级角色",
+      "deptId": "所属部门",
+      "status": "状态",
+      "createTitle": "新增角色",
+      "editTitle": "编辑角色"
+    }
   },
   "menu": {
     "title": "菜单管理",
@@ -59,6 +92,7 @@
     },
     "columns": {
       "name": "名称",
+      "titleKey": "标题Key",
       "path": "路径",
       "component": "组件",
       "type": "类型",
@@ -84,6 +118,7 @@
       "titleKeyPlaceholder": "例如: system.menu.title",
       "type": "类型",
       "path": "路径",
+      "pathPlaceholder": "请输入按钮/菜单路径或权限标识",
       "component": "组件",
       "icon": "图标",
       "iconPlaceholder": "图标名称",
@@ -96,7 +131,8 @@
       "new": "新增菜单",
       "create": "新增菜单",
       "edit": "编辑菜单",
-      "deleteConfirm": "确认删除该菜单？"
+      "deleteConfirm": "确认删除该菜单？",
+      "manageButtons": "按钮"
     },
     "validation": {
       "nameRequired": "名称不能为空",
@@ -111,6 +147,7 @@
     },
     "columns": {
       "name": "名称",
+      "parent": "上级部门",
       "status": "状态",
       "order": "排序",
       "actions": "操作"
@@ -128,10 +165,15 @@
     },
     "form": {
       "name": "部门名称",
+      "parentId": "上级部门",
       "order": "排序",
       "status": "状态",
       "createTitle": "新增部门",
       "editTitle": "编辑部门"
+    },
+    "validation": {
+      "orderRequired": "排序不能为空",
+      "orderPositive": "排序需为正整数"
     }
   }
 }

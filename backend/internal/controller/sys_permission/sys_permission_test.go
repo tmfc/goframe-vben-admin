@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"backend/api/sys_permission/v1"
+	v1 "backend/api/sys_permission/v1"
 	"backend/internal/dao"
 	"backend/internal/model"
 	"backend/internal/service"
@@ -279,6 +279,7 @@ func TestSysPermissionController_GetPermissionsByUser(t *testing.T) {
 		userID, err := service.User().Create(ctx, model.UserCreateIn{
 			Username: "testuserperm1",
 			Password: "password",
+			DeptId:   "00000000-0000-0000-0000-000000000000",
 		})
 		t.AssertNil(err)
 
@@ -311,6 +312,7 @@ func TestSysPermissionController_GetPermissionsByUser(t *testing.T) {
 		user2ID, err := service.User().Create(ctx, model.UserCreateIn{
 			Username: "testuserperm2",
 			Password: "password",
+			DeptId:   "00000000-0000-0000-0000-000000000000",
 		})
 		t.AssertNil(err)
 

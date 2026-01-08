@@ -72,6 +72,26 @@ func (c *ControllerV1) GetRoleUsers(ctx context.Context, req *v1.GetRoleUsersReq
 	return
 }
 
+func (c *ControllerV1) GetRoleList(ctx context.Context, req *v1.GetRoleListReq) (res *v1.GetRoleListRes, err error) {
+	if req == nil {
+		req = &v1.GetRoleListReq{}
+	}
+	out, err := service.SysRole().GetRoleList(ctx, model.SysRoleListIn{
+		Page:     req.Page,
+		PageSize: req.PageSize,
+		Name:     req.Name,
+		Status:   req.Status,
+	})
+	if err != nil {
+		return nil, err
+	}
+	res = &v1.GetRoleListRes{
+		Items: out.Items,
+		Total: out.Total,
+	}
+	return
+}
+
 func (c *ControllerV1) AssignPermissionsToRole(ctx context.Context, req *v1.AssignPermissionsToRoleReq) (res *v1.AssignPermissionsToRoleRes, err error) {
 	if req == nil {
 		req = &v1.AssignPermissionsToRoleReq{}

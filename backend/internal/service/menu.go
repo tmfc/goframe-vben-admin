@@ -465,20 +465,6 @@ func fetchMenuFromDB(ctx context.Context) (v1.MenuAllRes, error) {
 			AuthCode:  record.PermissionCode,
 		}
 
-		// Align built-in system menu names/components with frontend routes
-		switch record.Path {
-		case "/system/menu":
-			item.Name = "SystemMenu"
-			if item.Component == "" {
-				item.Component = "/sys/menu/index"
-			}
-		case "/system/dept":
-			item.Name = "SystemDept"
-			if item.Component == "" || item.Component == "/sys/dept/index" {
-				item.Component = "/system/dept/list"
-			}
-		}
-
 		if record.Meta != "" {
 			var meta v1.MenuMeta
 			if err := json.Unmarshal([]byte(record.Meta), &meta); err == nil {

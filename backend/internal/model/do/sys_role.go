@@ -21,6 +21,5 @@ type SysRole struct {
 	UpdatedAt   *gtime.Time //
 	CreatorId   any         //
 	ModifierId  any         //
-	DeptId      any         //
 	TenantId    any         //
 }

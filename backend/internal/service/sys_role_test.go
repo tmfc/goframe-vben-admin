@@ -34,7 +34,6 @@ func TestSysRole_CreateRole(t *testing.T) {
 			Status:      1,
 			CreatorId:   1,
 			ModifierId:  1,
-			DeptId:      1,
 		}
 		_, err := SysRole().CreateRole(ctx, createIn)
 		t.AssertNil(err)
@@ -58,7 +57,6 @@ func TestSysRole_CreateRole(t *testing.T) {
 			Status:      1,
 			CreatorId:   1,
 			ModifierId:  1,
-			DeptId:      1,
 		}
 		_, err = SysRole().CreateRole(ctx, createInInvalid)
 		t.AssertNE(err, nil)
@@ -89,7 +87,6 @@ func TestSysRole_GetRole(t *testing.T) {
 			Status:      1,
 			CreatorId:   1,
 			ModifierId:  1,
-			DeptId:      1,
 		}
 		_, _ = SysRole().CreateRole(ctx, createIn) // Assuming CreateRole works
 
@@ -135,7 +132,6 @@ func TestSysRole_UpdateRole(t *testing.T) {
 			Status:      1,
 			CreatorId:   1,
 			ModifierId:  1,
-			DeptId:      1,
 		}
 		_, _ = SysRole().CreateRole(ctx, createIn) // Assuming CreateRole works
 
@@ -152,7 +148,6 @@ func TestSysRole_UpdateRole(t *testing.T) {
 			ParentId:    0,
 			Status:      0,
 			ModifierId:  1,
-			DeptId:      1,
 		}
 		err = SysRole().UpdateRole(ctx, updateIn)
 		t.AssertNil(err)
@@ -173,7 +168,6 @@ func TestSysRole_UpdateRole(t *testing.T) {
 			ParentId:    0,
 			Status:      1,
 			ModifierId:  1,
-			DeptId:      1,
 		}
 		err = SysRole().UpdateRole(ctx, updateInNotFound)
 		t.AssertNE(err, nil)
@@ -186,7 +180,6 @@ func TestSysRole_UpdateRole(t *testing.T) {
 			ParentId:    0,
 			Status:      1,
 			ModifierId:  1,
-			DeptId:      1,
 		}
 		err = SysRole().UpdateRole(ctx, updateInInvalid)
 		t.AssertNE(err, nil)
@@ -215,7 +208,6 @@ func TestSysRole_DeleteRole(t *testing.T) {
 			Status:      1,
 			CreatorId:   1,
 			ModifierId:  1,
-			DeptId:      1,
 		}
 		_, _ = SysRole().CreateRole(ctx, createIn) // Assuming CreateRole works
 
@@ -262,7 +254,6 @@ func TestSysRole_CreateRoleWithParent(t *testing.T) {
 			Status:      1,
 			CreatorId:   1,
 			ModifierId:  1,
-			DeptId:      1,
 		}
 		parentID, err := SysRole().CreateRole(ctx, parentIn)
 		t.AssertNil(err)
@@ -276,7 +267,6 @@ func TestSysRole_CreateRoleWithParent(t *testing.T) {
 			Status:      1,
 			CreatorId:   1,
 			ModifierId:  1,
-			DeptId:      1,
 		}
 		childID, err := SysRole().CreateRole(ctx, childIn)
 		t.AssertNil(err)
@@ -310,7 +300,6 @@ func TestSysRole_UpdateRoleWithInvalidParent(t *testing.T) {
 			Status:      1,
 			CreatorId:   1,
 			ModifierId:  1,
-			DeptId:      1,
 		}
 		roleID, err := SysRole().CreateRole(ctx, createIn)
 		t.AssertNil(err)
@@ -323,7 +312,6 @@ func TestSysRole_UpdateRoleWithInvalidParent(t *testing.T) {
 			ParentId:    99999, // Non-existent parent
 			Status:      1,
 			ModifierId:  1,
-			DeptId:      1,
 		}
 		err = SysRole().UpdateRole(ctx, updateIn)
 		t.AssertNE(err, nil)
@@ -350,7 +338,6 @@ func TestSysRole_DeleteRoleWithChildren(t *testing.T) {
 			Status:      1,
 			CreatorId:   1,
 			ModifierId:  1,
-			DeptId:      1,
 		}
 		parentID, err := SysRole().CreateRole(ctx, parentIn)
 		t.AssertNil(err)
@@ -363,7 +350,6 @@ func TestSysRole_DeleteRoleWithChildren(t *testing.T) {
 			Status:      1,
 			CreatorId:   1,
 			ModifierId:  1,
-			DeptId:      1,
 		}
 		_, err = SysRole().CreateRole(ctx, childIn)
 		t.AssertNil(err)
@@ -395,7 +381,6 @@ func TestSysRole_UpdateRoleWithSelfParent(t *testing.T) {
 			Status:      1,
 			CreatorId:   1,
 			ModifierId:  1,
-			DeptId:      1,
 		}
 		roleID, err := SysRole().CreateRole(ctx, createIn)
 		t.AssertNil(err)
@@ -408,7 +393,6 @@ func TestSysRole_UpdateRoleWithSelfParent(t *testing.T) {
 			ParentId:    roleID, // Self as parent
 			Status:      1,
 			ModifierId:  1,
-			DeptId:      1,
 		}
 		err = SysRole().UpdateRole(ctx, updateIn)
 		t.AssertNE(err, nil)
@@ -1035,6 +1019,7 @@ func TestSysRole_GetPermissionsByUser(t *testing.T) {
 		userIn := model.UserCreateIn{
 			Username: "testusergetperms",
 			Password: "password",
+			DeptId:   "00000000-0000-0000-0000-000000000000",
 		}
 		userID, err := User().Create(ctx, userIn)
 		t.AssertNil(err)
@@ -1078,6 +1063,7 @@ func TestSysRole_GetPermissionsByUser(t *testing.T) {
 		user2In := model.UserCreateIn{
 			Username: "testusergetpermsnoroles",
 			Password: "password",
+			DeptId:   "00000000-0000-0000-0000-000000000000",
 		}
 		user2ID, err := User().Create(ctx, user2In)
 		t.AssertNil(err)

@@ -2,6 +2,8 @@ package v1
 
 import (
 	"backend/internal/model"
+	"backend/internal/model/entity"
+
 	"github.com/gogf/gf/v2/frame/g"
 )
 
@@ -25,6 +27,21 @@ type GetRoleReq struct {
 // GetRoleRes defines the response structure for retrieving a role.
 type GetRoleRes struct {
 	*model.SysRoleGetOut
+}
+
+// GetRoleListReq defines the request structure for listing roles.
+type GetRoleListReq struct {
+	g.Meta   `path:"/sys-role" method:"get" summary:"List roles" tags:"System Role"`
+	Page     int    `json:"page" d:"1"`
+	PageSize int    `json:"pageSize" d:"10"`
+	Name     string `json:"name"`
+	Status   string `json:"status"`
+}
+
+// GetRoleListRes defines the response structure for listing roles.
+type GetRoleListRes struct {
+	Items []*entity.SysRole `json:"items"`
+	Total int               `json:"total"`
 }
 
 // UpdateRoleReq defines the request structure for updating a role.

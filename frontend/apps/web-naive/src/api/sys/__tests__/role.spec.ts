@@ -14,14 +14,16 @@ vi.mock('#/api/request', () => ({
 describe('Role API', () => {
   it('should call getRoleList with correct parameters', async () => {
     await getRoleList({ page: 1, pageSize: 10 });
-    expect(requestClient.get).toHaveBeenCalledWith({ url: '/roles', params: { page: 1, pageSize: 10 } });
+    expect(requestClient.get).toHaveBeenCalledWith('/sys-role', {
+      params: { page: 1, pageSize: 10 },
+    });
   });
 
   it('should call createRole with correct parameters', async () => {
     const data = { name: 'test' };
     // @ts-ignore
     await createRole(data);
-    expect(requestClient.post).toHaveBeenCalledWith({ url: '/roles', data });
+    expect(requestClient.post).toHaveBeenCalledWith('/sys-role', data);
   });
 
   it('should call updateRole with correct parameters', async () => {
@@ -29,18 +31,18 @@ describe('Role API', () => {
     const data = { name: 'test' };
     // @ts-ignore
     await updateRole(id, data);
-    expect(requestClient.put).toHaveBeenCalledWith({ url: `/roles/123`, data });
+    expect(requestClient.put).toHaveBeenCalledWith(`/sys-role/123`, data);
   });
 
   it('should call deleteRole with correct parameters', async () => {
     const id = '123';
     await deleteRole(id);
-    expect(requestClient.delete).toHaveBeenCalledWith({ url: `/roles/123` });
+    expect(requestClient.delete).toHaveBeenCalledWith(`/sys-role/123`);
   });
 
   it('should call getRole with correct parameters', async () => {
     const id = '123';
     await getRole(id);
-    expect(requestClient.get).toHaveBeenCalledWith({ url: `/roles/123` });
+    expect(requestClient.get).toHaveBeenCalledWith(`/sys-role/123`);
   });
 });

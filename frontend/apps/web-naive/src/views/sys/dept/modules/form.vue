@@ -51,7 +51,8 @@ watch(
     }
     formApi.setValues({
       name: '',
-      order: 0,
+      parentId: null,
+      order: 1,
       status: 1,
     });
   },
@@ -66,10 +67,18 @@ async function handleSubmit() {
   if (!valid) return;
 
   const values = await formApi.getValues();
+  const payload = {
+    name: values.name,
+    order: values.order,
+    status: values.status,
+    parentId: values.parentId ?? '',
+  };
   saving.value = true;
   try {
     const recordId = props.record?.id ?? values.id;
-    await (isUpdate.value ? updateDept(recordId, values) : createDept(values));
+    await (isUpdate.value
+      ? updateDept(recordId, payload as any)
+      : createDept(payload as any));
     emit('success');
     closeModal();
   } finally {

@@ -1,7 +1,6 @@
 package model
 
 import (
-
 	"backend/internal/model/entity"
 
 	"github.com/gogf/gf/v2/os/gtime"
@@ -15,7 +14,6 @@ type SysRoleCreateIn struct {
 	Status      uint   `json:"status"`
 	CreatorId   uint   `json:"creator_id"`
 	ModifierId  uint   `json:"modifier_id"`
-	DeptId      uint   `json:"dept_id"`
 }
 
 // SysRoleCreateOut is the output for creating a new role.
@@ -33,6 +31,20 @@ type SysRoleGetOut struct {
 	*entity.SysRole
 }
 
+// SysRoleListIn is the input for listing roles.
+type SysRoleListIn struct {
+	Page     int    `json:"page" d:"1"`
+	PageSize int    `json:"pageSize" d:"10"`
+	Name     string `json:"name"`
+	Status   string `json:"status"`
+}
+
+// SysRoleListOut is the output for listing roles.
+type SysRoleListOut struct {
+	Items []*entity.SysRole `json:"items"`
+	Total int               `json:"total"`
+}
+
 // SysRoleUpdateIn is the input for updating a role.
 type SysRoleUpdateIn struct {
 	Id          uint        `json:"id" v:"required#ID不能为空"`
@@ -41,7 +53,6 @@ type SysRoleUpdateIn struct {
 	ParentId    uint        `json:"parent_id"`
 	Status      uint        `json:"status"`
 	ModifierId  uint        `json:"modifier_id"`
-	DeptId      uint        `json:"dept_id"`
 	UpdatedAt   *gtime.Time `json:"updated_at"`
 }
 

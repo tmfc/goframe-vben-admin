@@ -5,6 +5,7 @@ const API_URL = '/sys-dept';
 export interface Dept {
   id: string;
   name: string;
+  parentId?: string;
   order: number;
   status: number;
 }

@@ -37,6 +37,7 @@ func NewSysRole() *sSysRole {
 type ISysRole interface {
 	CreateRole(ctx context.Context, in model.SysRoleCreateIn) (id uint, err error)
 	GetRole(ctx context.Context, in model.SysRoleGetIn) (out *model.SysRoleGetOut, err error)
+	GetRoleList(ctx context.Context, in model.SysRoleListIn) (out *model.SysRoleListOut, err error)
 	UpdateRole(ctx context.Context, in model.SysRoleUpdateIn) (err error)
 	DeleteRole(ctx context.Context, in model.SysRoleDeleteIn) (err error)
 	AssignRoleToUser(ctx context.Context, in model.AssignRoleToUserIn) (out *model.AssignRoleToUserOut, err error)
@@ -79,7 +80,6 @@ func (s *sSysRole) CreateRole(ctx context.Context, in model.SysRoleCreateIn) (id
 		columns.Status:      in.Status,
 		columns.CreatorId:   in.CreatorId,
 		columns.ModifierId:  in.ModifierId,
-		columns.DeptId:      in.DeptId,
 	}).Insert()
 	if err != nil {
 		return 0, err
@@ -104,6 +104,40 @@ func (s *sSysRole) GetRole(ctx context.Context, in model.SysRoleGetIn) (out *mod
 	}
 	if out.SysRole == nil || out.SysRole.Id == 0 {
 		return nil, gerror.NewCodef(gcode.CodeNotFound, "Role with ID %d not found", in.Id)
+	}
+	return out, nil
+}
+
+// GetRoleList retrieves roles with pagination and filters.
+func (s *sSysRole) GetRoleList(ctx context.Context, in model.SysRoleListIn) (out *model.SysRoleListOut, err error) {
+	out = &model.SysRoleListOut{}
+	if in.Page <= 0 {
+		in.Page = 1
+	}
+	if in.PageSize <= 0 {
+		in.PageSize = 10
+	}
+	tenantID := resolveTenantID(ctx)
+	query := dao.SysRole.Ctx(ctx).
+		Where(dao.SysRole.Columns().TenantId, tenantID)
+
+	if in.Name != "" {
+		query = query.WhereLike(dao.SysRole.Columns().Name, "%"+in.Name+"%")
+	}
+	if in.Status != "" {
+		query = query.Where(dao.SysRole.Columns().Status, in.Status)
+	}
+
+	out.Total, err = query.Count()
+	if err != nil {
+		return nil, err
+	}
+
+	err = query.Page(in.Page, in.PageSize).
+		OrderDesc(dao.SysRole.Columns().CreatedAt).
+		Scan(&out.Items)
+	if err != nil {
+		return nil, err
 	}
 	return out, nil
 }
@@ -148,7 +182,6 @@ func (s *sSysRole) UpdateRole(ctx context.Context, in model.SysRoleUpdateIn) (er
 		columns.ParentId:    in.ParentId,
 		columns.Status:      in.Status,
 		columns.ModifierId:  in.ModifierId,
-		columns.DeptId:      in.DeptId,
 	}
 	if in.UpdatedAt != nil {
 		updateData[columns.UpdatedAt] = in.UpdatedAt

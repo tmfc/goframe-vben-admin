@@ -7,6 +7,7 @@ import { NButton, NModal, NSpace } from 'naive-ui';
 
 import { useVbenForm } from '#/adapter/form';
 import { createRole, updateRole } from '#/api/sys/role';
+import { $t } from '#/locales';
 
 import { useFormSchema } from '../data';
 
@@ -29,7 +30,9 @@ const [Form, formApi] = useVbenForm({
 
 const isUpdate = computed(() => Boolean(props.record?.id));
 const modalTitle = computed(() =>
-  isUpdate.value ? 'Edit Role' : 'Create Role',
+  isUpdate.value
+    ? $t('system.role.form.editTitle')
+    : $t('system.role.form.createTitle'),
 );
 
 watch(
@@ -48,6 +51,8 @@ watch(
     formApi.setValues({
       name: '',
       description: '',
+      parentId: null,
+      deptId: null,
       status: 1,
     });
   },
@@ -62,10 +67,19 @@ async function handleSubmit() {
   if (!valid) return;
 
   const values = await formApi.getValues();
+  const payload = {
+    name: values.name,
+    description: values.description,
+    status: values.status,
+    parent_id: values.parentId ?? 0,
+    dept_id: values.deptId ?? 0,
+  };
   saving.value = true;
   try {
     const recordId = props.record?.id ?? values.id;
-    await (isUpdate.value ? updateRole(recordId, values) : createRole(values));
+    await (isUpdate.value
+      ? updateRole(recordId, payload as any)
+      : createRole(payload as any));
     emit('success');
     closeModal();
   } finally {
@@ -84,9 +98,9 @@ async function handleSubmit() {
     <Form />
     <template #action>
       <NSpace>
-        <NButton @click="closeModal">Cancel</NButton>
+        <NButton @click="closeModal">{{ $t('common.cancel') }}</NButton>
         <NButton type="primary" :loading="saving" @click="handleSubmit">
-          Confirm
+          {{ $t('common.confirm') }}
         </NButton>
       </NSpace>
     </template>

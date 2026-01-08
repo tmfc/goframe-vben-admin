@@ -49,7 +49,6 @@ func TestSysRole_SyncRoleToCasbin(t *testing.T) {
 			Status:      1,
 			CreatorId:   1,
 			ModifierId:  1,
-			DeptId:      1,
 		})
 		t.AssertNil(err)
 
@@ -59,7 +58,6 @@ func TestSysRole_SyncRoleToCasbin(t *testing.T) {
 			Status:      1,
 			CreatorId:   1,
 			ModifierId:  1,
-			DeptId:      1,
 		})
 		t.AssertNil(err)
 
@@ -125,7 +123,6 @@ func TestSysRole_RemoveRoleFromCasbin(t *testing.T) {
 			Status:      1,
 			CreatorId:   1,
 			ModifierId:  1,
-			DeptId:      1,
 		})
 		t.AssertNil(err)
 
@@ -135,7 +132,6 @@ func TestSysRole_RemoveRoleFromCasbin(t *testing.T) {
 			Status:      1,
 			CreatorId:   1,
 			ModifierId:  1,
-			DeptId:      1,
 		})
 		t.AssertNil(err)
 
@@ -204,7 +200,6 @@ func TestSysRole_SyncAllRolesToCasbin(t *testing.T) {
 			Status:      1,
 			CreatorId:   1,
 			ModifierId:  1,
-			DeptId:      1,
 		})
 		t.AssertNil(err)
 		permB, err := SysPermission().CreatePermission(ctx, model.SysPermissionCreateIn{
@@ -213,7 +208,6 @@ func TestSysRole_SyncAllRolesToCasbin(t *testing.T) {
 			Status:      1,
 			CreatorId:   1,
 			ModifierId:  1,
-			DeptId:      1,
 		})
 		t.AssertNil(err)
 
@@ -223,7 +217,6 @@ func TestSysRole_SyncAllRolesToCasbin(t *testing.T) {
 			Status:      1,
 			CreatorId:   1,
 			ModifierId:  1,
-			DeptId:      1,
 		})
 		t.AssertNil(err)
 		roleB, err := SysRole().CreateRole(ctx, model.SysRoleCreateIn{
@@ -232,7 +225,6 @@ func TestSysRole_SyncAllRolesToCasbin(t *testing.T) {
 			Status:      1,
 			CreatorId:   1,
 			ModifierId:  1,
-			DeptId:      1,
 		})
 		t.AssertNil(err)
 

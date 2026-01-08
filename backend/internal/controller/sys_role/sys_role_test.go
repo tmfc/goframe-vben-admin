@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"backend/api/sys_role/v1"
+	v1 "backend/api/sys_role/v1"
 	"backend/internal/dao"
 	"backend/internal/model"
 	"backend/internal/service"
@@ -40,7 +40,6 @@ func TestSysRoleController_CreateRole(t *testing.T) {
 				Status:      1,
 				CreatorId:   1,
 				ModifierId:  1,
-				DeptId:      1,
 			},
 		}
 		res, err := ctrl.CreateRole(ctx, req)
@@ -62,7 +61,6 @@ func TestSysRoleController_CreateRole(t *testing.T) {
 				Status:      1,
 				CreatorId:   1,
 				ModifierId:  1,
-				DeptId:      1,
 			},
 		}
 		res, err = ctrl.CreateRole(ctx, reqInvalid)
@@ -93,7 +91,6 @@ func TestSysRoleController_GetRole(t *testing.T) {
 				Status:      1,
 				CreatorId:   1,
 				ModifierId:  1,
-				DeptId:      1,
 			},
 		}
 		createRes, _ := ctrl.CreateRole(ctx, createReq)
@@ -143,7 +140,6 @@ func TestSysRoleController_UpdateRole(t *testing.T) {
 				Status:      1,
 				CreatorId:   1,
 				ModifierId:  1,
-				DeptId:      1,
 			},
 		}
 		createRes, _ := ctrl.CreateRole(ctx, createReq)
@@ -157,7 +153,6 @@ func TestSysRoleController_UpdateRole(t *testing.T) {
 				ParentId:    0,
 				Status:      0,
 				ModifierId:  1,
-				DeptId:      1,
 			},
 		}
 		res, err := ctrl.UpdateRole(ctx, updateReq)
@@ -178,7 +173,6 @@ func TestSysRoleController_UpdateRole(t *testing.T) {
 				ParentId:    0,
 				Status:      1,
 				ModifierId:  1,
-				DeptId:      1,
 			},
 		}
 		res, err = ctrl.UpdateRole(ctx, updateReqNotFound)
@@ -195,7 +189,6 @@ func TestSysRoleController_UpdateRole(t *testing.T) {
 				ParentId:    0,
 				Status:      1,
 				ModifierId:  1,
-				DeptId:      1,
 			},
 		}
 		res, err = ctrl.UpdateRole(ctx, updateReqInvalid)
@@ -227,7 +220,6 @@ func TestSysRoleController_DeleteRole(t *testing.T) {
 				Status:      1,
 				CreatorId:   1,
 				ModifierId:  1,
-				DeptId:      1,
 			},
 		}
 		createRes, _ := ctrl.CreateRole(ctx, createReq)

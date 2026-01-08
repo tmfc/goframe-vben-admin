@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import type { PaginationProps } from 'naive-ui';
-
 import type { Dept } from '#/api/sys/dept';
 
 import { h, onMounted, ref } from 'vue';
@@ -15,10 +13,11 @@ import {
   NFormItem,
   NInput,
   NSpace,
+  NTag,
   useDialog,
 } from 'naive-ui';
 
-import { deleteDept, getDeptList } from '#/api/sys/dept';
+import { deleteDept, getDeptTree } from '#/api/sys/dept';
 
 import DeptFormModal from './modules/form.vue';
 
@@ -37,12 +36,31 @@ function createColumns({
       key: 'name',
     },
     {
+      title: $t('system.dept.columns.parent'),
+      key: 'parentId',
+      render(row: Dept) {
+        const parentId = row?.parentId;
+        if (!parentId) {
+          return '';
+        }
+        return deptNameMap.value.get(String(parentId)) || String(parentId);
+      },
+    },
+    {
       title: $t('system.dept.columns.status'),
       key: 'status',
       render(row: Dept) {
-        return row.status === 1
-          ? $t('system.dept.status.enabled')
-          : $t('system.dept.status.disabled');
+        const isActive = row.status === 1;
+        return h(
+          NTag,
+          { type: isActive ? 'success' : 'default', size: 'small' },
+          {
+            default: () =>
+              isActive
+                ? $t('system.dept.status.enabled')
+                : $t('system.dept.status.disabled'),
+          },
+        );
       },
     },
     {
@@ -80,12 +98,9 @@ function createColumns({
 }
 
 const data = ref<Dept[]>([]);
-const pagination = ref<PaginationProps>({
-  page: 1,
-  pageSize: 10,
-  itemCount: 0,
-});
+const deptNameMap = ref(new Map<string, string>());
 const loading = ref(false);
+const defaultExpandedRowKeys = ref<string[]>([]);
 
 const showModal = ref(false);
 const editingRecord = ref<Dept | null>(null);
@@ -122,30 +137,60 @@ function handleDelete(id: string) {
 }
 
 function handleSearch() {
-  pagination.value.page = 1;
   fetchData();
 }
 
-function handlePageChange(page: number) {
-  pagination.value.page = page;
-  fetchData();
-}
+const rowKey = (row: Dept) => row.id;
 
 async function fetchData() {
   loading.value = true;
   try {
-    const response = await getDeptList({
-      page: pagination.value.page,
-      pageSize: pagination.value.pageSize,
+    const response = await getDeptTree({
       name: formValue.value.name,
     });
-    data.value = response.list;
-    pagination.value.itemCount = response.total;
+    const list = response.list || [];
+    data.value = list;
+    deptNameMap.value = flattenDeptTree(list);
+    defaultExpandedRowKeys.value = collectExpandedKeys(list);
   } catch (error) {
     console.error(error);
   } finally {
     loading.value = false;
   }
+}
+
+function flattenDeptTree(
+  list: Array<{ id: string; name: string; children?: any[] }> = [],
+) {
+  const map = new Map<string, string>();
+  const walk = (items: any[]) => {
+    for (const item of items || []) {
+      if (item?.id) {
+        map.set(String(item.id), item.name ?? '');
+      }
+      if (item?.children?.length) {
+        walk(item.children);
+      }
+    }
+  };
+  walk(list);
+  return map;
+}
+
+function collectExpandedKeys(
+  list: Array<{ id: string; children?: any[] }> = [],
+) {
+  const keys: string[] = [];
+  const walk = (items: Array<{ id: string; children?: any[] }>) => {
+    for (const item of items || []) {
+      if (item?.children?.length) {
+        keys.push(String(item.id));
+        walk(item.children);
+      }
+    }
+  };
+  walk(list);
+  return keys;
 }
 
 const columns = createColumns({
@@ -162,7 +207,13 @@ onMounted(() => {
   <div class="dept-page">
     <NCard :title="$t('system.dept.title')" size="small">
       <div class="dept-toolbar">
-        <NForm inline :model="formValue" @submit.prevent="handleSearch">
+        <NForm
+          inline
+          :model="formValue"
+          label-placement="left"
+          label-width="auto"
+          @submit.prevent="handleSearch"
+        >
           <NFormItem :label="$t('system.dept.filters.name')">
             <NInput
               v-model:value="formValue.name"
@@ -174,19 +225,19 @@ onMounted(() => {
               <NButton type="primary" attr-type="submit">
                 {{ $t('common.search') }}
               </NButton>
-              <NButton type="primary" @click="handleCreate">
-                {{ $t('system.dept.actions.create') }}
-              </NButton>
             </NSpace>
           </NFormItem>
         </NForm>
+        <NButton type="primary" @click="handleCreate">
+          {{ $t('system.dept.actions.create') }}
+        </NButton>
       </div>
       <NDataTable
         :columns="columns"
         :data="data"
-        :pagination="pagination"
         :loading="loading"
-        @update:page="handlePageChange"
+        :row-key="rowKey"
+        :default-expanded-row-keys="defaultExpandedRowKeys"
       />
     </NCard>
     <DeptFormModal

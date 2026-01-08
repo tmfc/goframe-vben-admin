@@ -30,7 +30,6 @@ type SysRoleColumns struct {
 	UpdatedAt   string //
 	CreatorId   string //
 	ModifierId  string //
-	DeptId      string //
 	TenantId    string //
 }
 
@@ -45,7 +44,6 @@ var sysRoleColumns = SysRoleColumns{
 	UpdatedAt:   "updated_at",
 	CreatorId:   "creator_id",
 	ModifierId:  "modifier_id",
-	DeptId:      "dept_id",
 	TenantId:    "tenant_id",
 }
 

@@ -5,6 +5,7 @@ export interface Role {
   name: string;
   description: string;
   parentId: string;
+  deptId?: string;
   status: number;
 }
 
@@ -12,33 +13,33 @@ export interface Role {
  * Get role list
  */
 export function getRoleList(params?: any) {
-  return requestClient.get<any>({ url: '/roles', params });
+  return requestClient.get<any>('/sys-role', { params });
 }
 
 /**
  * Create role
  */
 export function createRole(data: Role) {
-  return requestClient.post<Role>({ url: '/roles', data });
+  return requestClient.post<Role>('/sys-role', data);
 }
 
 /**
  * Update role
  */
 export function updateRole(id: string, data: Role) {
-  return requestClient.put<Role>({ url: `/roles/${id}`, data });
+  return requestClient.put<Role>(`/sys-role/${id}`, data);
 }
 
 /**
  * Delete role
  */
 export function deleteRole(id: string) {
-  return requestClient.delete<void>({ url: `/roles/${id}` });
+  return requestClient.delete<void>(`/sys-role/${id}`);
 }
 
 /**
  * Get role
  */
 export function getRole(id: string) {
-  return requestClient.get<Role>({ url: `/roles/${id}` });
+  return requestClient.get<Role>(`/sys-role/${id}`);
 }

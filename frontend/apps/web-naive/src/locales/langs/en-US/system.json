@@ -47,7 +47,40 @@
     }
   },
   "role": {
-    "title": "Role Management"
+    "title": "Role Management",
+    "index": "Role Management",
+    "filters": {
+      "name": "Role Name",
+      "searchByName": "Search by role name"
+    },
+    "columns": {
+      "name": "Role Name",
+      "parent": "Parent Role",
+      "description": "Description",
+      "dept": "Department",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "enabled": "Enabled",
+      "disabled": "Disabled"
+    },
+    "actions": {
+      "create": "Create"
+    },
+    "dialog": {
+      "deleteTitle": "Warning",
+      "deleteConfirm": "Are you sure you want to delete this role?"
+    },
+    "form": {
+      "name": "Role Name",
+      "description": "Description",
+      "parentId": "Parent Role",
+      "deptId": "Department",
+      "status": "Status",
+      "createTitle": "Create Role",
+      "editTitle": "Edit Role"
+    }
   },
   "menu": {
     "title": "Menu Management",
@@ -59,6 +92,7 @@
     },
     "columns": {
       "name": "Name",
+      "titleKey": "Title Key",
       "path": "Path",
       "component": "Component",
       "type": "Type",
@@ -84,6 +118,7 @@
       "titleKeyPlaceholder": "e.g. system.menu.title",
       "type": "Type",
       "path": "Path",
+      "pathPlaceholder": "Enter menu/button path or permission key",
       "component": "Component",
       "icon": "Icon",
       "iconPlaceholder": "Icon name",
@@ -96,7 +131,8 @@
       "new": "New Menu",
       "create": "Create Menu",
       "edit": "Edit Menu",
-      "deleteConfirm": "Delete this menu?"
+      "deleteConfirm": "Delete this menu?",
+      "manageButtons": "Manage Buttons"
     },
     "validation": {
       "nameRequired": "Name is required",
@@ -111,6 +147,7 @@
     },
     "columns": {
       "name": "Name",
+      "parent": "Parent Department",
       "status": "Status",
       "order": "Order",
       "actions": "Actions"
@@ -128,10 +165,15 @@
     },
     "form": {
       "name": "Department Name",
+      "parentId": "Parent Department",
       "order": "Order",
       "status": "Status",
       "createTitle": "Create Department",
       "editTitle": "Edit Department"
+    },
+    "validation": {
+      "orderRequired": "Order is required",
+      "orderPositive": "Order must be a positive integer"
     }
   }
 }
