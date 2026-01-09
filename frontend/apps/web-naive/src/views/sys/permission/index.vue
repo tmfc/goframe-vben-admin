@@ -140,12 +140,17 @@ const columns = reactive<DataTableColumns<any>>([
   {
     title: $t('system.permission.columns.name'),
     key: 'name',
+    render(row) {
+      // name 是 i18n key,直接翻译
+      return $t(row.name);
+    },
   },
   {
     title: $t('system.permission.columns.description'),
     key: 'description',
     render(row) {
-      return row.description || '-';
+      // description 是格式化字符串,需要解析
+      return parsePermissionDescription(row.description);
     },
   },
   {
@@ -203,6 +208,21 @@ const columns = reactive<DataTableColumns<any>>([
     },
   },
 ]);
+
+// 解析权限描述中的 i18n key
+function parsePermissionDescription(desc: string): string {
+  if (!desc) return '-';
+
+  // 格式: "菜单权限:system.user.title" 或 "按钮权限:common.create"
+  const match = desc.match(/^(菜单权限:|按钮权限:|Menu Permission:|Button Permission:)(.+)$/);
+  if (match) {
+    const prefix = match[1];
+    const i18nKey = match[2];
+    return `${prefix}${$t(i18nKey)}`;
+  }
+
+  return desc;
+}
 
 async function fetchPermissionList() {
   try {
@@ -374,10 +394,16 @@ onMounted(() => {
     >
       <NForm ref="formRef" :model="form" :rules="rules" label-placement="top">
         <NFormItem :label="$t('system.permission.form.name')" path="name">
-          <NInput v-model:value="form.name" />
+          <NInput
+            v-model:value="form.name"
+            :placeholder="$t('system.permission.form.namePlaceholder')"
+          />
         </NFormItem>
         <NFormItem :label="$t('system.permission.form.description')">
-          <NInput v-model:value="form.description" />
+          <NInput
+            v-model:value="form.description"
+            :placeholder="$t('system.permission.form.descriptionPlaceholder')"
+          />
         </NFormItem>
         <NFormItem :label="$t('system.permission.form.parent')">
           <NTreeSelect

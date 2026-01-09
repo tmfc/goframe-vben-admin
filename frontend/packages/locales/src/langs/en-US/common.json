@@ -20,5 +20,9 @@
   "yes": "Yes",
   "no": "No",
   "showSearchPanel": "Show search panel",
-  "hideSearchPanel": "Hide search panel"
+  "hideSearchPanel": "Hide search panel",
+  "permission": {
+    "menuPrefix": "Menu Permission:",
+    "buttonPrefix": "Button Permission:"
+  }
 }

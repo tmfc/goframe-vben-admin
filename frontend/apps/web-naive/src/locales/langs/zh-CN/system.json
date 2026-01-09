@@ -160,6 +160,7 @@
   },
   "permission": {
     "title": "权限管理",
+    "titleDisplay": "权限管理",
     "filters": {
       "name": "名称",
       "status": "状态",
@@ -178,7 +179,30 @@
     },
     "actions": {
       "create": "新增",
-      "edit": "编辑"
+      "edit": "编辑",
+      "delete": "删除",
+      "view": "查看",
+      "export": "导出",
+      "import": "导入",
+      "query": "查询",
+      "approve": "审批",
+      "reject": "拒绝",
+      "assign": "分配",
+      "revoke": "撤销",
+      "enable": "启用",
+      "disable": "禁用",
+      "reset": "重置",
+      "copy": "复制",
+      "move": "移动",
+      "upload": "上传",
+      "download": "下载",
+      "share": "分享",
+      "archive": "归档",
+      "restore": "恢复",
+      "batchDelete": "批量删除",
+      "batchEdit": "批量编辑",
+      "batchExport": "批量导出",
+      "batchImport": "批量导入"
     },
     "dialog": {
       "deleteTitle": "提示",
@@ -188,7 +212,9 @@
     },
     "form": {
       "name": "权限名称",
+      "namePlaceholder": "请输入权限名称",
       "description": "描述",
+      "descriptionPlaceholder": "请输入权限描述",
       "parent": "上级权限",
       "root": "顶级",
       "status": "状态"

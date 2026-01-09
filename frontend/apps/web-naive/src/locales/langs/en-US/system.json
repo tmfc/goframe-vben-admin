@@ -160,6 +160,7 @@
   },
   "permission": {
     "title": "Permission Management",
+    "titleDisplay": "Permission Management",
     "filters": {
       "name": "Name",
       "status": "Status",
@@ -178,7 +179,30 @@
     },
     "actions": {
       "create": "Create",
-      "edit": "Edit"
+      "edit": "Edit",
+      "delete": "Delete",
+      "view": "View",
+      "export": "Export",
+      "import": "Import",
+      "query": "Query",
+      "approve": "Approve",
+      "reject": "Reject",
+      "assign": "Assign",
+      "revoke": "Revoke",
+      "enable": "Enable",
+      "disable": "Disable",
+      "reset": "Reset",
+      "copy": "Copy",
+      "move": "Move",
+      "upload": "Upload",
+      "download": "Download",
+      "share": "Share",
+      "archive": "Archive",
+      "restore": "Restore",
+      "batchDelete": "Batch Delete",
+      "batchEdit": "Batch Edit",
+      "batchExport": "Batch Export",
+      "batchImport": "Batch Import"
     },
     "dialog": {
       "deleteTitle": "Warning",
@@ -188,7 +212,9 @@
     },
     "form": {
       "name": "Permission Name",
+      "namePlaceholder": "Enter permission name",
       "description": "Description",
+      "descriptionPlaceholder": "Enter permission description",
       "parent": "Parent Permission",
       "root": "Root",
       "status": "Status"

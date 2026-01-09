@@ -317,6 +317,13 @@ const buttonColumns = reactive<DataTableColumns<any>>([
       return row.path;
     },
   },
+  {
+    title: $t('system.menu.columns.permissionCode'),
+    key: 'permissionCode',
+    render(row) {
+      return row.permissionCode || '-';
+    },
+  },
   { title: $t('system.menu.columns.order'), key: 'order' },
   {
     title: $t('system.menu.columns.status'),
@@ -395,6 +402,8 @@ const buttonForm = reactive({
   metaTitle: '',
   status: 1,
   order: 0,
+  permissionCode: '',
+  autoGeneratePermission: true,
 });
 
 async function fetchMenuList() {
@@ -554,6 +563,8 @@ function resetButtonForm() {
   buttonForm.metaTitle = '';
   buttonForm.status = 1;
   buttonForm.order = 0;
+  buttonForm.permissionCode = '';
+  buttonForm.autoGeneratePermission = true;
   buttonFormRef.value?.restoreValidation();
 }
 
@@ -564,6 +575,8 @@ function openEditButton(item: any) {
    buttonForm.metaTitle = getTitleKey(item) ?? '';
   buttonForm.status = item.status ?? 1;
   buttonForm.order = item.order ?? 0;
+  buttonForm.permissionCode = item.permissionCode ?? '';
+  buttonForm.autoGeneratePermission = !item.permissionCode;
 }
 
 async function submitButtonForm() {
@@ -579,6 +592,7 @@ async function submitButtonForm() {
       parentId: buttonModal.menuId,
       status: buttonForm.status,
       order: buttonForm.order,
+      permissionCode: buttonForm.permissionCode || undefined,
       ...(buttonForm.metaTitle
         ? { meta: JSON.stringify({ title: buttonForm.metaTitle }) }
         : {}),
@@ -630,36 +644,80 @@ function rebuildTitleKeyOptionsFromLocale() {
   const currentSystem = localeSystemMap[currentLocale] || localeSystemMap['zh-CN'];
   collect(currentSystem?.common, 'common.');
   collect(currentSystem?.menu, 'system.menu.');
+  collect(currentSystem?.permission, 'system.permission.');
   titleKeyOptions.value = Array.from(set).map((key) => ({
     label: `${$t(key)} (${key})`,
     value: key,
   }));
 }
 
-function generatePermissionCode(name: string, type: string): string {
-  // 将菜单名称转换为驼峰命名
-  const camelCaseName = name
+function generatePermissionCode(name: string, type: string, parentId?: string | null): string {
+  // 将菜单名称转换为帕斯卡命名 (首字母大写)
+  const pascalCaseName = name
     .replace(/[-_\s]+(.)?/g, (_, char) => (char ? char.toUpperCase() : ''))
-    .replace(/^(.)/, (_, char) => char.toLowerCase());
+    .replace(/^(.)/, (_, char) => char.toUpperCase());
 
   // 根据类型生成不同的前缀
   const prefixMap: Record<string, string> = {
-    menu: 'menu',
-    catalog: 'catalog',
-    link: 'link',
-    embedded: 'embedded',
-    button: 'button',
+    menu: 'Menu',
+    catalog: 'Catalog',
+    link: 'Link',
+    embedded: 'Embedded',
+    button: 'Button',
   };
 
-  const prefix = prefixMap[type] || 'menu';
-  return `${prefix}:${camelCaseName}`;
+  const prefix = prefixMap[type] || 'Menu';
+
+  // 如果是按钮类型,需要获取父菜单的路径
+  if (type === 'button' && parentId) {
+    const parentMenu = rawMenuList.value.find((item) => String(item.id) === String(parentId));
+    if (parentMenu && parentMenu.permissionCode) {
+      // 从父菜单的权限代码中提取路径部分,去掉最后的操作词
+      const parentPath = parentMenu.permissionCode;
+      return `${parentPath}:${pascalCaseName}`;
+    }
+  }
+
+  // 如果是菜单类型,需要获取完整的父级路径
+  if (type !== 'button' && parentId) {
+    const pathParts: string[] = [];
+    let currentId = String(parentId);
+
+    // 向上遍历父级菜单
+    while (currentId && currentId !== '0') {
+      const parent = rawMenuList.value.find((item) => String(item.id) === currentId);
+      if (!parent) break;
+
+      const pascalParentName = (parent.name || '')
+        .replace(/[-_\s]+(.)?/g, (_, char) => (char ? char.toUpperCase() : ''))
+        .replace(/^(.)/, (_, char) => char.toUpperCase());
+
+      pathParts.unshift(pascalParentName);
+      currentId = parent.parentId ? String(parent.parentId) : '';
+    }
+
+    // 构建完整路径: Menu:System:Permission:List
+    const fullPath = pathParts.length > 0 ? `${prefix}:${pathParts.join(':')}:${pascalCaseName}` : `${prefix}:${pascalCaseName}`;
+    return fullPath;
+  }
+
+  return `${prefix}:${pascalCaseName}`;
 }
 
 watch(
-  () => [form.name, form.type, form.autoGeneratePermission],
+  () => [form.name, form.type, form.autoGeneratePermission, form.parentId],
   ([name, type, autoGenerate]) => {
     if (autoGenerate && name && type) {
-      form.permissionCode = generatePermissionCode(String(name), String(type));
+      form.permissionCode = generatePermissionCode(String(name), String(type), form.parentId);
+    }
+  },
+);
+
+watch(
+  () => [buttonForm.name, buttonForm.autoGeneratePermission, buttonModal.menuId],
+  ([name, autoGenerate]) => {
+    if (autoGenerate && name) {
+      buttonForm.permissionCode = generatePermissionCode(String(name), 'button', buttonModal.menuId);
     }
   },
 );
@@ -684,6 +742,24 @@ function buildTableTreeFromList(list: any[]) {
       nodeMap.get(parentId).children.push(node);
     }
   }
+
+  // 递归排序函数,按 order 字段升序排序
+  function sortNodes(nodes: any[]) {
+    nodes.sort((a, b) => {
+      const orderA = a.order ?? 0;
+      const orderB = b.order ?? 0;
+      return orderA - orderB;
+    });
+    // 递归排序子节点
+    nodes.forEach(node => {
+      if (node.children && node.children.length > 0) {
+        sortNodes(node.children);
+      }
+    });
+  }
+
+  // 对根节点和所有子节点进行排序
+  sortNodes(roots);
 
   const expandedKeys: string[] = [];
   function collectExpand(nodes: any[], depth: number) {
@@ -879,11 +955,23 @@ watch(
                 :placeholder="$t('system.menu.form.pathPlaceholder')"
               />
             </NFormItemGi>
+            <NFormItemGi :label="$t('system.menu.form.permissionCode')">
+              <NInput
+                v-model:value="buttonForm.permissionCode"
+                :placeholder="$t('system.menu.form.permissionCodePlaceholder')"
+                :disabled="buttonForm.autoGeneratePermission"
+              />
+            </NFormItemGi>
             <NFormItemGi :label="$t('system.menu.form.order')">
               <NInputNumber v-model:value="buttonForm.order" :min="0" />
             </NFormItemGi>
             <NFormItemGi :label="$t('system.menu.form.status')">
               <NSelect v-model:value="buttonForm.status" :options="statusOptions" />
+            </NFormItemGi>
+            <NFormItemGi :label="''">
+              <NCheckbox v-model:checked="buttonForm.autoGeneratePermission">
+                {{ $t('system.menu.form.autoGeneratePermission') }}
+              </NCheckbox>
             </NFormItemGi>
           </NGrid>
         </NForm>

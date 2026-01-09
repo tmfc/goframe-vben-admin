@@ -20,5 +20,9 @@
   "yes": "是",
   "no": "否",
   "showSearchPanel": "显示搜索面板",
-  "hideSearchPanel": "隐藏搜索面板"
+  "hideSearchPanel": "隐藏搜索面板",
+  "permission": {
+    "menuPrefix": "菜单权限:",
+    "buttonPrefix": "按钮权限:"
+  }
 }

@@ -96,9 +96,25 @@ func (s *sMenu) CreateMenu(ctx context.Context, in model.SysMenuCreateIn) (id st
 
 		// 如果提供了 permission_code，则自动创建对应的 Permission
 		if in.PermissionCode != "" {
+			// 从 Meta 中提取 title key
+			titleKey := extractTitleKey(in.Meta)
+			if titleKey == "" {
+				titleKey = in.Name // 回退到使用菜单名称
+			}
+
+			// 根据类型确定权限前缀
+			permissionPrefix := "菜单权限:"
+			if in.Type == "button" {
+				permissionPrefix = "按钮权限:"
+			}
+
+			// 构建权限的 name 和 description
+			permissionName := titleKey
+			permissionDesc := fmt.Sprintf("%s%s", permissionPrefix, titleKey)
+
 			_, err = tx.Model("sys_permission").Data(g.Map{
-				dao.SysPermission.Columns().Name:        in.Name,
-				dao.SysPermission.Columns().Description: fmt.Sprintf("Permission for menu: %s", in.Name),
+				dao.SysPermission.Columns().Name:        permissionName,
+				dao.SysPermission.Columns().Description: permissionDesc,
 				dao.SysPermission.Columns().Status:      1,
 			}).Insert()
 			if err != nil {
@@ -175,14 +191,59 @@ func (s *sMenu) UpdateMenu(ctx context.Context, in model.SysMenuUpdateIn) (err e
 
 			// 如果新的 permission_code 存在，创建对应的 Permission
 			if in.PermissionCode != "" {
+				// 从 Meta 中提取 title key
+				titleKey := extractTitleKey(in.Meta)
+				if titleKey == "" {
+					titleKey = in.Name // 回退到使用菜单名称
+				}
+
+				// 根据类型确定权限前缀
+				permissionPrefix := "菜单权限:"
+				if in.Type == "button" {
+					permissionPrefix = "按钮权限:"
+				}
+
+				// 构建权限的 name 和 description
+				permissionName := titleKey
+				permissionDesc := fmt.Sprintf("%s%s", permissionPrefix, titleKey)
+
 				_, err = tx.Model("sys_permission").Data(g.Map{
-					dao.SysPermission.Columns().Name:        in.Name,
-					dao.SysPermission.Columns().Description: fmt.Sprintf("Permission for menu: %s", in.Name),
+					dao.SysPermission.Columns().Name:        permissionName,
+					dao.SysPermission.Columns().Description: permissionDesc,
 					dao.SysPermission.Columns().Status:      1,
 				}).Insert()
 				if err != nil {
 					return err
 				}
+			}
+		} else if in.PermissionCode != "" && in.Meta != originalMenu.Meta {
+			// 如果 permission_code 没有变化，但 Meta 变化了，则更新权限的 name 和 description
+			// 从 Meta 中提取 title key
+			titleKey := extractTitleKey(in.Meta)
+			if titleKey == "" {
+				titleKey = in.Name // 回退到使用菜单名称
+			}
+
+			// 根据类型确定权限前缀
+			permissionPrefix := "菜单权限:"
+			if in.Type == "button" {
+				permissionPrefix = "按钮权限:"
+			}
+
+			// 构建权限的 name 和 description
+			permissionName := titleKey
+			permissionDesc := fmt.Sprintf("%s%s", permissionPrefix, titleKey)
+
+			// 更新权限记录
+			_, err = tx.Model("sys_permission").
+				Where(dao.SysPermission.Columns().Name, originalMenu.Name).
+				Data(g.Map{
+					dao.SysPermission.Columns().Name:        permissionName,
+					dao.SysPermission.Columns().Description: permissionDesc,
+				}).
+				Update()
+			if err != nil {
+				return err
 			}
 		}
 
@@ -628,4 +689,22 @@ func menuOrder(item *v1.MenuItem) int {
 		return 9999
 	}
 	return item.Meta.Order
+}
+
+// extractTitleKey 从 Meta JSON 字符串中提取 title key
+func extractTitleKey(metaStr string) string {
+	if metaStr == "" {
+		return ""
+	}
+
+	var meta map[string]interface{}
+	if err := json.Unmarshal([]byte(metaStr), &meta); err != nil {
+		return ""
+	}
+
+	if title, ok := meta["title"].(string); ok && title != "" {
+		return title
+	}
+
+	return ""
 }
