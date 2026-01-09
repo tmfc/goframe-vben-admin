@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gogf/gf/v2/errors/gcode"
+	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gcfg"
@@ -35,7 +36,7 @@ func TestUploadLocalSuccess(t *testing.T) {
 	}
 	t.Cleanup(func() { gfile.Remove(uploadDir) })
 
-	restoreConfig := setUploadConfig(t, uploadDir, 1)
+	restoreConfig := setUploadConfig(t, "local", uploadDir, 1)
 	t.Cleanup(restoreConfig)
 
 	s := startUploadAPIServer(t)
@@ -72,7 +73,7 @@ func TestUploadLocalTooLarge(t *testing.T) {
 	}
 	t.Cleanup(func() { gfile.Remove(uploadDir) })
 
-	restoreConfig := setUploadConfig(t, uploadDir, 1)
+	restoreConfig := setUploadConfig(t, "local", uploadDir, 1)
 	t.Cleanup(restoreConfig)
 
 	s := startUploadAPIServer(t)
@@ -103,7 +104,7 @@ func TestUploadLocalDisallowedType(t *testing.T) {
 	}
 	t.Cleanup(func() { gfile.Remove(uploadDir) })
 
-	restoreConfig := setUploadConfig(t, uploadDir, 1)
+	restoreConfig := setUploadConfig(t, "local", uploadDir, 1)
 	t.Cleanup(restoreConfig)
 
 	s := startUploadAPIServer(t)
@@ -124,6 +125,85 @@ func TestUploadLocalDisallowedType(t *testing.T) {
 	})
 }
 
+func TestUploadS3Success(t *testing.T) {
+	t.Parallel()
+
+	restoreConfig := setUploadConfig(t, "s3", "", 1)
+	t.Cleanup(restoreConfig)
+
+	previousUpload := s3Upload
+	s3Upload = func(ctx context.Context, cfg s3Config, file *ghttp.UploadFile, key string) error {
+		return nil
+	}
+	t.Cleanup(func() { s3Upload = previousUpload })
+
+	s := startUploadAPIServer(t)
+	client := g.Client()
+	client.SetPrefix(fmt.Sprintf("http://127.0.0.1:%d", s.GetListenedPort()))
+
+	tempDir := gfile.Temp(guid.S())
+	if err := gfile.Mkdir(tempDir); err != nil {
+		t.Fatalf("failed to create temp dir: %v", err)
+	}
+	t.Cleanup(func() { gfile.Remove(tempDir) })
+
+	filePath := filepath.Join(tempDir, "remote.txt")
+	if err := os.WriteFile(filePath, []byte("hello"), 0o644); err != nil {
+		t.Fatalf("failed to write upload fixture: %v", err)
+	}
+
+	gtest.C(t, func(t *gtest.T) {
+		content := client.PostContent(context.Background(), "/api/v1/upload", g.Map{
+			"file": "@file:" + filePath,
+		})
+		env := decodeEnvelope(t, content)
+		t.Assert(env.Code, gcode.CodeOK.Code())
+
+		var res struct {
+			Path string `json:"path"`
+		}
+		t.AssertNil(json.Unmarshal(env.Data, &res))
+		t.Assert(strings.HasPrefix(res.Path, "uploads/"), true)
+		t.Assert(strings.HasSuffix(res.Path, "remote.txt"), true)
+	})
+}
+
+func TestUploadS3Failure(t *testing.T) {
+	t.Parallel()
+
+	restoreConfig := setUploadConfig(t, "s3", "", 1)
+	t.Cleanup(restoreConfig)
+
+	previousUpload := s3Upload
+	s3Upload = func(ctx context.Context, cfg s3Config, file *ghttp.UploadFile, key string) error {
+		return gerror.NewCode(gcode.CodeOperationFailed, "s3 upload failed")
+	}
+	t.Cleanup(func() { s3Upload = previousUpload })
+
+	s := startUploadAPIServer(t)
+	client := g.Client()
+	client.SetPrefix(fmt.Sprintf("http://127.0.0.1:%d", s.GetListenedPort()))
+
+	tempDir := gfile.Temp(guid.S())
+	if err := gfile.Mkdir(tempDir); err != nil {
+		t.Fatalf("failed to create temp dir: %v", err)
+	}
+	t.Cleanup(func() { gfile.Remove(tempDir) })
+
+	filePath := filepath.Join(tempDir, "remote-fail.txt")
+	if err := os.WriteFile(filePath, []byte("hello"), 0o644); err != nil {
+		t.Fatalf("failed to write upload fixture: %v", err)
+	}
+
+	gtest.C(t, func(t *gtest.T) {
+		content := client.PostContent(context.Background(), "/api/v1/upload", g.Map{
+			"file": "@file:" + filePath,
+		})
+		env := decodeEnvelope(t, content)
+		t.Assert(env.Code, gcode.CodeOperationFailed.Code())
+	})
+}
+
 func startUploadAPIServer(t *testing.T) *ghttp.Server {
 	t.Helper()
 	s := g.Server(guid.S())
@@ -139,7 +219,7 @@ func startUploadAPIServer(t *testing.T) *ghttp.Server {
 	return s
 }
 
-func setUploadConfig(t *testing.T, localDir string, maxSizeMB int) func() {
+func setUploadConfig(t *testing.T, storage, localDir string, maxSizeMB int) func() {
 	t.Helper()
 
 	adapter, err := gcfg.NewAdapterFile()
@@ -148,7 +228,7 @@ func setUploadConfig(t *testing.T, localDir string, maxSizeMB int) func() {
 	}
 	adapter.SetContent(fmt.Sprintf(`
 [upload]
-storage = "local"
+storage = "%s"
 max_size_mb = %d
 local_dir = "%s"
 
@@ -160,7 +240,7 @@ access_key = ""
 secret_key = ""
 use_ssl = true
 prefix = "uploads"
-`, maxSizeMB, localDir))
+`, storage, maxSizeMB, localDir))
 
 	cfg := g.Cfg()
 	previous := cfg.GetAdapter()
