@@ -43,3 +43,15 @@ func (c *ControllerV1) GetPermissionList(ctx context.Context, req *v1.GetPermiss
 	}
 	return
 }
+
+func (c *ControllerV1) GetPermissionTree(ctx context.Context, req *v1.GetPermissionTreeReq) (res *v1.GetPermissionTreeRes, err error) {
+	if req == nil {
+		req = &v1.GetPermissionTreeReq{}
+	}
+	list, err := service.SysPermission().GetPermissionTree(ctx)
+	if err != nil {
+		return nil, err
+	}
+	res = &v1.GetPermissionTreeRes{List: list}
+	return
+}

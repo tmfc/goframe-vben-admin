@@ -112,10 +112,33 @@ func (s *sMenu) CreateMenu(ctx context.Context, in model.SysMenuCreateIn) (id st
 			permissionName := titleKey
 			permissionDesc := fmt.Sprintf("%s%s", permissionPrefix, titleKey)
 
+			// 查找父菜单对应的 permission，设置 ParentId 以保持同构
+			var parentPermissionId int64 = 0
+			if parentId != "" {
+				var parentMenu entity.SysMenu
+				err = tx.Model("sys_menu").Where(dao.SysMenu.Columns().Id, parentId).Scan(&parentMenu)
+				if err != nil {
+					return err
+				}
+				if parentMenu.PermissionCode != "" {
+					var parentPerms []*entity.SysPermission
+					err = tx.Model("sys_permission").
+						Where(dao.SysPermission.Columns().Name, parentMenu.Name).
+						Scan(&parentPerms)
+					if err != nil {
+						return err
+					}
+					if len(parentPerms) > 0 {
+						parentPermissionId = parentPerms[0].Id
+					}
+				}
+			}
+
 			_, err = tx.Model("sys_permission").Data(g.Map{
 				dao.SysPermission.Columns().Name:        permissionName,
 				dao.SysPermission.Columns().Description: permissionDesc,
 				dao.SysPermission.Columns().Status:      1,
+				dao.SysPermission.Columns().ParentId:    parentPermissionId,
 			}).Insert()
 			if err != nil {
 				return err
@@ -150,7 +173,7 @@ func (s *sMenu) UpdateMenu(ctx context.Context, in model.SysMenuUpdateIn) (err e
 
 	// 使用事务确保 menu 和 permission 的更新是原子操作
 	err = dao.SysMenu.Transaction(ctx, func(ctx context.Context, tx gdb.TX) error {
-		// 获取原始 menu 信息以检查 permission_code 是否变化
+		// 获取原始 menu 信息以检查 permission_code 和 parent_id 是否变化
 		var originalMenu entity.SysMenu
 		err = tx.Model("sys_menu").Where(dao.SysMenu.Columns().Id, in.ID).Scan(&originalMenu)
 		if err != nil {
@@ -168,82 +191,151 @@ func (s *sMenu) UpdateMenu(ctx context.Context, in model.SysMenuUpdateIn) (err e
 			return err
 		}
 
-		// 如果 permission_code 发生变化，则同步更新 Permission
-		if originalMenu.PermissionCode != in.PermissionCode {
-			// 如果旧的 permission_code 存在，删除对应的 Permission
-			if originalMenu.PermissionCode != "" {
-				// 查找对应的 permission 记录
-				var oldPerms []*entity.SysPermission
-				err = tx.Model("sys_permission").
-					Where(dao.SysPermission.Columns().Name, originalMenu.Name).
-					Scan(&oldPerms)
-				if err == nil && len(oldPerms) > 0 {
-					for _, perm := range oldPerms {
-						_, err = tx.Model("sys_permission").
-							Where(dao.SysPermission.Columns().Id, perm.Id).
-							Delete()
+		// 如果菜单的 parent_id 发生变化，需要同步更新 permission 的 parent_id
+		if originalMenu.ParentId != parentId {
+			// 查找当前菜单对应的 permission
+			var currentPerms []*entity.SysPermission
+			err = tx.Model("sys_permission").
+				Where(dao.SysPermission.Columns().Name, originalMenu.Name).
+				Scan(&currentPerms)
+			if err != nil {
+				return err
+			}
+
+			if len(currentPerms) > 0 {
+				// 查找新的父菜单对应的 permission
+				var newParentPermissionId int64 = 0
+				if parentId != "" {
+					var parentMenu entity.SysMenu
+					err = tx.Model("sys_menu").Where(dao.SysMenu.Columns().Id, parentId).Scan(&parentMenu)
+					if err != nil {
+						return err
+					}
+					if parentMenu.PermissionCode != "" {
+						var parentPerms []*entity.SysPermission
+						err = tx.Model("sys_permission").
+							Where(dao.SysPermission.Columns().Name, parentMenu.Name).
+							Scan(&parentPerms)
 						if err != nil {
 							return err
 						}
+						if len(parentPerms) > 0 {
+							newParentPermissionId = parentPerms[0].Id
+						}
+					}
+				}
+
+				// 更新当前 permission 的 parent_id
+				for _, perm := range currentPerms {
+					_, err = tx.Model("sys_permission").
+						Where(dao.SysPermission.Columns().Id, perm.Id).
+						Data(g.Map{
+							dao.SysPermission.Columns().ParentId: newParentPermissionId,
+						}).
+						Update()
+					if err != nil {
+						return err
 					}
 				}
 			}
+		}
 
-			// 如果新的 permission_code 存在，创建对应的 Permission
-			if in.PermissionCode != "" {
-				// 从 Meta 中提取 title key
-				titleKey := extractTitleKey(in.Meta)
-				if titleKey == "" {
-					titleKey = in.Name // 回退到使用菜单名称
+		// 处理 permission 的同步
+		// 查找父菜单对应的 permission，设置 ParentId 以保持同构
+		var parentPermissionId int64 = 0
+		if parentId != "" {
+			var parentMenu entity.SysMenu
+			err = tx.Model("sys_menu").Where(dao.SysMenu.Columns().Id, parentId).Scan(&parentMenu)
+			if err != nil {
+				return err
+			}
+			if parentMenu.PermissionCode != "" {
+				var parentPerms []*entity.SysPermission
+				err = tx.Model("sys_permission").
+					Where(dao.SysPermission.Columns().Name, parentMenu.Name).
+					Scan(&parentPerms)
+				if err != nil {
+					return err
 				}
-
-				// 根据类型确定权限前缀
-				permissionPrefix := "菜单权限:"
-				if in.Type == "button" {
-					permissionPrefix = "按钮权限:"
+				if len(parentPerms) > 0 {
+					parentPermissionId = parentPerms[0].Id
 				}
+			}
+		}
 
-				// 构建权限的 name 和 description
-				permissionName := titleKey
-				permissionDesc := fmt.Sprintf("%s%s", permissionPrefix, titleKey)
+		// 从 Meta 中提取 title key
+		titleKey := extractTitleKey(in.Meta)
+		if titleKey == "" {
+			titleKey = in.Name // 回退到使用菜单名称
+		}
 
-				_, err = tx.Model("sys_permission").Data(g.Map{
-					dao.SysPermission.Columns().Name:        permissionName,
-					dao.SysPermission.Columns().Description: permissionDesc,
-					dao.SysPermission.Columns().Status:      1,
-				}).Insert()
+		// 根据类型确定权限前缀
+		permissionPrefix := "菜单权限:"
+		if in.Type == "button" {
+			permissionPrefix = "按钮权限:"
+		}
+
+		// 构建权限的 name 和 description
+		permissionName := titleKey
+		permissionDesc := fmt.Sprintf("%s%s", permissionPrefix, titleKey)
+
+		// 查找当前菜单对应的 permission
+		var currentPerm *entity.SysPermission
+		if originalMenu.PermissionCode != "" {
+			var perms []*entity.SysPermission
+			err = tx.Model("sys_permission").
+				Where(dao.SysPermission.Columns().Name, originalMenu.Name).
+				Scan(&perms)
+			if err == nil && len(perms) > 0 {
+				currentPerm = perms[0]
+			}
+		}
+
+		// 情况1: 菜单原来有 permission_code,现在没有 -> 删除 permission
+		if originalMenu.PermissionCode != "" && in.PermissionCode == "" {
+			if currentPerm != nil {
+				_, err = tx.Model("sys_permission").
+					Where(dao.SysPermission.Columns().Id, currentPerm.Id).
+					Delete()
 				if err != nil {
 					return err
 				}
 			}
-		} else if in.PermissionCode != "" && in.Meta != originalMenu.Meta {
-			// 如果 permission_code 没有变化，但 Meta 变化了，则更新权限的 name 和 description
-			// 从 Meta 中提取 title key
-			titleKey := extractTitleKey(in.Meta)
-			if titleKey == "" {
-				titleKey = in.Name // 回退到使用菜单名称
-			}
-
-			// 根据类型确定权限前缀
-			permissionPrefix := "菜单权限:"
-			if in.Type == "button" {
-				permissionPrefix = "按钮权限:"
-			}
-
-			// 构建权限的 name 和 description
-			permissionName := titleKey
-			permissionDesc := fmt.Sprintf("%s%s", permissionPrefix, titleKey)
-
-			// 更新权限记录
-			_, err = tx.Model("sys_permission").
-				Where(dao.SysPermission.Columns().Name, originalMenu.Name).
-				Data(g.Map{
-					dao.SysPermission.Columns().Name:        permissionName,
-					dao.SysPermission.Columns().Description: permissionDesc,
-				}).
-				Update()
+		} else if originalMenu.PermissionCode == "" && in.PermissionCode != "" {
+			// 情况2: 菜单原来没有 permission_code,现在有 -> 创建 permission
+			_, err = tx.Model("sys_permission").Data(g.Map{
+				dao.SysPermission.Columns().Name:        permissionName,
+				dao.SysPermission.Columns().Description: permissionDesc,
+				dao.SysPermission.Columns().Status:      1,
+				dao.SysPermission.Columns().ParentId:    parentPermissionId,
+			}).Insert()
 			if err != nil {
 				return err
+			}
+		} else if originalMenu.PermissionCode != "" && in.PermissionCode != "" {
+			// 情况3: 菜单一直有 permission_code -> 更新 permission
+			if currentPerm != nil {
+				// 构建更新数据
+				updateData := g.Map{
+					dao.SysPermission.Columns().ParentId: parentPermissionId,
+				}
+
+				// 只有当 name 确实变化时才更新 name
+				if currentPerm.Name != permissionName {
+					updateData[dao.SysPermission.Columns().Name] = permissionName
+					updateData[dao.SysPermission.Columns().Description] = permissionDesc
+				} else if in.Meta != originalMenu.Meta {
+					// name 没有变化,但 Meta 变化了,只更新 description
+					updateData[dao.SysPermission.Columns().Description] = permissionDesc
+				}
+
+				_, err = tx.Model("sys_permission").
+					Where(dao.SysPermission.Columns().Id, currentPerm.Id).
+					Data(updateData).
+					Update()
+				if err != nil {
+					return err
+				}
 			}
 		}
 
@@ -264,28 +356,43 @@ func (s *sMenu) DeleteMenu(ctx context.Context, id string) (err error) {
 			return err
 		}
 
-		// 删除 menu
-		_, err = tx.Model("sys_menu").Where(dao.SysMenu.Columns().Id, id).Delete()
+		// 查找当前菜单对应的 permission
+		var currentPerms []*entity.SysPermission
+		err = tx.Model("sys_permission").
+			Where(dao.SysPermission.Columns().Name, menuToDelete.Name).
+			Scan(&currentPerms)
 		if err != nil {
 			return err
 		}
 
-		// 如果 menu 有 permission_code，则级联删除对应的 Permission
-		if menuToDelete.PermissionCode != "" {
-			// 查找对应的 permission 记录
-			var perms []*entity.SysPermission
-			err = tx.Model("sys_permission").
-				Where(dao.SysPermission.Columns().Name, menuToDelete.Name).
-				Scan(&perms)
-			if err == nil && len(perms) > 0 {
-				for _, perm := range perms {
-					_, err = tx.Model("sys_permission").
-						Where(dao.SysPermission.Columns().Id, perm.Id).
-						Delete()
-					if err != nil {
-						return err
-					}
-				}
+		// 递归查找所有子菜单并收集它们的 permissions
+		var allMenuIdsToDelete []string
+		var allPermIdsToDelete []int64
+
+		err = collectChildMenusAndPermissions(ctx, tx, id, &allMenuIdsToDelete, &allPermIdsToDelete)
+		if err != nil {
+			return err
+		}
+
+		// 将当前菜单及其 permission 加入待删除列表
+		allMenuIdsToDelete = append(allMenuIdsToDelete, id)
+		for _, perm := range currentPerms {
+			allPermIdsToDelete = append(allPermIdsToDelete, perm.Id)
+		}
+
+		// 删除所有子菜单和当前菜单
+		for _, menuId := range allMenuIdsToDelete {
+			_, err = tx.Model("sys_menu").Where(dao.SysMenu.Columns().Id, menuId).Delete()
+			if err != nil {
+				return err
+			}
+		}
+
+		// 删除所有子菜单和当前菜单对应的 permissions
+		for _, permId := range allPermIdsToDelete {
+			_, err = tx.Model("sys_permission").Where(dao.SysPermission.Columns().Id, permId).Delete()
+			if err != nil {
+				return err
 			}
 		}
 
@@ -707,4 +814,40 @@ func extractTitleKey(metaStr string) string {
 	}
 
 	return ""
+}
+
+// collectChildMenusAndPermissions 递归收集子菜单及其对应的 permissions
+func collectChildMenusAndPermissions(ctx context.Context, tx gdb.TX, parentId string, menuIds *[]string, permIds *[]int64) error {
+	var childMenus []entity.SysMenu
+	err := tx.Model("sys_menu").Where(dao.SysMenu.Columns().ParentId, parentId).Scan(&childMenus)
+	if err != nil {
+		return err
+	}
+
+	for _, child := range childMenus {
+		// 收集子菜单 ID
+		*menuIds = append(*menuIds, child.Id)
+
+		// 如果子菜单有 permission_code，收集对应的 permission ID
+		if child.PermissionCode != "" {
+			var perms []*entity.SysPermission
+			err = tx.Model("sys_permission").
+				Where(dao.SysPermission.Columns().Name, child.Name).
+				Scan(&perms)
+			if err != nil {
+				return err
+			}
+			for _, perm := range perms {
+				*permIds = append(*permIds, perm.Id)
+			}
+		}
+
+		// 递归处理子菜单的子菜单
+		err = collectChildMenusAndPermissions(ctx, tx, child.Id, menuIds, permIds)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

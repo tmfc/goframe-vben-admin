@@ -62,3 +62,15 @@ type SysPermissionListOut struct {
 	Items []*entity.SysPermission `json:"items"`
 	Total int                     `json:"total"`
 }
+
+// SysPermissionTreeOut is the output for permission tree structure.
+type SysPermissionTreeOut struct {
+	Id          int64                   `json:"id"`
+	Name        string                  `json:"name"`
+	Description string                  `json:"description"`
+	ParentId    int64                   `json:"parentId"`
+	Status      int                     `json:"status"`
+	Children    []*SysPermissionTreeOut `json:"children,omitempty"`
+	CreatedAt   string                  `json:"createdAt"`
+	UpdatedAt   string                  `json:"updatedAt"`
+}

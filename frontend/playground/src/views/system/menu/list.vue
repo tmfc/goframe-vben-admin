@@ -5,7 +5,7 @@ import type {
 } from '#/adapter/vxe-table';
 
 import { Page, useVbenDrawer } from '@vben/common-ui';
-import { IconifyIcon, Plus } from '@vben/icons';
+import { IconifyIcon, Plus, Zap } from '@vben/icons';
 import { $t } from '@vben/locales';
 
 import { MenuBadge } from '@vben-core/menu-ui';
@@ -13,7 +13,7 @@ import { MenuBadge } from '@vben-core/menu-ui';
 import { Button, message } from 'ant-design-vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
-import { deleteMenu, getMenuList, SystemMenuApi } from '#/api/system/menu';
+import { createMenu, deleteMenu, getMenuList, SystemMenuApi } from '#/api/system/menu';
 
 import { useColumns } from './data';
 import Form from './modules/form.vue';
@@ -28,6 +28,10 @@ const [Grid, gridApi] = useVbenVxeGrid({
     columns: useColumns(onActionClick),
     height: 'auto',
     keepSource: true,
+    checkboxConfig: {
+      highlight: true,
+      range: true,
+    },
     pagerConfig: {
       enabled: false,
     },
@@ -40,6 +44,14 @@ const [Grid, gridApi] = useVbenVxeGrid({
     },
     rowConfig: {
       keyField: 'id',
+    },
+    sortConfig: {
+      defaultSort: {
+        field: 'order',
+        order: 'asc',
+      },
+      remote: false,
+      trigger: 'cell',
     },
     toolbarConfig: {
       custom: true,
@@ -109,6 +121,85 @@ function onDelete(row: SystemMenuApi.SystemMenu) {
       hideLoading();
     });
 }
+
+async function onGenerateButtons() {
+  const selectedRows = gridApi.getCheckboxRecords();
+  if (selectedRows.length === 0) {
+    message.warning('请先选择一个菜单项');
+    return;
+  }
+
+  const parentMenu = selectedRows[0] as SystemMenuApi.SystemMenu;
+
+  // 只能为 menu 类型生成按钮
+  if (parentMenu.type !== 'menu') {
+    message.warning('只能为菜单类型生成按钮');
+    return;
+  }
+
+  const hideLoading = message.loading({
+    content: '正在生成按钮...',
+    duration: 0,
+    key: 'generate_buttons',
+  });
+
+  try {
+    // 生成三个按钮: 新增、编辑、删除
+    const buttons = [
+      {
+        name: `${parentMenu.name}Create`,
+        type: 'button',
+        status: 1,
+        authCode: `Button:${parentMenu.name}:Create`,
+        pid: parentMenu.id,
+        meta: {
+          title: 'common.create',
+        },
+        order: 0,
+      },
+      {
+        name: `${parentMenu.name}Edit`,
+        type: 'button',
+        status: 1,
+        authCode: `Button:${parentMenu.name}:Edit`,
+        pid: parentMenu.id,
+        meta: {
+          title: 'common.edit',
+        },
+        order: 1,
+      },
+      {
+        name: `${parentMenu.name}Delete`,
+        type: 'button',
+        status: 1,
+        authCode: `Button:${parentMenu.name}:Delete`,
+        pid: parentMenu.id,
+        meta: {
+          title: 'common.delete',
+        },
+        order: 2,
+      },
+    ];
+
+    // 依次创建按钮
+    for (const button of buttons) {
+      await createMenu(button);
+    }
+
+    message.success({
+      content: '按钮生成成功',
+      key: 'generate_buttons',
+    });
+    onRefresh();
+  } catch (error) {
+    message.error({
+      content: '按钮生成失败',
+      key: 'generate_buttons',
+    });
+  } finally {
+    hideLoading();
+  }
+}
 </script>
 <template>
   <Page auto-content-height>
@@ -118,6 +209,10 @@ function onDelete(row: SystemMenuApi.SystemMenu) {
         <Button type="primary" @click="onCreate">
           <Plus class="size-5" />
           {{ $t('ui.actionTitle.create', [$t('system.menu.name')]) }}
+        </Button>
+        <Button @click="onGenerateButtons">
+          <Zap class="size-5" />
+          生成按钮
         </Button>
       </template>
       <template #title="{ row }">

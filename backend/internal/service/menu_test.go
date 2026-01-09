@@ -9,6 +9,7 @@ import (
 	"backend/internal/dao"
 	"backend/internal/model"
 	"backend/internal/model/entity"
+	"backend/internal/testutil"
 
 	"github.com/gogf/gf/v2/test/gtest"
 )
@@ -576,5 +577,329 @@ func TestMenu_TransactionRollback(t *testing.T) {
 		// Cleanup after test
 		dao.SysMenu.Ctx(ctx).WhereLike(dao.SysMenu.Columns().Name, "Test Menu Transaction%").Delete()
 		dao.SysPermission.Ctx(ctx).WhereLike(dao.SysPermission.Columns().Name, "Test Menu Transaction%").Delete()
+	})
+}
+
+func TestMenu_PermissionParentHierarchy(t *testing.T) {
+	testutil.RequireDatabase(t)
+
+	ctx := context.TODO()
+
+	// Cleanup function
+	t.Cleanup(func() {
+		dao.SysMenu.Ctx(ctx).Unscoped().WhereLike(dao.SysMenu.Columns().Name, "TestMenuHierarchy%").Delete()
+		dao.SysPermission.Ctx(ctx).Unscoped().WhereLike(dao.SysPermission.Columns().Name, "TestMenuHierarchy%").Delete()
+	})
+
+	gtest.C(t, func(t *gtest.T) {
+		var err error
+
+		// 1. 创建父菜单及其 permission
+		parentMenuIn := model.SysMenuCreateIn{
+			Name:           "TestMenuHierarchyParent",
+			Path:           "/test-hierarchy-parent",
+			Type:           "menu",
+			Status:         1,
+			PermissionCode: "test:hierarchy:parent",
+		}
+		parentMenuId, err := Menu().CreateMenu(ctx, parentMenuIn)
+		t.AssertNil(err)
+		t.AssertNE(parentMenuId, "")
+
+		// 验证父菜单的 permission 创建成功且 ParentId 为 0
+		var parentPerms []*entity.SysPermission
+		err = dao.SysPermission.Ctx(ctx).
+			Where(dao.SysPermission.Columns().Name, parentMenuIn.Name).
+			Scan(&parentPerms)
+		t.AssertNil(err)
+		t.AssertEQ(len(parentPerms), 1)
+		t.AssertEQ(parentPerms[0].ParentId, int64(0))
+
+		// 2. 创建子菜单及其 permission
+		childMenuIn := model.SysMenuCreateIn{
+			Name:           "TestMenuHierarchyChild",
+			Path:           "/test-hierarchy-child",
+			Type:           "menu",
+			Status:         1,
+			PermissionCode: "test:hierarchy:child",
+			ParentId:       parentMenuId,
+		}
+		childMenuId, err := Menu().CreateMenu(ctx, childMenuIn)
+		t.AssertNil(err)
+		t.AssertNE(childMenuId, "")
+
+		// 验证子菜单的 permission 创建成功且 ParentId 指向父菜单的 permission
+		var childPerms []*entity.SysPermission
+		err = dao.SysPermission.Ctx(ctx).
+			Where(dao.SysPermission.Columns().Name, childMenuIn.Name).
+			Scan(&childPerms)
+		t.AssertNil(err)
+		t.AssertEQ(len(childPerms), 1)
+		t.AssertEQ(childPerms[0].ParentId, parentPerms[0].Id)
+
+		// 3. 创建按钮类型的 permission (子菜单的子权限)
+		buttonMenuIn := model.SysMenuCreateIn{
+			Name:           "TestMenuHierarchyButton",
+			Type:           "button",
+			Status:         1,
+			PermissionCode: "test:hierarchy:button",
+			ParentId:       childMenuId,
+		}
+		buttonMenuId, err := Menu().CreateMenu(ctx, buttonMenuIn)
+		t.AssertNil(err)
+		t.AssertNE(buttonMenuId, "")
+
+		// 验证按钮的 permission 创建成功且 ParentId 指向子菜单的 permission
+		var buttonPerms []*entity.SysPermission
+		err = dao.SysPermission.Ctx(ctx).
+			Where(dao.SysPermission.Columns().Name, buttonMenuIn.Name).
+			Scan(&buttonPerms)
+		t.AssertNil(err)
+		t.AssertEQ(len(buttonPerms), 1)
+		t.AssertEQ(buttonPerms[0].ParentId, childPerms[0].Id)
+
+		// 4. 测试更新菜单的父级时同步更新 permission 的 ParentId
+		// 创建另一个父菜单
+		newParentMenuIn := model.SysMenuCreateIn{
+			Name:           "TestMenuHierarchyNewParent",
+			Path:           "/test-hierarchy-new-parent",
+			Type:           "menu",
+			Status:         1,
+			PermissionCode: "test:hierarchy:new-parent",
+		}
+		newParentMenuId, err := Menu().CreateMenu(ctx, newParentMenuIn)
+		t.AssertNil(err)
+		t.AssertNE(newParentMenuId, "")
+
+		// 获取新父菜单的 permission ID
+		var newParentPerms []*entity.SysPermission
+		err = dao.SysPermission.Ctx(ctx).
+			Where(dao.SysPermission.Columns().Name, newParentMenuIn.Name).
+			Scan(&newParentPerms)
+		t.AssertNil(err)
+		t.AssertEQ(len(newParentPerms), 1)
+
+		// 更新子菜单的父级
+		updateIn := model.SysMenuUpdateIn{
+			ID:             childMenuId,
+			Name:           childMenuIn.Name,
+			Path:           childMenuIn.Path,
+			Type:           childMenuIn.Type,
+			Status:         childMenuIn.Status,
+			PermissionCode: childMenuIn.PermissionCode,
+			ParentId:       newParentMenuId,
+		}
+		err = Menu().UpdateMenu(ctx, updateIn)
+		t.AssertNil(err)
+
+		// 验证子菜单的 permission 的 ParentId 已更新
+		var updatedChildPerms []*entity.SysPermission
+		err = dao.SysPermission.Ctx(ctx).
+			Where(dao.SysPermission.Columns().Name, childMenuIn.Name).
+			Scan(&updatedChildPerms)
+		t.AssertNil(err)
+		t.AssertEQ(len(updatedChildPerms), 1)
+		t.AssertEQ(updatedChildPerms[0].ParentId, newParentPerms[0].Id)
+	})
+}
+
+func TestMenu_DeleteMenuWithChildren(t *testing.T) {
+	testutil.RequireDatabase(t)
+
+	ctx := context.TODO()
+
+	// Cleanup function
+	t.Cleanup(func() {
+		dao.SysMenu.Ctx(ctx).Unscoped().WhereLike(dao.SysMenu.Columns().Name, "TestMenuDeleteChildren%").Delete()
+		dao.SysPermission.Ctx(ctx).Unscoped().WhereLike(dao.SysPermission.Columns().Name, "TestMenuDeleteChildren%").Delete()
+	})
+
+	gtest.C(t, func(t *gtest.T) {
+		var err error
+
+		// 1. 创建父菜单
+		parentMenuIn := model.SysMenuCreateIn{
+			Name:           "TestMenuDeleteChildrenParent",
+			Path:           "/test-delete-parent",
+			Type:           "menu",
+			Status:         1,
+			PermissionCode: "test:delete:parent",
+		}
+		parentMenuId, err := Menu().CreateMenu(ctx, parentMenuIn)
+		t.AssertNil(err)
+
+		// 获取父菜单的 permission ID
+		var parentPerms []*entity.SysPermission
+		err = dao.SysPermission.Ctx(ctx).
+			Where(dao.SysPermission.Columns().Name, parentMenuIn.Name).
+			Scan(&parentPerms)
+		t.AssertNil(err)
+		parentPermId := parentPerms[0].Id
+
+		// 2. 创建子菜单
+		childMenuIn := model.SysMenuCreateIn{
+			Name:           "TestMenuDeleteChildrenChild",
+			Path:           "/test-delete-child",
+			Type:           "menu",
+			Status:         1,
+			PermissionCode: "test:delete:child",
+			ParentId:       parentMenuId,
+		}
+		childMenuId, err := Menu().CreateMenu(ctx, childMenuIn)
+		t.AssertNil(err)
+
+		// 获取子菜单的 permission ID
+		var childPerms []*entity.SysPermission
+		err = dao.SysPermission.Ctx(ctx).
+			Where(dao.SysPermission.Columns().Name, childMenuIn.Name).
+			Scan(&childPerms)
+		t.AssertNil(err)
+		childPermId := childPerms[0].Id
+
+		// 3. 删除父菜单
+		err = Menu().DeleteMenu(ctx, parentMenuId)
+		t.AssertNil(err)
+
+		// 4. 验证父菜单、子菜单及其 permissions 都被删除
+		var parentMenuCount, childMenuCount int
+		var parentPermCount, childPermCount int
+
+		parentMenuCount, err = dao.SysMenu.Ctx(ctx).
+			Where(dao.SysMenu.Columns().Id, parentMenuId).
+			Count()
+		t.AssertNil(err)
+		t.AssertEQ(parentMenuCount, 0)
+
+		childMenuCount, err = dao.SysMenu.Ctx(ctx).
+			Where(dao.SysMenu.Columns().Id, childMenuId).
+			Count()
+		t.AssertNil(err)
+		t.AssertEQ(childMenuCount, 0)
+
+		parentPermCount, err = dao.SysPermission.Ctx(ctx).
+			Where(dao.SysPermission.Columns().Id, parentPermId).
+			Count()
+		t.AssertNil(err)
+		t.AssertEQ(parentPermCount, 0)
+
+		childPermCount, err = dao.SysPermission.Ctx(ctx).
+			Where(dao.SysPermission.Columns().Id, childPermId).
+			Count()
+		t.AssertNil(err)
+		t.AssertEQ(childPermCount, 0)
+	})
+}
+
+func TestMenu_UpdateButtonPermissionParentId(t *testing.T) {
+	testutil.RequireDatabase(t)
+
+	ctx := context.TODO()
+
+	// Cleanup function
+	t.Cleanup(func() {
+		dao.SysMenu.Ctx(ctx).Unscoped().WhereLike(dao.SysMenu.Columns().Name, "TestButtonUpdate%").Delete()
+		dao.SysPermission.Ctx(ctx).Unscoped().WhereLike(dao.SysPermission.Columns().Name, "TestButtonUpdate%").Delete()
+	})
+
+	gtest.C(t, func(t *gtest.T) {
+		var err error
+
+		// 1. 创建两个父菜单
+		parent1In := model.SysMenuCreateIn{
+			Name:           "TestButtonUpdateParent1",
+			Path:           "/test-button-parent1",
+			Type:           "menu",
+			Status:         1,
+			PermissionCode: "test:button:parent1",
+		}
+		parent1Id, err := Menu().CreateMenu(ctx, parent1In)
+		t.AssertNil(err)
+
+		parent2In := model.SysMenuCreateIn{
+			Name:           "TestButtonUpdateParent2",
+			Path:           "/test-button-parent2",
+			Type:           "menu",
+			Status:         1,
+			PermissionCode: "test:button:parent2",
+		}
+		parent2Id, err := Menu().CreateMenu(ctx, parent2In)
+		t.AssertNil(err)
+
+		// 获取父菜单的 permission IDs
+		var parent1Perms, parent2Perms []*entity.SysPermission
+		err = dao.SysPermission.Ctx(ctx).
+			Where(dao.SysPermission.Columns().Name, parent1In.Name).
+			Scan(&parent1Perms)
+		t.AssertNil(err)
+		t.AssertEQ(len(parent1Perms), 1)
+
+		err = dao.SysPermission.Ctx(ctx).
+			Where(dao.SysPermission.Columns().Name, parent2In.Name).
+			Scan(&parent2Perms)
+		t.AssertNil(err)
+		t.AssertEQ(len(parent2Perms), 1)
+
+		// 2. 创建一个按钮,属于 parent1
+		buttonIn := model.SysMenuCreateIn{
+			Name:           "TestButtonUpdateButton",
+			Type:           "button",
+			Status:         1,
+			PermissionCode: "test:button:action",
+			ParentId:       parent1Id,
+		}
+		buttonId, err := Menu().CreateMenu(ctx, buttonIn)
+		t.AssertNil(err)
+
+		// 验证按钮的 permission ParentId 指向 parent1
+		var buttonPerms []*entity.SysPermission
+		err = dao.SysPermission.Ctx(ctx).
+			Where(dao.SysPermission.Columns().Name, buttonIn.Name).
+			Scan(&buttonPerms)
+		t.AssertNil(err)
+		t.AssertEQ(len(buttonPerms), 1)
+		t.AssertEQ(buttonPerms[0].ParentId, parent1Perms[0].Id)
+
+		// 3. 更新按钮的父菜单为 parent2
+		updateIn := model.SysMenuUpdateIn{
+			ID:             buttonId,
+			Name:           buttonIn.Name,
+			Type:           buttonIn.Type,
+			Status:         buttonIn.Status,
+			PermissionCode: buttonIn.PermissionCode,
+			ParentId:       parent2Id,
+		}
+		err = Menu().UpdateMenu(ctx, updateIn)
+		t.AssertNil(err)
+
+		// 4. 验证按钮的 permission ParentId 已更新为 parent2
+		var updatedButtonPerms []*entity.SysPermission
+		err = dao.SysPermission.Ctx(ctx).
+			Where(dao.SysPermission.Columns().Name, buttonIn.Name).
+			Scan(&updatedButtonPerms)
+		t.AssertNil(err)
+		t.AssertEQ(len(updatedButtonPerms), 1)
+		t.AssertEQ(updatedButtonPerms[0].ParentId, parent2Perms[0].Id)
+
+		// 5. 测试更新按钮的 Meta(不改变 ParentId)
+		updateIn2 := model.SysMenuUpdateIn{
+			ID:             buttonId,
+			Name:           buttonIn.Name,
+			Type:           buttonIn.Type,
+			Status:         buttonIn.Status,
+			PermissionCode: buttonIn.PermissionCode,
+			ParentId:       parent2Id,
+			Meta:           `{"title": "TestButtonUpdateButtonMeta"}`,
+		}
+		err = Menu().UpdateMenu(ctx, updateIn2)
+		t.AssertNil(err)
+
+		// 验证 ParentId 仍然正确
+		var finalButtonPerms []*entity.SysPermission
+		err = dao.SysPermission.Ctx(ctx).
+			Where(dao.SysPermission.Columns().Id, buttonPerms[0].Id).
+			Scan(&finalButtonPerms)
+		t.AssertNil(err)
+		t.AssertEQ(len(finalButtonPerms), 1)
+		t.AssertEQ(finalButtonPerms[0].ParentId, parent2Perms[0].Id)
 	})
 }

@@ -551,9 +551,9 @@ function openButtonModal(row: any) {
   buttonEditingId.value = null;
   resetButtonForm();
   buttonList.value =
-    rawMenuList.value.filter(
-      (item) => String(item.parentId) === buttonModal.menuId && item.type === 'button',
-    ) || [];
+    rawMenuList.value
+      .filter((item) => String(item.parentId) === buttonModal.menuId && item.type === 'button')
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0)) || [];
   buttonModal.show = true;
 }
 
@@ -602,9 +602,9 @@ async function submitButtonForm() {
       : createMenu(payload));
     await fetchMenuList();
     buttonList.value =
-      rawMenuList.value.filter(
-        (item) => String(item.parentId) === buttonModal.menuId && item.type === 'button',
-      ) || [];
+      rawMenuList.value
+        .filter((item) => String(item.parentId) === buttonModal.menuId && item.type === 'button')
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0)) || [];
     resetButtonForm();
     buttonEditingId.value = null;
   } finally {
@@ -616,9 +616,9 @@ async function handleDeleteButton(item: any) {
   await deleteMenu(item.id);
   await fetchMenuList();
   buttonList.value =
-    rawMenuList.value.filter(
-      (menu) => String(menu.parentId) === buttonModal.menuId && menu.type === 'button',
-    ) || [];
+    rawMenuList.value
+      .filter((menu) => String(menu.parentId) === buttonModal.menuId && menu.type === 'button')
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0)) || [];
   if (buttonEditingId.value === item.id) {
     resetButtonForm();
     buttonEditingId.value = null;

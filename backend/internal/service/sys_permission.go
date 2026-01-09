@@ -39,6 +39,7 @@ type ISysPermission interface {
 	UpdatePermission(ctx context.Context, in model.SysPermissionUpdateIn) (err error)
 	DeletePermission(ctx context.Context, in model.SysPermissionDeleteIn) (err error)
 	GetPermissionList(ctx context.Context, in model.SysPermissionListIn) (out *model.SysPermissionListOut, err error)
+	GetPermissionTree(ctx context.Context) (out []*model.SysPermissionTreeOut, err error)
 }
 
 // CreatePermission creates a new permission.
@@ -216,4 +217,47 @@ func (s *sSysPermission) GetPermissionList(ctx context.Context, in model.SysPerm
 		return nil, err
 	}
 	return out, nil
+}
+
+// GetPermissionTree retrieves the permission tree structure.
+func (s *sSysPermission) GetPermissionTree(ctx context.Context) (out []*model.SysPermissionTreeOut, err error) {
+	var permissions []*entity.SysPermission
+	err = dao.SysPermission.Ctx(ctx).
+		Where(dao.SysPermission.Columns().Status, 1).
+		OrderAsc(dao.SysPermission.Columns().Id).
+		Scan(&permissions)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(permissions) == 0 {
+		return []*model.SysPermissionTreeOut{}, nil
+	}
+
+	permissionMap := make(map[int64]*model.SysPermissionTreeOut)
+	for _, perm := range permissions {
+		permissionMap[perm.Id] = &model.SysPermissionTreeOut{
+			Id:          perm.Id,
+			Name:        perm.Name,
+			Description: perm.Description,
+			ParentId:    perm.ParentId,
+			Status:      perm.Status,
+			CreatedAt:   perm.CreatedAt.Format("Y-m-d H:i:s"),
+			UpdatedAt:   perm.UpdatedAt.Format("Y-m-d H:i:s"),
+		}
+	}
+
+	var roots []*model.SysPermissionTreeOut
+	for _, perm := range permissions {
+		item := permissionMap[perm.Id]
+		if perm.ParentId == 0 {
+			roots = append(roots, item)
+		} else {
+			if parent, exists := permissionMap[perm.ParentId]; exists {
+				parent.Children = append(parent.Children, item)
+			}
+		}
+	}
+
+	return roots, nil
 }

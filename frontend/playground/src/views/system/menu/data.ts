@@ -42,17 +42,20 @@ export function useColumns(
       width: 100,
     },
     {
+      align: 'center',
+      field: 'order',
+      formatter: ({ row }) => {
+        return row.order ?? row.meta?.order ?? 0;
+      },
+      title: '排序',
+      width: 80,
+      sortable: true,
+    },
+    {
       field: 'authCode',
       title: $t('system.menu.authCode'),
       width: 200,
     },
-    {
-      align: 'left',
-      field: 'path',
-      title: $t('system.menu.path'),
-      width: 200,
-    },
-
     {
       align: 'left',
       field: 'component',

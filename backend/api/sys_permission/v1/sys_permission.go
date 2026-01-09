@@ -73,3 +73,13 @@ type GetPermissionListRes struct {
 	Items []*entity.SysPermission `json:"items"`
 	Total int                     `json:"total"`
 }
+
+// GetPermissionTreeReq defines the request structure for retrieving permission tree.
+type GetPermissionTreeReq struct {
+	g.Meta `path:"/sys-permission/tree" method:"get" summary:"Retrieve permission tree" tags:"System Permission"`
+}
+
+// GetPermissionTreeRes defines the response structure for retrieving permission tree.
+type GetPermissionTreeRes struct {
+	List []*model.SysPermissionTreeOut `json:"list"`
+}

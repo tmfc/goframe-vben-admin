@@ -389,3 +389,130 @@ func TestSysPermission_ListPermissions(t *testing.T) {
 		t.AssertGE(len(permissions), 3)
 	})
 }
+
+func TestSysPermission_GetPermissionTree(t *testing.T) {
+	testutil.RequireDatabase(t)
+
+	ctx := context.TODO()
+
+	// Cleanup function
+	t.Cleanup(func() {
+		dao.SysPermission.Ctx(ctx).Unscoped().WhereLike(dao.SysPermission.Columns().Name, "TestTreePermission%").Delete()
+	})
+
+	gtest.C(t, func(t *gtest.T) {
+		var err error
+
+		// 1. Create parent permission
+		parentIn := model.SysPermissionCreateIn{
+			Name:        "TestTreePermissionParent",
+			Description: "Parent permission for tree test",
+			ParentId:    0,
+			Status:      1,
+			CreatorId:   1,
+			ModifierId:  1,
+			DeptId:      1,
+		}
+		parentID, err := SysPermission().CreatePermission(ctx, parentIn)
+		t.AssertNil(err)
+		t.AssertGT(parentID, uint(0))
+
+		// 2. Create child permission
+		childIn := model.SysPermissionCreateIn{
+			Name:        "TestTreePermissionChild",
+			Description: "Child permission for tree test",
+			ParentId:    uint(parentID),
+			Status:      1,
+			CreatorId:   1,
+			ModifierId:  1,
+			DeptId:      1,
+		}
+		childID, err := SysPermission().CreatePermission(ctx, childIn)
+		t.AssertNil(err)
+		t.AssertGT(childID, uint(0))
+
+		// 3. Create grandchild permission
+		grandchildIn := model.SysPermissionCreateIn{
+			Name:        "TestTreePermissionGrandchild",
+			Description: "Grandchild permission for tree test",
+			ParentId:    uint(childID),
+			Status:      1,
+			CreatorId:   1,
+			ModifierId:  1,
+			DeptId:      1,
+		}
+		grandchildID, err := SysPermission().CreatePermission(ctx, grandchildIn)
+		t.AssertNil(err)
+		t.AssertGT(grandchildID, uint(0))
+
+		// 4. Get permission tree
+		tree, err := SysPermission().GetPermissionTree(ctx)
+		t.AssertNil(err)
+		t.AssertGT(len(tree), 0)
+
+		// 5. Find the parent permission in tree
+		var foundParent *model.SysPermissionTreeOut
+		for _, item := range tree {
+			if item.Name == "TestTreePermissionParent" {
+				foundParent = item
+				break
+			}
+		}
+		t.AssertNE(foundParent, nil)
+		t.Assert(foundParent.Name, "TestTreePermissionParent")
+
+		// 6. Verify child exists
+		t.AssertGE(len(foundParent.Children), 1)
+		var foundChild *model.SysPermissionTreeOut
+		for _, child := range foundParent.Children {
+			if child.Name == "TestTreePermissionChild" {
+				foundChild = child
+				break
+			}
+		}
+		t.AssertNE(foundChild, nil)
+		t.Assert(foundChild.Name, "TestTreePermissionChild")
+
+		// 7. Verify grandchild exists
+		t.AssertGE(len(foundChild.Children), 1)
+		var foundGrandchild *model.SysPermissionTreeOut
+		for _, grandchild := range foundChild.Children {
+			if grandchild.Name == "TestTreePermissionGrandchild" {
+				foundGrandchild = grandchild
+				break
+			}
+		}
+		t.AssertNE(foundGrandchild, nil)
+		t.Assert(foundGrandchild.Name, "TestTreePermissionGrandchild")
+
+		// 8. Verify tree structure properties
+		t.Assert(foundParent.ParentId, int64(0))
+		t.Assert(foundChild.ParentId, int64(parentID))
+		t.Assert(foundGrandchild.ParentId, int64(childID))
+	})
+
+	// Test case: Inactive permissions should not appear in tree
+	gtest.C(t, func(t *gtest.T) {
+		// Create inactive permission
+		inactiveIn := model.SysPermissionCreateIn{
+			Name:        "TestTreePermissionInactive",
+			Description: "Inactive permission",
+			ParentId:    0,
+			Status:      0,
+			CreatorId:   1,
+			ModifierId:  1,
+			DeptId:      1,
+		}
+		_, err := SysPermission().CreatePermission(ctx, inactiveIn)
+		t.AssertNil(err)
+
+		// Get tree
+		tree, err := SysPermission().GetPermissionTree(ctx)
+		t.AssertNil(err)
+
+		// Verify inactive permission is not in tree
+		for _, item := range tree {
+			t.AssertNE(item.Name, "TestTreePermissionInactive")
+		}
+	})
+}

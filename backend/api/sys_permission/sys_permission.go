@@ -13,4 +13,5 @@ type ISysPermissionV1 interface {
 	DeletePermission(ctx context.Context, req *v1.DeletePermissionReq) (res *v1.DeletePermissionRes, err error)
 	GetPermissionsByUser(ctx context.Context, req *v1.GetPermissionsByUserReq) (res *v1.GetPermissionsByUserRes, err error)
 	GetPermissionList(ctx context.Context, req *v1.GetPermissionListReq) (res *v1.GetPermissionListRes, err error)
+	GetPermissionTree(ctx context.Context, req *v1.GetPermissionTreeReq) (res *v1.GetPermissionTreeRes, err error)
 }

@@ -19,6 +19,10 @@ var (
 	disallowedExtensions  = map[string]struct{}{".exe": {}, ".bat": {}, ".cmd": {}, ".com": {}, ".scr": {}, ".msi": {}, ".ps1": {}, ".sh": {}}
 )
 
+type s3Config = config.UploadS3Config
+
+var s3Upload = uploadToS3
+
 func handleUpload(ctx context.Context, file *ghttp.UploadFile) (string, error) {
 	if file == nil {
 		return "", gerror.NewCode(gcode.CodeMissingParameter, "upload file is required")
@@ -35,6 +39,16 @@ func handleUpload(ctx context.Context, file *ghttp.UploadFile) (string, error) {
 			return "", err
 		}
 		return saveLocalUpload(file, cfg.LocalDir)
+	case "s3":
+		if err := validateUpload(file, cfg.MaxSizeMB); err != nil {
+			return "", err
+		}
+		filename := gfile.Basename(file.Filename)
+		key := buildObjectKey(cfg.S3.Prefix, filename)
+		if err := s3Upload(ctx, cfg.S3, file, key); err != nil {
+			return "", err
+		}
+		return key, nil
 	default:
 		return "", gerror.NewCode(gcode.CodeNotSupported, "upload storage not supported")
 	}
@@ -64,7 +78,21 @@ func saveLocalUpload(file *ghttp.UploadFile, baseDir string) (string, error) {
 
 	datePath := time.Now().Format("2006/01")
 	targetDir := gfile.Join(baseDir, datePath)
-	filename, err := file.Save(targetDir)
+	savedName, err := file.Save(targetDir)
+	if err != nil {
+		return "", err
+	}
+	return "/" + path.Join("uploads", datePath, savedName), nil
+}
+
+func buildObjectKey(prefix, filename string) string {
+	cleanPrefix := strings.Trim(prefix, "/")
+	if cleanPrefix == "" {
+		cleanPrefix = "uploads"
+	}
+	datePath := time.Now().Format("2006/01")
+	return path.Join(cleanPrefix, datePath, filename)
+}
 	if err != nil {
 		return "", err
 	}
