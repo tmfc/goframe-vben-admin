@@ -13,3 +13,17 @@ model = "resource/casbin/model.conf"
 [auth]
 jwt_secret = ""
 refresh_secret = ""
+
+[upload]
+storage = "local"
+max_size_mb = 10
+local_dir = "resource/uploads"
+
+[upload.s3]
+endpoint = ""
+region = ""
+bucket = ""
+access_key = ""
+secret_key = ""
+use_ssl = true
+prefix = "uploads"

@@ -1,0 +1,13 @@
+[upload]
+storage = "local"
+max_size_mb = 25
+local_dir = "resource/uploads"
+
+[upload.s3]
+endpoint = "https://s3.example.com"
+region = "us-east-1"
+bucket = "uploads"
+access_key = "access"
+secret_key = "secret"
+use_ssl = true
+prefix = "uploads"
