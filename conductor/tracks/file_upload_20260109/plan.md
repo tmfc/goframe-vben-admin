@@ -17,7 +17,7 @@ This plan outlines the steps to implement the file upload feature as described i
     -   [ ] Sub-task: Implement logic to save files to a configured local directory.
     -   [ ] Sub-task: Implement file size and type validation based on configuration.
     -   [ ] Sub-task: Return the local file path upon successful upload.
--   [ ] **Task: Write Failing Tests for S3 Storage Upload**
+-   [x] **Task: Write Failing Tests for S3 Storage Upload** (9ce4ac0)
     -   [ ] Sub-task: Write unit tests for the backend API endpoint when configured for S3 storage.
     -   [ ] Sub-task: Test successful file upload to S3, returning the S3 object key.
     -   [ ] Sub-task: Test S3 connection failures and error handling.
