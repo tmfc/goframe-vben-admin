@@ -15,6 +15,7 @@ import (
 	"backend/internal/controller/menu"
 	"backend/internal/controller/sys_permission"
 	"backend/internal/controller/sys_role"
+	"backend/internal/controller/upload"
 	"backend/internal/controller/user"
 	"backend/internal/middleware"
 )
@@ -55,6 +56,7 @@ var (
 					sys_permission.NewV1(),
 					sys_role.NewV1(),
 					menu.NewV1(),
+					upload.NewV1(),
 					user.NewV1(),
 				)
 			})
