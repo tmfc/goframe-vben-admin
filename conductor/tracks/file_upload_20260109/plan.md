@@ -7,7 +7,7 @@ This plan outlines the steps to implement the file upload feature as described i
 -   [x] **Task: Setup & Configuration** (8ba7d95)
     -   [ ] Sub-task: Define configuration for storage type (local/S3) and max file size in `backend/config.example.toml`.
     -   [ ] Sub-task: Analyze existing backend structure for API routing and file handling.
--   [ ] **Task: Write Failing Tests for Local Storage Upload**
+-   [x] **Task: Write Failing Tests for Local Storage Upload** (307646d)
     -   [ ] Sub-task: Write unit tests for the backend API endpoint (`POST /api/v1/upload`) when configured for local storage.
     -   [ ] Sub-task: Test successful file upload, returning the local path.
     -   [ ] Sub-task: Test file size validation (exceeding max size).
