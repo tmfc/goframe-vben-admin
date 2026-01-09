@@ -9,6 +9,10 @@ export interface Role {
   status: number;
 }
 
+export interface RolePermissionResponse {
+  permissionIds: number[];
+}
+
 /**
  * Get role list
  */
@@ -42,4 +46,21 @@ export function deleteRole(id: string) {
  */
 export function getRole(id: string) {
   return requestClient.get<Role>(`/sys-role/${id}`);
+}
+
+/**
+ * Get role permissions
+ */
+export function getRolePermissions(id: string) {
+  return requestClient.get<RolePermissionResponse>(`/sys-role/${id}/permissions`);
+}
+
+/**
+ * Assign role permissions
+ */
+export function assignRolePermissions(
+  id: string,
+  data: { permissionIds: number[] },
+) {
+  return requestClient.post<void>(`/sys-role/${id}/assign-permissions`, data);
 }

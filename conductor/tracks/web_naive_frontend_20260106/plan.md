@@ -25,17 +25,17 @@ This plan outlines the steps to implement the Department, User, and Role managem
 
 ## Phase 2: User Management UI
 
--   [ ] **Task: Write Failing Tests (Red Phase)**
-    -   [ ] Sub-task: Write unit tests for the User Management Vue component, covering the listing of users.
-    -   [ ] Sub-task: Write unit tests for user creation, editing, and deletion.
-    -   [ ] Sub-task: Write unit tests for user role assignment and password reset.
--   [ ] **Task: Implement User UI (Green Phase)**
-    -   [ ] Sub-task: Create the basic Vue component for the User Management page.
-    -   [ ] Sub-task: Implement the UI to display a list of users fetched from the API.
-    -   [ ] Sub-task: Implement the form/modal for creating and editing users.
-    -   [ ] Sub-task: Implement the logic for deleting a user and resetting a password.
-    -   [ ] Sub-task: Implement the UI for assigning roles to a user.
-    -   [ ] Sub-task: Implement search and filtering functionality for users.
+-   [x] **Task: Write Failing Tests (Red Phase)**
+    -   [x] Sub-task: Write unit tests for the User Management Vue component, covering the listing of users.
+    -   [x] Sub-task: Write unit tests for user creation, editing, and deletion.
+    -   [x] Sub-task: Write unit tests for user role assignment and password reset.
+-   [x] **Task: Implement User UI (Green Phase)**
+    -   [x] Sub-task: Create the basic Vue component for the User Management page.
+    -   [x] Sub-task: Implement the UI to display a list of users fetched from the API.
+    -   [x] Sub-task: Implement the form/modal for creating and editing users.
+    -   [x] Sub-task: Implement the logic for deleting a user and resetting a password.
+    -   [x] Sub-task: Implement the UI for assigning roles to a user.
+    -   [x] Sub-task: Implement search and filtering functionality for users.
 -   [ ] **Task: Refactor & Review**
     -   [ ] Sub-task: Refactor the User Management component.
     -   [ ] Sub-task: Run `pnpm format` and `pnpm lint` to ensure code quality.
@@ -43,17 +43,17 @@ This plan outlines the steps to implement the Department, User, and Role managem
 
 ## Phase 3: Role Management UI
 
--   [ ] **Task: Write Failing Tests (Red Phase)**
-    -   [ ] Sub-task: Write unit tests for the Role Management Vue component, covering the listing of roles.
-    -   [ ] Sub-task: Write unit tests for role creation, editing, and deletion.
-    -   [ ] Sub-task: Write unit tests for assigning permissions to roles.
--   [ ] **Task: Implement Role UI (Green Phase)**
-    -   [ ] Sub-task: Create the basic Vue component for the Role Management page.
-    -   [ ] Sub-task: Implement the UI to display a list of roles.
-    -   [ ] Sub-task: Implement the forms/modals for creating and editing roles.
-    -   [ ] Sub-task: Implement the logic for deleting roles.
-    -   [ ] Sub-task: Implement the UI for assigning permissions (e.g., using a tree or multi-select).
-    -   [ ] Sub-task: Implement search and filtering for roles.
+-   [x] **Task: Write Failing Tests (Red Phase)**
+    -   [x] Sub-task: Write unit tests for the Role Management Vue component, covering the listing of roles.
+    -   [x] Sub-task: Write unit tests for role creation, editing, and deletion.
+    -   [x] Sub-task: Write unit tests for assigning permissions to roles.
+-   [x] **Task: Implement Role UI (Green Phase)**
+    -   [x] Sub-task: Create the basic Vue component for the Role Management page.
+    -   [x] Sub-task: Implement the UI to display a list of roles.
+    -   [x] Sub-task: Implement the forms/modals for creating and editing roles.
+    -   [x] Sub-task: Implement the logic for deleting roles.
+    -   [x] Sub-task: Implement the UI for assigning permissions (e.g., using a tree or multi-select).
+    -   [x] Sub-task: Implement search and filtering for roles.
 -   [ ] **Task: Refactor & Review**
     -   [ ] Sub-task: Refactor the Role Management component.
     -   [ ] Sub-task: Ensure the entire feature passes all checks (`pnpm test:unit`, `pnpm lint`).

@@ -10,6 +10,7 @@ import (
 	"backend/internal/testutil"
 
 	_ "github.com/gogf/gf/contrib/drivers/pgsql/v2"
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/test/gtest"
 )
 
@@ -198,6 +199,8 @@ func TestSysPermission_DeletePermission(t *testing.T) {
 	// Cleanup function
 	t.Cleanup(func() {
 		dao.SysPermission.Ctx(ctx).Unscoped().WhereLike(dao.SysPermission.Columns().Name, "TestPermission%").Delete()
+		dao.SysMenu.Ctx(ctx).Unscoped().WhereLike(dao.SysMenu.Columns().Name, "TestMenuPermission%").Delete()
+		dao.SysRolePermission.Ctx(ctx).Unscoped().Where("1=1").Delete()
 	})
 
 	gtest.C(t, func(t *gtest.T) {
@@ -234,6 +237,72 @@ func TestSysPermission_DeletePermission(t *testing.T) {
 		deleteInNotFound := model.SysPermissionDeleteIn{Id: 99999}
 		err = SysPermission().DeletePermission(ctx, deleteInNotFound)
 		t.AssertNE(err, nil)
+
+		// Test case 3: Delete permission with child permissions
+		parentIn := model.SysPermissionCreateIn{
+			Name:        "TestPermissionParentDelete",
+			Description: "Parent permission",
+			ParentId:    0,
+			Status:      1,
+			CreatorId:   1,
+			ModifierId:  1,
+			DeptId:      1,
+		}
+		parentId, err := SysPermission().CreatePermission(ctx, parentIn)
+		t.AssertNil(err)
+		childIn := model.SysPermissionCreateIn{
+			Name:        "TestPermissionChildDelete",
+			Description: "Child permission",
+			ParentId:    parentId,
+			Status:      1,
+			CreatorId:   1,
+			ModifierId:  1,
+			DeptId:      1,
+		}
+		_, err = SysPermission().CreatePermission(ctx, childIn)
+		t.AssertNil(err)
+		err = SysPermission().DeletePermission(ctx, model.SysPermissionDeleteIn{Id: parentId})
+		t.AssertNE(err, nil)
+
+		// Test case 4: Delete permission assigned to roles
+		roleBindIn := model.SysPermissionCreateIn{
+			Name:        "TestPermissionRoleBind",
+			Description: "Role bound permission",
+			ParentId:    0,
+			Status:      1,
+			CreatorId:   1,
+			ModifierId:  1,
+			DeptId:      1,
+		}
+		roleBindId, err := SysPermission().CreatePermission(ctx, roleBindIn)
+		t.AssertNil(err)
+		_, err = dao.SysRolePermission.Ctx(ctx).Data(g.Map{
+			dao.SysRolePermission.Columns().RoleId:       1,
+			dao.SysRolePermission.Columns().PermissionId: roleBindId,
+		}).Insert()
+		t.AssertNil(err)
+		err = SysPermission().DeletePermission(ctx, model.SysPermissionDeleteIn{Id: roleBindId})
+		t.AssertNE(err, nil)
+
+		// Test case 5: Delete permission managed by menu
+		menuId, err := Menu().CreateMenu(ctx, model.SysMenuCreateIn{
+			Name:           "TestMenuPermissionA",
+			Type:           "menu",
+			ParentId:       "0",
+			Status:         1,
+			Order:          1,
+			PermissionCode: "perm:menu:test",
+		})
+		t.AssertNil(err)
+		var menuPerm *entity.SysPermission
+		err = dao.SysPermission.Ctx(ctx).
+			Where(dao.SysPermission.Columns().Name, "TestMenuPermissionA").
+			Scan(&menuPerm)
+		t.AssertNil(err)
+		t.AssertNE(menuPerm, nil)
+		err = SysPermission().DeletePermission(ctx, model.SysPermissionDeleteIn{Id: uint(menuPerm.Id)})
+		t.AssertNE(err, nil)
+		_ = Menu().DeleteMenu(ctx, menuId)
 	})
 }
 

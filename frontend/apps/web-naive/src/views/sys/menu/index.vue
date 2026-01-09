@@ -1,11 +1,13 @@
 <script lang="ts" setup>
 import type { DataTableColumns, FormInst, FormRules } from 'naive-ui';
 
-import { computed, h, onMounted, reactive, ref } from 'vue';
+import { computed, h, onMounted, reactive, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import {
   NButton,
   NCard,
+  NCheckbox,
   NDataTable,
   NForm,
   NFormItem,
@@ -21,12 +23,17 @@ import {
   NTreeSelect,
 } from 'naive-ui';
 
+import MenuIconPicker from './components/MenuIconPicker.vue';
+
 import {
   createMenu,
   deleteMenu,
   getMenuList,
   updateMenu,
 } from '#/api/sys/menu';
+import { Grip, IconifyIcon } from '@vben/icons';
+import zhSystem from '#/locales/langs/zh-CN/system.json';
+import enSystem from '#/locales/langs/en-US/system.json';
 import { $t } from '#/locales';
 
 const loading = ref(false);
@@ -40,6 +47,12 @@ const filters = reactive({
   status: null as null | number,
 });
 
+const { locale } = useI18n();
+const localeSystemMap: Record<string, any> = {
+  'zh-CN': zhSystem,
+  'en-US': enSystem,
+};
+
 const form = reactive({
   name: '',
   path: '',
@@ -50,6 +63,8 @@ const form = reactive({
   metaTitle: '',
   status: 1,
   order: 0,
+  permissionCode: '',
+  autoGeneratePermission: true,
 });
 
 const rules: FormRules = {
@@ -85,6 +100,7 @@ const data = ref<any[]>([]);
 const defaultExpandedRowKeys = ref<string[]>([]);
 const menuTreeOptions = ref<any[]>([]);
 const rawMenuList = ref<any[]>([]);
+const titleKeyOptions = ref<{ label: string; value: string }[]>([]);
 
 function getMeta(row: any) {
   if (!row) return null;
@@ -165,7 +181,37 @@ const columns = reactive<DataTableColumns<any>>([
     title: $t('system.menu.columns.name'),
     key: 'name',
     render(row) {
-      return getMenuTitle(row);
+      return h(
+        'div',
+        {
+          class: 'menu-name-cell',
+          style: {
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            whiteSpace: 'nowrap',
+          },
+        },
+        {
+          default: () => [
+            row.icon
+              ? h(IconifyIcon, {
+                  icon: row.icon,
+                  class: 'menu-name-cell__icon',
+                  style: { width: '16px', height: '16px', flex: '0 0 auto' },
+                })
+              : h(Grip, {
+                  class: 'menu-name-cell__icon',
+                  style: { width: '16px', height: '16px', flex: '0 0 auto' },
+                }),
+            h(
+              'span',
+              { class: 'menu-name-cell__text', style: { whiteSpace: 'nowrap' } },
+              getMenuTitle(row),
+            ),
+          ],
+        },
+      );
     },
   },
   { title: $t('system.menu.columns.path'), key: 'path' },
@@ -176,6 +222,13 @@ const columns = reactive<DataTableColumns<any>>([
     render(row) {
       const option = typeOptions.find((item) => item.value === row.type);
       return option?.label ?? row.type ?? '';
+    },
+  },
+  {
+    title: $t('system.menu.columns.permissionCode'),
+    key: 'permissionCode',
+    render(row) {
+      return row.permissionCode || '-';
     },
   },
   { title: $t('system.menu.columns.order'), key: 'order' },
@@ -418,6 +471,8 @@ function openEdit(row: any) {
   }
   form.status = row.status ?? 1;
   form.order = row.order ?? 0;
+  form.permissionCode = row.permissionCode ?? '';
+  form.autoGeneratePermission = !row.permissionCode;
   fetchMenuTree();
   showModal.value = true;
 }
@@ -432,6 +487,8 @@ function resetForm() {
   form.metaTitle = '';
   form.status = 1;
   form.order = 0;
+  form.permissionCode = '';
+  form.autoGeneratePermission = true;
   formRef.value?.restoreValidation();
 }
 
@@ -459,6 +516,7 @@ async function submitForm() {
       parentId: form.parentId || 0,
       status: form.status,
       order: form.order,
+      permissionCode: form.permissionCode || undefined,
       ...(form.metaTitle
         ? { meta: JSON.stringify({ title: form.metaTitle }) }
         : {}),
@@ -553,6 +611,59 @@ async function handleDeleteButton(item: any) {
   }
 }
 
+function rebuildTitleKeyOptionsFromLocale() {
+  const set = new Set<string>();
+  function collect(obj: any, prefix = '') {
+    if (!obj || typeof obj !== 'object') return;
+    Object.entries(obj).forEach(([k, v]) => {
+      const keyPath = prefix ? `${prefix}${k}` : k;
+      if (typeof v === 'string') {
+        set.add(keyPath);
+        return;
+      }
+      if (v && typeof v === 'object') {
+        collect(v, `${keyPath}.`);
+      }
+    });
+  }
+  const currentLocale = locale.value;
+  const currentSystem = localeSystemMap[currentLocale] || localeSystemMap['zh-CN'];
+  collect(currentSystem?.common, 'common.');
+  collect(currentSystem?.menu, 'system.menu.');
+  titleKeyOptions.value = Array.from(set).map((key) => ({
+    label: `${$t(key)} (${key})`,
+    value: key,
+  }));
+}
+
+function generatePermissionCode(name: string, type: string): string {
+  // 将菜单名称转换为驼峰命名
+  const camelCaseName = name
+    .replace(/[-_\s]+(.)?/g, (_, char) => (char ? char.toUpperCase() : ''))
+    .replace(/^(.)/, (_, char) => char.toLowerCase());
+
+  // 根据类型生成不同的前缀
+  const prefixMap: Record<string, string> = {
+    menu: 'menu',
+    catalog: 'catalog',
+    link: 'link',
+    embedded: 'embedded',
+    button: 'button',
+  };
+
+  const prefix = prefixMap[type] || 'menu';
+  return `${prefix}:${camelCaseName}`;
+}
+
+watch(
+  () => [form.name, form.type, form.autoGeneratePermission],
+  ([name, type, autoGenerate]) => {
+    if (autoGenerate && name && type) {
+      form.permissionCode = generatePermissionCode(String(name), String(type));
+    }
+  },
+);
+
 function buildTableTreeFromList(list: any[]) {
   const nodeMap = new Map<string, any>();
   const roots: any[] = [];
@@ -593,7 +704,15 @@ function buildTableTreeFromList(list: any[]) {
 onMounted(() => {
   fetchMenuList();
   fetchMenuTree();
+  rebuildTitleKeyOptionsFromLocale();
 });
+
+watch(
+  () => locale.value,
+  () => {
+    rebuildTitleKeyOptionsFromLocale();
+  },
+);
 </script>
 
 <template>
@@ -656,17 +775,18 @@ onMounted(() => {
               :placeholder="$t('system.menu.form.namePlaceholder')"
             />
           </NFormItemGi>
-          <NFormItemGi :label="$t('system.menu.form.type')" path="type">
-            <NSelect v-model:value="form.type" :options="typeOptions" />
+          <NFormItemGi :label="$t('system.menu.form.titleKey')">
+            <NSelect
+              v-model:value="form.metaTitle"
+              :options="titleKeyOptions"
+              filterable
+              clearable
+              tag
+              :placeholder="$t('system.menu.form.titleKeyPlaceholder')"
+            />
           </NFormItemGi>
           <NFormItemGi :label="$t('system.menu.form.path')" path="path">
             <NInput v-model:value="form.path" placeholder="/system/menu" />
-          </NFormItemGi>
-          <NFormItemGi :label="$t('system.menu.form.titleKey')">
-            <NInput
-              v-model:value="form.metaTitle"
-              :placeholder="$t('system.menu.form.titleKeyPlaceholder')"
-            />
           </NFormItemGi>
           <NFormItemGi :label="$t('system.menu.form.component')" path="component">
             <NInput
@@ -674,11 +794,11 @@ onMounted(() => {
               placeholder="/system/menu/list"
             />
           </NFormItemGi>
+          <NFormItemGi :label="$t('system.menu.form.type')" path="type">
+            <NSelect v-model:value="form.type" :options="typeOptions" />
+          </NFormItemGi>
           <NFormItemGi :label="$t('system.menu.form.icon')">
-            <NInput
-              v-model:value="form.icon"
-              :placeholder="$t('system.menu.form.iconPlaceholder')"
-            />
+            <MenuIconPicker v-model="form.icon" />
           </NFormItemGi>
           <NFormItemGi :label="$t('system.menu.form.parent')">
             <NTreeSelect
@@ -696,6 +816,18 @@ onMounted(() => {
           </NFormItemGi>
           <NFormItemGi :label="$t('system.menu.form.status')">
             <NSelect v-model:value="form.status" :options="statusOptions" />
+          </NFormItemGi>
+          <NFormItemGi :label="$t('system.menu.form.permissionCode')">
+            <NInput
+              v-model:value="form.permissionCode"
+              :placeholder="$t('system.menu.form.permissionCodePlaceholder')"
+              :disabled="form.autoGeneratePermission"
+            />
+          </NFormItemGi>
+          <NFormItemGi :label="''">
+            <NCheckbox v-model:checked="form.autoGeneratePermission">
+              {{ $t('system.menu.form.autoGeneratePermission') }}
+            </NCheckbox>
           </NFormItemGi>
         </NGrid>
       </NForm>
@@ -732,8 +864,12 @@ onMounted(() => {
               />
             </NFormItemGi>
             <NFormItemGi :label="$t('system.menu.form.titleKey')">
-              <NInput
+              <NSelect
                 v-model:value="buttonForm.metaTitle"
+                :options="titleKeyOptions"
+                filterable
+                clearable
+                tag
                 :placeholder="$t('system.menu.form.titleKeyPlaceholder')"
               />
             </NFormItemGi>
@@ -775,6 +911,23 @@ onMounted(() => {
   display: flex;
   justify-content: flex-end;
   margin: 12px 0;
+}
+
+.menu-name-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.menu-name-cell__icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  color: var(--n-text-color-2);
+}
+
+.menu-name-cell__text {
+  line-height: 1.2;
 }
 
 .button-toolbar {

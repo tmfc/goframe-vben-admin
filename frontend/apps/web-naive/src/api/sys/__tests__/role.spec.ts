@@ -1,5 +1,13 @@
 import { describe, it, expect, vi } from 'vitest';
-import { getRoleList, createRole, updateRole, deleteRole, getRole } from '../role';
+import {
+  getRoleList,
+  createRole,
+  updateRole,
+  deleteRole,
+  getRole,
+  getRolePermissions,
+  assignRolePermissions,
+} from '../role';
 import { requestClient } from '#/api/request';
 
 vi.mock('#/api/request', () => ({
@@ -44,5 +52,21 @@ describe('Role API', () => {
     const id = '123';
     await getRole(id);
     expect(requestClient.get).toHaveBeenCalledWith(`/sys-role/123`);
+  });
+
+  it('should call getRolePermissions with correct parameters', async () => {
+    const id = '123';
+    await getRolePermissions(id);
+    expect(requestClient.get).toHaveBeenCalledWith(`/sys-role/123/permissions`);
+  });
+
+  it('should call assignRolePermissions with correct parameters', async () => {
+    const id = '123';
+    const data = { permissionIds: [1, 2] };
+    await assignRolePermissions(id, data);
+    expect(requestClient.post).toHaveBeenCalledWith(
+      `/sys-role/123/assign-permissions`,
+      data,
+    );
   });
 });

@@ -31,7 +31,7 @@
       "password": "Password",
       "realName": "Real Name",
       "roles": "Roles",
-      "rolesPlaceholder": "role1, role2",
+      "rolesPlaceholder": "Select roles",
       "homePath": "Home Path",
       "homePathPlaceholder": "Default /dashboard",
       "avatar": "Avatar",
@@ -66,7 +66,22 @@
       "disabled": "Disabled"
     },
     "actions": {
-      "create": "Create"
+      "create": "Create",
+      "permissions": "Permissions"
+    },
+    "permissions": {
+      "title": "Assign Permissions",
+      "empty": "No permissions available",
+      "create": "New Permission",
+      "createTitle": "Create Permission",
+      "name": "Permission Name",
+      "description": "Description",
+      "parent": "Parent Permission",
+      "root": "Root",
+      "status": "Status",
+      "validation": {
+        "nameRequired": "Permission name is required"
+      }
     },
     "dialog": {
       "deleteTitle": "Warning",
@@ -92,10 +107,11 @@
     },
     "columns": {
       "name": "Name",
-      "titleKey": "Title Key",
+      "titleKey": "Display Title",
       "path": "Path",
       "component": "Component",
       "type": "Type",
+      "permissionCode": "Permission Code",
       "order": "Order",
       "status": "Status",
       "action": "Action"
@@ -114,7 +130,7 @@
     "form": {
       "name": "Name",
       "namePlaceholder": "Menu name",
-      "titleKey": "Title Key",
+      "titleKey": "Display Title",
       "titleKeyPlaceholder": "e.g. system.menu.title",
       "type": "Type",
       "path": "Path",
@@ -125,7 +141,10 @@
       "parent": "Parent",
       "root": "Root",
       "order": "Order",
-      "status": "Status"
+      "status": "Status",
+      "permissionCode": "Permission Code",
+      "permissionCodePlaceholder": "e.g. menu:userList",
+      "autoGeneratePermission": "Auto-generate Permission Code"
     },
     "actions": {
       "new": "New Menu",
@@ -137,6 +156,45 @@
     "validation": {
       "nameRequired": "Name is required",
       "typeRequired": "Type is required"
+    }
+  },
+  "permission": {
+    "title": "Permission Management",
+    "filters": {
+      "name": "Name",
+      "status": "Status",
+      "all": "All",
+      "searchByName": "Search by name"
+    },
+    "columns": {
+      "name": "Name",
+      "description": "Description",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "enabled": "Enabled",
+      "disabled": "Disabled"
+    },
+    "actions": {
+      "create": "Create",
+      "edit": "Edit"
+    },
+    "dialog": {
+      "deleteTitle": "Warning",
+      "deleteConfirm": "Delete this permission?",
+      "deleteHasChildren": "Please remove child permissions first.",
+      "deleteFailed": "Unable to delete this permission."
+    },
+    "form": {
+      "name": "Permission Name",
+      "description": "Description",
+      "parent": "Parent Permission",
+      "root": "Root",
+      "status": "Status"
+    },
+    "validation": {
+      "nameRequired": "Permission name is required"
     }
   },
   "dept": {

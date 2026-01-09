@@ -3,8 +3,11 @@ import { mount } from '@vue/test-utils';
 import UserManagement from '../index.vue';
 import { NConfigProvider, NDialogProvider } from 'naive-ui';
 
+import { getUserList } from '#/api/sys/user';
+
 vi.mock('#/api/sys/user', () => ({
   getUserList: vi.fn(() => Promise.resolve({ items: [], total: 0 })),
+  deleteUser: vi.fn(() => Promise.resolve()),
 }));
 
 describe('UserManagement', () => {
@@ -39,5 +42,10 @@ describe('UserManagement', () => {
   it('should mount successfully', () => {
     const wrapper = mountComponent();
     expect(wrapper.exists()).toBe(true);
+  });
+
+  it('should request user list on mount', () => {
+    mountComponent();
+    expect(getUserList).toHaveBeenCalled();
   });
 });

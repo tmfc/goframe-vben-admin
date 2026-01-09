@@ -44,11 +44,7 @@ function createColumns({
       title: $t('system.user.columns.roles'),
       key: 'roles',
       render(row: User) {
-        const value = (row as any).roles;
-        if (Array.isArray(value)) {
-          return value.join(', ');
-        }
-        return value || '';
+        return formatRolesDisplay((row as any).roles);
       },
     },
     {
@@ -124,6 +120,29 @@ const editingRecord = ref<User | null>(null);
 const formValue = ref({
   username: '',
 });
+
+function formatRolesDisplay(value: unknown) {
+  if (!value) return '';
+  if (Array.isArray(value)) {
+    return value.join(', ');
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return '';
+    if (trimmed.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) {
+          return parsed.join(', ');
+        }
+      } catch {
+        return trimmed;
+      }
+    }
+    return trimmed;
+  }
+  return String(value);
+}
 
 function handleCreate() {
   editingRecord.value = null;

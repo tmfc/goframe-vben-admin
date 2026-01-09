@@ -1,7 +1,6 @@
 package model
 
 import (
-
 	"backend/internal/model/entity"
 
 	"github.com/gogf/gf/v2/os/gtime"
@@ -48,4 +47,18 @@ type SysPermissionUpdateIn struct {
 // SysPermissionDeleteIn is the input for deleting a permission.
 type SysPermissionDeleteIn struct {
 	Id uint `json:"id" v:"required#ID不能为空"`
+}
+
+// SysPermissionListIn is the input for listing permissions.
+type SysPermissionListIn struct {
+	Page     int    `json:"page" d:"1"`
+	PageSize int    `json:"pageSize" d:"10"`
+	Name     string `json:"name"`
+	Status   string `json:"status"`
+}
+
+// SysPermissionListOut is the output for listing permissions.
+type SysPermissionListOut struct {
+	Items []*entity.SysPermission `json:"items"`
+	Total int                     `json:"total"`
 }

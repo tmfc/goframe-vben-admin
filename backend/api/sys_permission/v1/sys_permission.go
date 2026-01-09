@@ -2,6 +2,8 @@ package v1
 
 import (
 	"backend/internal/model"
+	"backend/internal/model/entity"
+
 	"github.com/gogf/gf/v2/frame/g"
 )
 
@@ -55,4 +57,19 @@ type GetPermissionsByUserReq struct {
 // GetPermissionsByUserRes defines the response structure for retrieving permissions of a user.
 type GetPermissionsByUserRes struct {
 	*model.UserPermissionsOut
+}
+
+// GetPermissionListReq defines the request structure for listing permissions.
+type GetPermissionListReq struct {
+	g.Meta   `path:"/sys-permission/list" method:"get" summary:"List permissions" tags:"System Permission"`
+	Page     int    `json:"page" d:"1"`
+	PageSize int    `json:"pageSize" d:"10"`
+	Name     string `json:"name"`
+	Status   string `json:"status"`
+}
+
+// GetPermissionListRes defines the response structure for listing permissions.
+type GetPermissionListRes struct {
+	Items []*entity.SysPermission `json:"items"`
+	Total int                     `json:"total"`
 }

@@ -8,6 +8,7 @@ import (
 	"backend/internal/consts"
 	"backend/internal/dao"
 	"backend/internal/model"
+	"backend/internal/model/entity"
 
 	"github.com/gogf/gf/v2/test/gtest"
 )
@@ -375,5 +376,205 @@ func TestMenu_Validation_Unique(t *testing.T) {
 
 		// Cleanup after test
 		dao.SysMenu.Ctx(ctx).WhereLike(dao.SysMenu.Columns().Name, "Test Unique Menu%").Delete()
+	})
+}
+
+func TestMenu_CreateWithPermission(t *testing.T) {
+	ctx := context.WithValue(context.TODO(), consts.CtxKeyTenantID, consts.DefaultTenantID)
+	gtest.C(t, func(t *gtest.T) {
+		// Cleanup before test
+		dao.SysMenu.Ctx(ctx).WhereLike(dao.SysMenu.Columns().Name, "Test Menu With Permission%").Delete()
+		dao.SysPermission.Ctx(ctx).WhereLike(dao.SysPermission.Columns().Name, "Test Menu With Permission%").Delete()
+
+		// Create a menu with permission_code
+		createIn := model.SysMenuCreateIn{
+			Name:           "Test Menu With Permission",
+			Path:           "/test-menu-with-permission",
+			Component:      "/test/menu/index",
+			Icon:           "mdi:test",
+			Type:           "menu",
+			Status:         1,
+			Order:          100,
+			PermissionCode: "test:menu:create",
+		}
+		newId, err := Menu().CreateMenu(ctx, createIn)
+		t.AssertNil(err)
+		t.AssertNE(newId, "")
+
+		// Verify menu was created
+		menu, err := Menu().GetMenu(ctx, newId)
+		t.AssertNil(err)
+		t.AssertNE(menu, nil)
+		t.Assert(menu.PermissionCode, createIn.PermissionCode)
+
+		// Verify permission was created
+		var perms []*entity.SysPermission
+		err = dao.SysPermission.Ctx(ctx).
+			Where(dao.SysPermission.Columns().Name, createIn.Name).
+			Scan(&perms)
+		t.AssertNil(err)
+		t.AssertGT(len(perms), 0)
+
+		// Cleanup after test
+		dao.SysMenu.Ctx(ctx).WhereLike(dao.SysMenu.Columns().Name, "Test Menu With Permission%").Delete()
+		dao.SysPermission.Ctx(ctx).WhereLike(dao.SysPermission.Columns().Name, "Test Menu With Permission%").Delete()
+	})
+}
+
+func TestMenu_UpdatePermission(t *testing.T) {
+	ctx := context.WithValue(context.TODO(), consts.CtxKeyTenantID, consts.DefaultTenantID)
+	gtest.C(t, func(t *gtest.T) {
+		// Cleanup before test
+		dao.SysMenu.Ctx(ctx).WhereLike(dao.SysMenu.Columns().Name, "Test Menu Update Permission%").Delete()
+		dao.SysPermission.Ctx(ctx).WhereLike(dao.SysPermission.Columns().Name, "Test Menu Update Permission%").Delete()
+
+		// Create a menu without permission_code
+		createIn := model.SysMenuCreateIn{
+			Name:      "Test Menu Update Permission",
+			Path:      "/test-menu-update-permission",
+			Type:      "menu",
+			Status:    1,
+		}
+		newId, err := Menu().CreateMenu(ctx, createIn)
+		t.AssertNil(err)
+
+		// Update menu to add permission_code
+		updateIn := model.SysMenuUpdateIn{
+			ID:             newId,
+			Name:           "Test Menu Update Permission",
+			Path:           "/test-menu-update-permission",
+			Type:           "menu",
+			PermissionCode: "test:menu:update",
+		}
+		err = Menu().UpdateMenu(ctx, updateIn)
+		t.AssertNil(err)
+
+		// Verify permission was created
+		var perms []*entity.SysPermission
+		err = dao.SysPermission.Ctx(ctx).
+			Where(dao.SysPermission.Columns().Name, updateIn.Name).
+			Scan(&perms)
+		t.AssertNil(err)
+		t.AssertGT(len(perms), 0)
+
+		// Update menu to change permission_code
+		updateIn.PermissionCode = "test:menu:update:changed"
+		err = Menu().UpdateMenu(ctx, updateIn)
+		t.AssertNil(err)
+
+		// Verify old permission was deleted and new permission was created
+		perms = nil
+		err = dao.SysPermission.Ctx(ctx).
+			Where(dao.SysPermission.Columns().Name, updateIn.Name).
+			Scan(&perms)
+		t.AssertNil(err)
+		t.AssertGT(len(perms), 0)
+
+		// Cleanup after test
+		dao.SysMenu.Ctx(ctx).WhereLike(dao.SysMenu.Columns().Name, "Test Menu Update Permission%").Delete()
+		dao.SysPermission.Ctx(ctx).WhereLike(dao.SysPermission.Columns().Name, "Test Menu Update Permission%").Delete()
+	})
+}
+
+func TestMenu_DeleteWithPermission(t *testing.T) {
+	ctx := context.WithValue(context.TODO(), consts.CtxKeyTenantID, consts.DefaultTenantID)
+	gtest.C(t, func(t *gtest.T) {
+		// Cleanup before test
+		dao.SysMenu.Ctx(ctx).WhereLike(dao.SysMenu.Columns().Name, "Test Menu Delete Permission%").Delete()
+		dao.SysPermission.Ctx(ctx).WhereLike(dao.SysPermission.Columns().Name, "Test Menu Delete Permission%").Delete()
+
+		// Create a menu with permission_code
+		createIn := model.SysMenuCreateIn{
+			Name:           "Test Menu Delete Permission",
+			Path:           "/test-menu-delete-permission",
+			Type:           "menu",
+			Status:         1,
+			PermissionCode: "test:menu:delete",
+		}
+		newId, err := Menu().CreateMenu(ctx, createIn)
+		t.AssertNil(err)
+
+		// Verify permission exists
+		var perms []*entity.SysPermission
+		err = dao.SysPermission.Ctx(ctx).
+			Where(dao.SysPermission.Columns().Name, createIn.Name).
+			Scan(&perms)
+		t.AssertNil(err)
+		t.AssertGT(len(perms), 0)
+
+		// Delete menu
+		err = Menu().DeleteMenu(ctx, newId)
+		t.AssertNil(err)
+
+		// Verify permission was deleted
+		perms = nil
+		err = dao.SysPermission.Ctx(ctx).
+			Where(dao.SysPermission.Columns().Name, createIn.Name).
+			Scan(&perms)
+		t.AssertNil(err)
+		t.AssertEQ(len(perms), 0)
+
+		// Cleanup after test (should be no data, but just in case)
+		dao.SysMenu.Ctx(ctx).WhereLike(dao.SysMenu.Columns().Name, "Test Menu Delete Permission%").Delete()
+		dao.SysPermission.Ctx(ctx).WhereLike(dao.SysPermission.Columns().Name, "Test Menu Delete Permission%").Delete()
+	})
+}
+
+func TestMenu_TransactionRollback(t *testing.T) {
+	ctx := context.WithValue(context.TODO(), consts.CtxKeyTenantID, consts.DefaultTenantID)
+	gtest.C(t, func(t *gtest.T) {
+		// Cleanup before test
+		dao.SysMenu.Ctx(ctx).WhereLike(dao.SysMenu.Columns().Name, "Test Menu Transaction%").Delete()
+		dao.SysPermission.Ctx(ctx).WhereLike(dao.SysPermission.Columns().Name, "Test Menu Transaction%").Delete()
+
+		// Create a menu with permission_code
+		createIn := model.SysMenuCreateIn{
+			Name:           "Test Menu Transaction",
+			Path:           "/test-menu-transaction",
+			Type:           "menu",
+			Status:         1,
+			PermissionCode: "test:menu:transaction",
+		}
+		newId, err := Menu().CreateMenu(ctx, createIn)
+		t.AssertNil(err)
+
+		// Verify both menu and permission exist
+		menu, err := Menu().GetMenu(ctx, newId)
+		t.AssertNil(err)
+		t.AssertNE(menu, nil)
+
+		var perms []*entity.SysPermission
+		err = dao.SysPermission.Ctx(ctx).
+			Where(dao.SysPermission.Columns().Name, createIn.Name).
+			Scan(&perms)
+		t.AssertNil(err)
+		t.AssertGT(len(perms), 0)
+
+		// Update menu with invalid data to trigger rollback
+		updateIn := model.SysMenuUpdateIn{
+			ID:             newId,
+			Name:           "", // Invalid: name is required
+			PermissionCode: "test:menu:transaction:new",
+		}
+		err = Menu().UpdateMenu(ctx, updateIn)
+		t.AssertNE(err, nil) // Should fail validation
+
+		// Verify menu was not updated
+		menu, err = Menu().GetMenu(ctx, newId)
+		t.AssertNil(err)
+		t.AssertNE(menu, nil)
+		t.Assert(menu.Name, createIn.Name) // Name should remain unchanged
+
+		// Verify permission was not changed
+		perms = nil
+		err = dao.SysPermission.Ctx(ctx).
+			Where(dao.SysPermission.Columns().Name, createIn.Name).
+			Scan(&perms)
+		t.AssertNil(err)
+		t.AssertGT(len(perms), 0)
+
+		// Cleanup after test
+		dao.SysMenu.Ctx(ctx).WhereLike(dao.SysMenu.Columns().Name, "Test Menu Transaction%").Delete()
+		dao.SysPermission.Ctx(ctx).WhereLike(dao.SysPermission.Columns().Name, "Test Menu Transaction%").Delete()
 	})
 }

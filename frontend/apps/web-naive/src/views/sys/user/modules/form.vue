@@ -37,33 +37,37 @@ const modalTitle = computed(() =>
   isUpdate.value ? $t('system.user.form.editTitle') : $t('system.user.form.createTitle'),
 );
 
-function normalizeRolesToInput(roles: unknown) {
-  if (!roles) return '';
+function normalizeRolesToInput(roles: unknown): string[] {
+  if (!roles) return [];
   if (Array.isArray(roles)) {
-    return roles.join(', ');
+    return roles.map((item) => String(item)).filter(Boolean);
   }
   if (typeof roles === 'string') {
     const trimmed = roles.trim();
-    if (!trimmed) return '';
+    if (!trimmed) return [];
     if (trimmed.startsWith('[')) {
       try {
         const parsed = JSON.parse(trimmed);
         if (Array.isArray(parsed)) {
-          return parsed.join(', ');
+          return parsed.map((item) => String(item)).filter(Boolean);
         }
       } catch {
-        return trimmed;
+        // fall through to comma parsing
       }
     }
-    return trimmed;
+    return trimmed
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
   }
-  return '';
+  return [];
 }
 
 function normalizeRolesForSubmit(input: unknown) {
   if (!input) return '';
   if (Array.isArray(input)) {
-    return input.length ? JSON.stringify(input) : '';
+    const list = input.map((item) => String(item)).filter(Boolean);
+    return list.length ? JSON.stringify(list) : '';
   }
   if (typeof input === 'string') {
     const trimmed = input.trim();
@@ -72,7 +76,8 @@ function normalizeRolesForSubmit(input: unknown) {
       try {
         const parsed = JSON.parse(trimmed);
         if (Array.isArray(parsed)) {
-          return parsed.length ? JSON.stringify(parsed) : '';
+          const list = parsed.map((item) => String(item)).filter(Boolean);
+          return list.length ? JSON.stringify(list) : '';
         }
       } catch {
         // fall through to comma parsing
@@ -114,15 +119,15 @@ watch(
       resetForm();
       return;
     }
-    formApi.setValues({
-      id: '',
-      username: '',
-      realName: '',
-      password: '',
-      roles: '',
-      homePath: '',
-      avatar: '',
-      deptId: null,
+      formApi.setValues({
+        id: '',
+        username: '',
+        realName: '',
+        password: '',
+        roles: [],
+        homePath: '',
+        avatar: '',
+        deptId: null,
       status: 1,
     });
   },

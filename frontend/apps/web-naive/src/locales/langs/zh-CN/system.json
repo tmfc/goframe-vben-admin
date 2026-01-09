@@ -31,7 +31,7 @@
       "password": "密码",
       "realName": "姓名",
       "roles": "角色",
-      "rolesPlaceholder": "角色1, 角色2",
+      "rolesPlaceholder": "选择角色",
       "homePath": "首页路径",
       "homePathPlaceholder": "默认 /dashboard",
       "avatar": "头像",
@@ -66,7 +66,22 @@
       "disabled": "禁用"
     },
     "actions": {
-      "create": "新增"
+      "create": "新增",
+      "permissions": "权限"
+    },
+    "permissions": {
+      "title": "分配权限",
+      "empty": "暂无权限",
+      "create": "新增权限",
+      "createTitle": "新增权限",
+      "name": "权限名称",
+      "description": "描述",
+      "parent": "上级权限",
+      "root": "顶级",
+      "status": "状态",
+      "validation": {
+        "nameRequired": "权限名称不能为空"
+      }
     },
     "dialog": {
       "deleteTitle": "提示",
@@ -92,10 +107,11 @@
     },
     "columns": {
       "name": "名称",
-      "titleKey": "标题Key",
+      "titleKey": "显示标题",
       "path": "路径",
       "component": "组件",
       "type": "类型",
+      "permissionCode": "权限代码",
       "order": "排序",
       "status": "状态",
       "action": "操作"
@@ -114,7 +130,7 @@
     "form": {
       "name": "名称",
       "namePlaceholder": "菜单名称",
-      "titleKey": "标题 Key",
+      "titleKey": "显示标题",
       "titleKeyPlaceholder": "例如: system.menu.title",
       "type": "类型",
       "path": "路径",
@@ -125,7 +141,10 @@
       "parent": "父级",
       "root": "顶级",
       "order": "排序",
-      "status": "状态"
+      "status": "状态",
+      "permissionCode": "权限代码",
+      "permissionCodePlaceholder": "例如: menu:userList",
+      "autoGeneratePermission": "自动生成权限代码"
     },
     "actions": {
       "new": "新增菜单",
@@ -137,6 +156,45 @@
     "validation": {
       "nameRequired": "名称不能为空",
       "typeRequired": "类型不能为空"
+    }
+  },
+  "permission": {
+    "title": "权限管理",
+    "filters": {
+      "name": "名称",
+      "status": "状态",
+      "all": "全部",
+      "searchByName": "按名称搜索"
+    },
+    "columns": {
+      "name": "名称",
+      "description": "描述",
+      "status": "状态",
+      "actions": "操作"
+    },
+    "status": {
+      "enabled": "启用",
+      "disabled": "禁用"
+    },
+    "actions": {
+      "create": "新增",
+      "edit": "编辑"
+    },
+    "dialog": {
+      "deleteTitle": "提示",
+      "deleteConfirm": "确认删除该权限？",
+      "deleteHasChildren": "请先删除子权限。",
+      "deleteFailed": "该权限无法删除。"
+    },
+    "form": {
+      "name": "权限名称",
+      "description": "描述",
+      "parent": "上级权限",
+      "root": "顶级",
+      "status": "状态"
+    },
+    "validation": {
+      "nameRequired": "权限名称不能为空"
     }
   },
   "dept": {

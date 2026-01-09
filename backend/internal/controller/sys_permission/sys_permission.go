@@ -23,3 +23,23 @@ func (c *ControllerV1) GetPermissionsByUser(ctx context.Context, req *v1.GetPerm
 	res = &v1.GetPermissionsByUserRes{UserPermissionsOut: out}
 	return
 }
+
+func (c *ControllerV1) GetPermissionList(ctx context.Context, req *v1.GetPermissionListReq) (res *v1.GetPermissionListRes, err error) {
+	if req == nil {
+		req = &v1.GetPermissionListReq{}
+	}
+	out, err := service.SysPermission().GetPermissionList(ctx, model.SysPermissionListIn{
+		Page:     req.Page,
+		PageSize: req.PageSize,
+		Name:     req.Name,
+		Status:   req.Status,
+	})
+	if err != nil {
+		return nil, err
+	}
+	res = &v1.GetPermissionListRes{
+		Items: out.Items,
+		Total: out.Total,
+	}
+	return
+}

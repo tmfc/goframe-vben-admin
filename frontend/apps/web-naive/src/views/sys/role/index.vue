@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { PaginationProps } from 'naive-ui';
 import type { Role } from '#/api/sys/role';
+import type { Permission } from '#/api/sys/permission';
 
 import { h, onMounted, ref } from 'vue';
 
@@ -8,18 +9,28 @@ import {
   NButton,
   NCard,
   NDataTable,
+  NEmpty,
   NForm,
   NFormItem,
   NInput,
+  NModal,
   NSpace,
+  NSpin,
   NTag,
+  NTree,
   useDialog,
 } from 'naive-ui';
 
 import { $t } from '#/locales';
 
 import { getDeptTree } from '#/api/sys/dept';
-import { getRoleList, deleteRole } from '#/api/sys/role';
+import { getPermissionList } from '#/api/sys/permission';
+import {
+  assignRolePermissions,
+  deleteRole,
+  getRoleList,
+  getRolePermissions,
+} from '#/api/sys/role';
 import RoleFormModal from './modules/form.vue';
 
 const dialog = useDialog();
@@ -27,9 +38,11 @@ const dialog = useDialog();
 function createColumns({
   edit,
   del,
+  permissions,
 }: {
   del: (id: string) => void;
   edit: (record: Role) => void;
+  permissions: (record: Role) => void;
 }) {
   return [
     {
@@ -83,27 +96,43 @@ function createColumns({
       title: $t('system.role.columns.actions'),
       key: 'actions',
       render(row: Role) {
-        return h('div', [
-          h(
-            NButton,
-            {
-              size: 'small',
-              type: 'primary',
-              style: 'margin-right: 8px;',
-              onClick: () => edit(row),
-            },
-            { default: () => $t('common.edit') },
-          ),
-          h(
-            NButton,
-            {
-              size: 'small',
-              type: 'error',
-              onClick: () => del(row.id),
-            },
-            { default: () => $t('common.delete') },
-          ),
-        ]);
+        return h(
+          NSpace,
+          { size: 8 },
+          {
+            default: () => [
+              h(
+                NButton,
+                {
+                  size: 'small',
+                  type: 'primary',
+                  secondary: true,
+                  onClick: () => edit(row),
+                },
+                { default: () => $t('common.edit') },
+              ),
+              h(
+                NButton,
+                {
+                  size: 'small',
+                  tertiary: true,
+                  onClick: () => permissions(row),
+                },
+                { default: () => $t('system.role.actions.permissions') },
+              ),
+              h(
+                NButton,
+                {
+                  size: 'small',
+                  type: 'error',
+                  secondary: true,
+                  onClick: () => del(row.id),
+                },
+                { default: () => $t('common.delete') },
+              ),
+            ],
+          },
+        );
       },
     },
   ];
@@ -121,6 +150,18 @@ const loading = ref(false);
 
 const showModal = ref(false);
 const editingRecord = ref<Role | null>(null);
+const permissionModal = ref({
+  show: false,
+  roleId: '',
+  roleName: '',
+});
+const permissionTree = ref<Array<{ key: string; label: string; children?: any[] }>>(
+  [],
+);
+const permissionCheckedKeys = ref<string[]>([]);
+const permissionExpandedKeys = ref<string[]>([]);
+const permissionLoading = ref(false);
+const permissionSaving = ref(false);
 
 const formValue = ref({
   name: '',
@@ -151,6 +192,97 @@ function handleDelete(id: string) {
       }
     },
   });
+}
+
+function buildPermissionTree(list: Permission[] = []) {
+  const nodeMap = new Map<string, { key: string; label: string; children: any[] }>();
+  const roots: Array<{ key: string; label: string; children: any[] }> = [];
+
+  for (const item of list || []) {
+    if (!item?.id) continue;
+    const key = String(item.id);
+    nodeMap.set(key, {
+      key,
+      label: item.name ?? key,
+      children: [],
+    });
+  }
+
+  for (const item of list || []) {
+    if (!item?.id) continue;
+    const key = String(item.id);
+    const parentId = item.parentId ? String(item.parentId) : '';
+    const node = nodeMap.get(key);
+    if (!node) continue;
+    if (!parentId || parentId === '0' || !nodeMap.has(parentId)) {
+      roots.push(node);
+    } else {
+      nodeMap.get(parentId)?.children.push(node);
+    }
+  }
+
+  const expandedKeys: string[] = [];
+  const walk = (nodes: any[], depth: number) => {
+    for (const node of nodes) {
+      if (depth <= 2) {
+        expandedKeys.push(node.key);
+      }
+      if (node.children?.length) {
+        walk(node.children, depth + 1);
+      }
+    }
+  };
+  walk(roots, 1);
+
+  return { tree: roots, expandedKeys };
+}
+
+async function fetchPermissionList() {
+  const permissionRes = await getPermissionList({ page: 1, pageSize: 1000 });
+  const list = permissionRes?.items || permissionRes?.list || [];
+  const { tree, expandedKeys } = buildPermissionTree(list);
+  permissionTree.value = tree;
+  permissionExpandedKeys.value = expandedKeys;
+}
+
+async function openPermissionModal(record: Role) {
+  permissionModal.value = {
+    show: true,
+    roleId: String(record.id),
+    roleName: record.name ?? '',
+  };
+  permissionLoading.value = true;
+  try {
+    const [_, rolePermRes] = await Promise.all([
+      fetchPermissionList(),
+      getRolePermissions(String(record.id)),
+    ]);
+    permissionCheckedKeys.value = (rolePermRes?.permissionIds || []).map(String);
+  } catch (error) {
+    console.error(error);
+  } finally {
+    permissionLoading.value = false;
+  }
+}
+
+function closePermissionModal() {
+  permissionModal.value.show = false;
+}
+
+async function submitPermissionChange() {
+  if (!permissionModal.value.roleId) return;
+  permissionSaving.value = true;
+  try {
+    const permissionIds = permissionCheckedKeys.value
+      .map((key) => Number(key))
+      .filter((value) => Number.isFinite(value));
+    await assignRolePermissions(permissionModal.value.roleId, { permissionIds });
+    closePermissionModal();
+  } catch (error) {
+    console.error(error);
+  } finally {
+    permissionSaving.value = false;
+  }
 }
 
 function handleSearch() {
@@ -215,6 +347,7 @@ async function fetchRoleNameMap() {
 const columns = createColumns({
   edit: handleEdit,
   del: handleDelete,
+  permissions: openPermissionModal,
 });
 
 onMounted(() => {
@@ -272,6 +405,35 @@ onMounted(() => {
       :record="editingRecord"
       @success="fetchData"
     />
+    <NModal
+      v-model:show="permissionModal.show"
+      preset="dialog"
+      :title="`${$t('system.role.permissions.title')} - ${permissionModal.roleName}`"
+      :mask-closable="false"
+      style="width: 720px"
+    >
+      <NSpin :show="permissionLoading">
+        <NTree
+          v-if="permissionTree.length"
+          v-model:checked-keys="permissionCheckedKeys"
+          :data="permissionTree"
+          :default-expanded-keys="permissionExpandedKeys"
+          checkable
+          block-line
+        />
+        <NEmpty v-else :description="$t('system.role.permissions.empty')" />
+      </NSpin>
+      <template #action>
+        <NSpace>
+          <NButton @click="closePermissionModal">
+            {{ $t('common.cancel') }}
+          </NButton>
+          <NButton type="primary" :loading="permissionSaving" @click="submitPermissionChange">
+            {{ $t('common.confirm') }}
+          </NButton>
+        </NSpace>
+      </template>
+    </NModal>
   </div>
 </template>
 
@@ -287,4 +449,5 @@ onMounted(() => {
   justify-content: space-between;
   margin-bottom: 12px;
 }
+
 </style>

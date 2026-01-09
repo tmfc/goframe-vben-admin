@@ -28,6 +28,15 @@ const routes: RouteRecordRaw[] = [
           title: 'system.dept.title',
         },
       },
+      {
+        name: 'Permission',
+        path: '/system/permission',
+        component: () => import('#/views/sys/permission/index.vue'),
+        meta: {
+          icon: 'ant-design:safety-outlined',
+          title: 'system.permission.title',
+        },
+      },
     ],
   },
 ];

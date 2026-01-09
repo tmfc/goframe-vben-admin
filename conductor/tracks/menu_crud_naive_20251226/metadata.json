@@ -1,8 +1,0 @@
-{
-  "track_id": "menu_crud_naive_20251226",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2025-12-26T00:00:00Z",
-  "updated_at": "2025-12-26T00:00:00Z",
-  "description": "Modify the frontend code, we are now focusing on naive, adding a CRUD interface for the menu"
-}

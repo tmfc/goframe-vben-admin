@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"sort"
 
 	v1 "backend/api/menu/v1"
@@ -10,6 +11,7 @@ import (
 	"backend/internal/model"
 	"backend/internal/model/entity"
 
+	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/errors/gcode"
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
@@ -70,26 +72,45 @@ func (s *sMenu) CreateMenu(ctx context.Context, in model.SysMenuCreateIn) (id st
 		parentId = ""
 	}
 
-	insertData := buildMenuCreateData(ctx, in, parentId)
-	_, err = dao.SysMenu.Ctx(ctx).Data(insertData).Insert()
-	if err != nil {
-		return "", err
-	}
+	// 使用事务确保 menu 和 permission 的创建是原子操作
+	err = dao.SysMenu.Transaction(ctx, func(ctx context.Context, tx gdb.TX) error {
+		insertData := buildMenuCreateData(ctx, in, parentId)
+		_, err = tx.Model("sys_menu").Data(insertData).Insert()
+		if err != nil {
+			return err
+		}
 
-	var insertedMenu entity.SysMenu
-	query := dao.SysMenu.Ctx(ctx).
-		Where(dao.SysMenu.Columns().Name, in.Name).
-		OrderDesc(dao.SysMenu.Columns().CreatedAt).
-		Limit(1)
-	if parentId != "" {
-		query = query.Where(dao.SysMenu.Columns().ParentId, parentId)
-	} else {
-		query = query.WhereNull(dao.SysMenu.Columns().ParentId)
-	}
-	if err = query.Scan(&insertedMenu); err != nil {
-		return "", err
-	}
-	return insertedMenu.Id, nil
+		var insertedMenu entity.SysMenu
+		query := tx.Model("sys_menu").
+			Where(dao.SysMenu.Columns().Name, in.Name).
+			OrderDesc(dao.SysMenu.Columns().CreatedAt).
+			Limit(1)
+		if parentId != "" {
+			query = query.Where(dao.SysMenu.Columns().ParentId, parentId)
+		} else {
+			query = query.WhereNull(dao.SysMenu.Columns().ParentId)
+		}
+		if err = query.Scan(&insertedMenu); err != nil {
+			return err
+		}
+
+		// 如果提供了 permission_code，则自动创建对应的 Permission
+		if in.PermissionCode != "" {
+			_, err = tx.Model("sys_permission").Data(g.Map{
+				dao.SysPermission.Columns().Name:        in.Name,
+				dao.SysPermission.Columns().Description: fmt.Sprintf("Permission for menu: %s", in.Name),
+				dao.SysPermission.Columns().Status:      1,
+			}).Insert()
+			if err != nil {
+				return err
+			}
+		}
+
+		id = insertedMenu.Id
+		return nil
+	})
+
+	return id, err
 }
 
 // GetMenu retrieves a menu by ID.
@@ -111,19 +132,105 @@ func (s *sMenu) UpdateMenu(ctx context.Context, in model.SysMenuUpdateIn) (err e
 		return err
 	}
 
-	parentId := in.ParentId
-	if parentId == "0" {
-		parentId = ""
-	}
+	// 使用事务确保 menu 和 permission 的更新是原子操作
+	err = dao.SysMenu.Transaction(ctx, func(ctx context.Context, tx gdb.TX) error {
+		// 获取原始 menu 信息以检查 permission_code 是否变化
+		var originalMenu entity.SysMenu
+		err = tx.Model("sys_menu").Where(dao.SysMenu.Columns().Id, in.ID).Scan(&originalMenu)
+		if err != nil {
+			return err
+		}
 
-	_, err = dao.SysMenu.Ctx(ctx).Data(buildMenuUpdateData(in, parentId)).
-		Where(dao.SysMenu.Columns().Id, in.ID).Update()
+		parentId := in.ParentId
+		if parentId == "0" {
+			parentId = ""
+		}
+
+		_, err = tx.Model("sys_menu").Data(buildMenuUpdateData(in, parentId)).
+			Where(dao.SysMenu.Columns().Id, in.ID).Update()
+		if err != nil {
+			return err
+		}
+
+		// 如果 permission_code 发生变化，则同步更新 Permission
+		if originalMenu.PermissionCode != in.PermissionCode {
+			// 如果旧的 permission_code 存在，删除对应的 Permission
+			if originalMenu.PermissionCode != "" {
+				// 查找对应的 permission 记录
+				var oldPerms []*entity.SysPermission
+				err = tx.Model("sys_permission").
+					Where(dao.SysPermission.Columns().Name, originalMenu.Name).
+					Scan(&oldPerms)
+				if err == nil && len(oldPerms) > 0 {
+					for _, perm := range oldPerms {
+						_, err = tx.Model("sys_permission").
+							Where(dao.SysPermission.Columns().Id, perm.Id).
+							Delete()
+						if err != nil {
+							return err
+						}
+					}
+				}
+			}
+
+			// 如果新的 permission_code 存在，创建对应的 Permission
+			if in.PermissionCode != "" {
+				_, err = tx.Model("sys_permission").Data(g.Map{
+					dao.SysPermission.Columns().Name:        in.Name,
+					dao.SysPermission.Columns().Description: fmt.Sprintf("Permission for menu: %s", in.Name),
+					dao.SysPermission.Columns().Status:      1,
+				}).Insert()
+				if err != nil {
+					return err
+				}
+			}
+		}
+
+		return nil
+	})
+
 	return err
 }
 
 // DeleteMenu deletes a menu by ID.
 func (s *sMenu) DeleteMenu(ctx context.Context, id string) (err error) {
-	_, err = dao.SysMenu.Ctx(ctx).Where(dao.SysMenu.Columns().Id, id).Delete()
+	// 使用事务确保 menu 和 permission 的删除是原子操作
+	err = dao.SysMenu.Transaction(ctx, func(ctx context.Context, tx gdb.TX) error {
+		// 获取要删除的 menu 信息
+		var menuToDelete entity.SysMenu
+		err = tx.Model("sys_menu").Where(dao.SysMenu.Columns().Id, id).Scan(&menuToDelete)
+		if err != nil {
+			return err
+		}
+
+		// 删除 menu
+		_, err = tx.Model("sys_menu").Where(dao.SysMenu.Columns().Id, id).Delete()
+		if err != nil {
+			return err
+		}
+
+		// 如果 menu 有 permission_code，则级联删除对应的 Permission
+		if menuToDelete.PermissionCode != "" {
+			// 查找对应的 permission 记录
+			var perms []*entity.SysPermission
+			err = tx.Model("sys_permission").
+				Where(dao.SysPermission.Columns().Name, menuToDelete.Name).
+				Scan(&perms)
+			if err == nil && len(perms) > 0 {
+				for _, perm := range perms {
+					_, err = tx.Model("sys_permission").
+						Where(dao.SysPermission.Columns().Id, perm.Id).
+						Delete()
+					if err != nil {
+						return err
+					}
+				}
+			}
+		}
+
+		return nil
+	})
+
 	return err
 }
 
@@ -168,6 +275,9 @@ func buildMenuCreateData(ctx context.Context, in model.SysMenuCreateIn, parentId
 	if in.Meta != "" {
 		data[columns.Meta] = in.Meta
 	}
+	if in.PermissionCode != "" {
+		data[columns.PermissionCode] = in.PermissionCode
+	}
 	if parentId != "" {
 		data[columns.ParentId] = parentId
 	}
@@ -187,6 +297,9 @@ func buildMenuUpdateData(in model.SysMenuUpdateIn, parentId string) g.Map {
 	}
 	if in.Meta != "" {
 		data[columns.Meta] = in.Meta
+	}
+	if in.PermissionCode != "" {
+		data[columns.PermissionCode] = in.PermissionCode
 	}
 	if parentId != "" {
 		data[columns.ParentId] = parentId

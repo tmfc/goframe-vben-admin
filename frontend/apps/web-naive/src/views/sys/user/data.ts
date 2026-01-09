@@ -3,6 +3,7 @@ import type { VbenFormSchema } from '#/adapter/form';
 import { $t } from '#/locales';
 
 import { getDeptTree } from '#/api/sys/dept';
+import { getRoleList } from '#/api/sys/role';
 
 export function useFormSchema(isUpdate?: () => boolean): VbenFormSchema[] {
   const shouldShowPassword = () => !(isUpdate?.() ?? false);
@@ -39,8 +40,18 @@ export function useFormSchema(isUpdate?: () => boolean): VbenFormSchema[] {
       rules: 'required',
     },
     {
-      component: 'Input',
+      component: 'ApiSelect',
       componentProps: {
+        api: getRoleList,
+        resultField: 'items',
+        labelField: 'name',
+        valueField: 'name',
+        params: {
+          page: 1,
+          pageSize: 5000,
+        },
+        clearable: true,
+        multiple: true,
         placeholder: $t('system.user.form.rolesPlaceholder'),
       },
       fieldName: 'roles',
