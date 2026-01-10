@@ -152,11 +152,19 @@ func (s *sSysPermission) DeletePermission(ctx context.Context, in model.SysPermi
 	}
 
 	menuCount, err := dao.SysMenu.Ctx(ctx).
-		Where(dao.SysMenu.Columns().Name, permission.Name).
-		Where(dao.SysMenu.Columns().PermissionCode+" <> ?", "").
+		Where(dao.SysMenu.Columns().PermissionCode, permission.Name).
 		Count()
 	if err != nil {
 		return err
+	}
+	if menuCount == 0 {
+		menuCount, err = dao.SysMenu.Ctx(ctx).
+			Where(dao.SysMenu.Columns().Name, permission.Name).
+			Where(dao.SysMenu.Columns().PermissionCode+" <> ?", "").
+			Count()
+		if err != nil {
+			return err
+		}
 	}
 	if menuCount > 0 {
 		return gerror.NewCodef(gcode.CodeValidationFailed, "Permission with ID %d is managed by menu", in.Id)

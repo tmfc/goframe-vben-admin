@@ -125,6 +125,8 @@ func TestSysPermission_UpdatePermission(t *testing.T) {
 
 	gtest.C(t, func(t *gtest.T) {
 		var err error
+		dao.SysPermission.Ctx(ctx).Unscoped().Where(dao.SysPermission.Columns().Name, "perm:menu:test").Delete()
+		dao.SysMenu.Ctx(ctx).Unscoped().Where(dao.SysMenu.Columns().PermissionCode, "perm:menu:test").Delete()
 		// Prepare data: Create a permission first
 		createIn := model.SysPermissionCreateIn{
 			Name:        "TestPermissionUpdate",
@@ -200,6 +202,7 @@ func TestSysPermission_DeletePermission(t *testing.T) {
 	t.Cleanup(func() {
 		dao.SysPermission.Ctx(ctx).Unscoped().WhereLike(dao.SysPermission.Columns().Name, "TestPermission%").Delete()
 		dao.SysMenu.Ctx(ctx).Unscoped().WhereLike(dao.SysMenu.Columns().Name, "TestMenuPermission%").Delete()
+		dao.SysPermission.Ctx(ctx).Unscoped().WhereLike(dao.SysPermission.Columns().Name, "perm:menu:%").Delete()
 		dao.SysRolePermission.Ctx(ctx).Unscoped().Where("1=1").Delete()
 	})
 
@@ -296,7 +299,7 @@ func TestSysPermission_DeletePermission(t *testing.T) {
 		t.AssertNil(err)
 		var menuPerm *entity.SysPermission
 		err = dao.SysPermission.Ctx(ctx).
-			Where(dao.SysPermission.Columns().Name, "TestMenuPermissionA").
+			Where(dao.SysPermission.Columns().Name, "perm:menu:test").
 			Scan(&menuPerm)
 		t.AssertNil(err)
 		t.AssertNE(menuPerm, nil)

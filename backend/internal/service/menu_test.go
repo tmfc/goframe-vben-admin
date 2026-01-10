@@ -385,7 +385,7 @@ func TestMenu_CreateWithPermission(t *testing.T) {
 	gtest.C(t, func(t *gtest.T) {
 		// Cleanup before test
 		dao.SysMenu.Ctx(ctx).WhereLike(dao.SysMenu.Columns().Name, "Test Menu With Permission%").Delete()
-		dao.SysPermission.Ctx(ctx).WhereLike(dao.SysPermission.Columns().Name, "Test Menu With Permission%").Delete()
+		dao.SysPermission.Ctx(ctx).WhereLike(dao.SysPermission.Columns().Name, "test:menu:create%").Delete()
 
 		// Create a menu with permission_code
 		createIn := model.SysMenuCreateIn{
@@ -411,14 +411,14 @@ func TestMenu_CreateWithPermission(t *testing.T) {
 		// Verify permission was created
 		var perms []*entity.SysPermission
 		err = dao.SysPermission.Ctx(ctx).
-			Where(dao.SysPermission.Columns().Name, createIn.Name).
+			Where(dao.SysPermission.Columns().Name, createIn.PermissionCode).
 			Scan(&perms)
 		t.AssertNil(err)
 		t.AssertGT(len(perms), 0)
 
 		// Cleanup after test
 		dao.SysMenu.Ctx(ctx).WhereLike(dao.SysMenu.Columns().Name, "Test Menu With Permission%").Delete()
-		dao.SysPermission.Ctx(ctx).WhereLike(dao.SysPermission.Columns().Name, "Test Menu With Permission%").Delete()
+		dao.SysPermission.Ctx(ctx).WhereLike(dao.SysPermission.Columns().Name, "test:menu:create%").Delete()
 	})
 }
 
@@ -427,14 +427,14 @@ func TestMenu_UpdatePermission(t *testing.T) {
 	gtest.C(t, func(t *gtest.T) {
 		// Cleanup before test
 		dao.SysMenu.Ctx(ctx).WhereLike(dao.SysMenu.Columns().Name, "Test Menu Update Permission%").Delete()
-		dao.SysPermission.Ctx(ctx).WhereLike(dao.SysPermission.Columns().Name, "Test Menu Update Permission%").Delete()
+		dao.SysPermission.Ctx(ctx).WhereLike(dao.SysPermission.Columns().Name, "test:menu:update%").Delete()
 
 		// Create a menu without permission_code
 		createIn := model.SysMenuCreateIn{
-			Name:      "Test Menu Update Permission",
-			Path:      "/test-menu-update-permission",
-			Type:      "menu",
-			Status:    1,
+			Name:   "Test Menu Update Permission",
+			Path:   "/test-menu-update-permission",
+			Type:   "menu",
+			Status: 1,
 		}
 		newId, err := Menu().CreateMenu(ctx, createIn)
 		t.AssertNil(err)
@@ -453,7 +453,7 @@ func TestMenu_UpdatePermission(t *testing.T) {
 		// Verify permission was created
 		var perms []*entity.SysPermission
 		err = dao.SysPermission.Ctx(ctx).
-			Where(dao.SysPermission.Columns().Name, updateIn.Name).
+			Where(dao.SysPermission.Columns().Name, updateIn.PermissionCode).
 			Scan(&perms)
 		t.AssertNil(err)
 		t.AssertGT(len(perms), 0)
@@ -463,17 +463,24 @@ func TestMenu_UpdatePermission(t *testing.T) {
 		err = Menu().UpdateMenu(ctx, updateIn)
 		t.AssertNil(err)
 
-		// Verify old permission was deleted and new permission was created
+		// Verify old permission was updated to new code
+		var oldPerms []*entity.SysPermission
+		err = dao.SysPermission.Ctx(ctx).
+			Where(dao.SysPermission.Columns().Name, "test:menu:update").
+			Scan(&oldPerms)
+		t.AssertNil(err)
+		t.AssertEQ(len(oldPerms), 0)
+
 		perms = nil
 		err = dao.SysPermission.Ctx(ctx).
-			Where(dao.SysPermission.Columns().Name, updateIn.Name).
+			Where(dao.SysPermission.Columns().Name, updateIn.PermissionCode).
 			Scan(&perms)
 		t.AssertNil(err)
 		t.AssertGT(len(perms), 0)
 
 		// Cleanup after test
 		dao.SysMenu.Ctx(ctx).WhereLike(dao.SysMenu.Columns().Name, "Test Menu Update Permission%").Delete()
-		dao.SysPermission.Ctx(ctx).WhereLike(dao.SysPermission.Columns().Name, "Test Menu Update Permission%").Delete()
+		dao.SysPermission.Ctx(ctx).WhereLike(dao.SysPermission.Columns().Name, "test:menu:update%").Delete()
 	})
 }
 
@@ -482,7 +489,7 @@ func TestMenu_DeleteWithPermission(t *testing.T) {
 	gtest.C(t, func(t *gtest.T) {
 		// Cleanup before test
 		dao.SysMenu.Ctx(ctx).WhereLike(dao.SysMenu.Columns().Name, "Test Menu Delete Permission%").Delete()
-		dao.SysPermission.Ctx(ctx).WhereLike(dao.SysPermission.Columns().Name, "Test Menu Delete Permission%").Delete()
+		dao.SysPermission.Ctx(ctx).WhereLike(dao.SysPermission.Columns().Name, "test:menu:delete%").Delete()
 
 		// Create a menu with permission_code
 		createIn := model.SysMenuCreateIn{
@@ -498,7 +505,7 @@ func TestMenu_DeleteWithPermission(t *testing.T) {
 		// Verify permission exists
 		var perms []*entity.SysPermission
 		err = dao.SysPermission.Ctx(ctx).
-			Where(dao.SysPermission.Columns().Name, createIn.Name).
+			Where(dao.SysPermission.Columns().Name, createIn.PermissionCode).
 			Scan(&perms)
 		t.AssertNil(err)
 		t.AssertGT(len(perms), 0)
@@ -510,14 +517,14 @@ func TestMenu_DeleteWithPermission(t *testing.T) {
 		// Verify permission was deleted
 		perms = nil
 		err = dao.SysPermission.Ctx(ctx).
-			Where(dao.SysPermission.Columns().Name, createIn.Name).
+			Where(dao.SysPermission.Columns().Name, createIn.PermissionCode).
 			Scan(&perms)
 		t.AssertNil(err)
 		t.AssertEQ(len(perms), 0)
 
 		// Cleanup after test (should be no data, but just in case)
 		dao.SysMenu.Ctx(ctx).WhereLike(dao.SysMenu.Columns().Name, "Test Menu Delete Permission%").Delete()
-		dao.SysPermission.Ctx(ctx).WhereLike(dao.SysPermission.Columns().Name, "Test Menu Delete Permission%").Delete()
+		dao.SysPermission.Ctx(ctx).WhereLike(dao.SysPermission.Columns().Name, "test:menu:delete%").Delete()
 	})
 }
 
@@ -526,7 +533,7 @@ func TestMenu_TransactionRollback(t *testing.T) {
 	gtest.C(t, func(t *gtest.T) {
 		// Cleanup before test
 		dao.SysMenu.Ctx(ctx).WhereLike(dao.SysMenu.Columns().Name, "Test Menu Transaction%").Delete()
-		dao.SysPermission.Ctx(ctx).WhereLike(dao.SysPermission.Columns().Name, "Test Menu Transaction%").Delete()
+		dao.SysPermission.Ctx(ctx).WhereLike(dao.SysPermission.Columns().Name, "test:menu:transaction%").Delete()
 
 		// Create a menu with permission_code
 		createIn := model.SysMenuCreateIn{
@@ -546,7 +553,7 @@ func TestMenu_TransactionRollback(t *testing.T) {
 
 		var perms []*entity.SysPermission
 		err = dao.SysPermission.Ctx(ctx).
-			Where(dao.SysPermission.Columns().Name, createIn.Name).
+			Where(dao.SysPermission.Columns().Name, createIn.PermissionCode).
 			Scan(&perms)
 		t.AssertNil(err)
 		t.AssertGT(len(perms), 0)
@@ -569,14 +576,14 @@ func TestMenu_TransactionRollback(t *testing.T) {
 		// Verify permission was not changed
 		perms = nil
 		err = dao.SysPermission.Ctx(ctx).
-			Where(dao.SysPermission.Columns().Name, createIn.Name).
+			Where(dao.SysPermission.Columns().Name, createIn.PermissionCode).
 			Scan(&perms)
 		t.AssertNil(err)
 		t.AssertGT(len(perms), 0)
 
 		// Cleanup after test
 		dao.SysMenu.Ctx(ctx).WhereLike(dao.SysMenu.Columns().Name, "Test Menu Transaction%").Delete()
-		dao.SysPermission.Ctx(ctx).WhereLike(dao.SysPermission.Columns().Name, "Test Menu Transaction%").Delete()
+		dao.SysPermission.Ctx(ctx).WhereLike(dao.SysPermission.Columns().Name, "test:menu:transaction%").Delete()
 	})
 }
 
@@ -588,7 +595,7 @@ func TestMenu_PermissionParentHierarchy(t *testing.T) {
 	// Cleanup function
 	t.Cleanup(func() {
 		dao.SysMenu.Ctx(ctx).Unscoped().WhereLike(dao.SysMenu.Columns().Name, "TestMenuHierarchy%").Delete()
-		dao.SysPermission.Ctx(ctx).Unscoped().WhereLike(dao.SysPermission.Columns().Name, "TestMenuHierarchy%").Delete()
+		dao.SysPermission.Ctx(ctx).Unscoped().WhereLike(dao.SysPermission.Columns().Name, "test:hierarchy:%").Delete()
 	})
 
 	gtest.C(t, func(t *gtest.T) {
@@ -609,7 +616,7 @@ func TestMenu_PermissionParentHierarchy(t *testing.T) {
 		// 验证父菜单的 permission 创建成功且 ParentId 为 0
 		var parentPerms []*entity.SysPermission
 		err = dao.SysPermission.Ctx(ctx).
-			Where(dao.SysPermission.Columns().Name, parentMenuIn.Name).
+			Where(dao.SysPermission.Columns().Name, parentMenuIn.PermissionCode).
 			Scan(&parentPerms)
 		t.AssertNil(err)
 		t.AssertEQ(len(parentPerms), 1)
@@ -631,7 +638,7 @@ func TestMenu_PermissionParentHierarchy(t *testing.T) {
 		// 验证子菜单的 permission 创建成功且 ParentId 指向父菜单的 permission
 		var childPerms []*entity.SysPermission
 		err = dao.SysPermission.Ctx(ctx).
-			Where(dao.SysPermission.Columns().Name, childMenuIn.Name).
+			Where(dao.SysPermission.Columns().Name, childMenuIn.PermissionCode).
 			Scan(&childPerms)
 		t.AssertNil(err)
 		t.AssertEQ(len(childPerms), 1)
@@ -652,7 +659,7 @@ func TestMenu_PermissionParentHierarchy(t *testing.T) {
 		// 验证按钮的 permission 创建成功且 ParentId 指向子菜单的 permission
 		var buttonPerms []*entity.SysPermission
 		err = dao.SysPermission.Ctx(ctx).
-			Where(dao.SysPermission.Columns().Name, buttonMenuIn.Name).
+			Where(dao.SysPermission.Columns().Name, buttonMenuIn.PermissionCode).
 			Scan(&buttonPerms)
 		t.AssertNil(err)
 		t.AssertEQ(len(buttonPerms), 1)
@@ -674,7 +681,7 @@ func TestMenu_PermissionParentHierarchy(t *testing.T) {
 		// 获取新父菜单的 permission ID
 		var newParentPerms []*entity.SysPermission
 		err = dao.SysPermission.Ctx(ctx).
-			Where(dao.SysPermission.Columns().Name, newParentMenuIn.Name).
+			Where(dao.SysPermission.Columns().Name, newParentMenuIn.PermissionCode).
 			Scan(&newParentPerms)
 		t.AssertNil(err)
 		t.AssertEQ(len(newParentPerms), 1)
@@ -695,7 +702,7 @@ func TestMenu_PermissionParentHierarchy(t *testing.T) {
 		// 验证子菜单的 permission 的 ParentId 已更新
 		var updatedChildPerms []*entity.SysPermission
 		err = dao.SysPermission.Ctx(ctx).
-			Where(dao.SysPermission.Columns().Name, childMenuIn.Name).
+			Where(dao.SysPermission.Columns().Name, childMenuIn.PermissionCode).
 			Scan(&updatedChildPerms)
 		t.AssertNil(err)
 		t.AssertEQ(len(updatedChildPerms), 1)
@@ -711,7 +718,7 @@ func TestMenu_DeleteMenuWithChildren(t *testing.T) {
 	// Cleanup function
 	t.Cleanup(func() {
 		dao.SysMenu.Ctx(ctx).Unscoped().WhereLike(dao.SysMenu.Columns().Name, "TestMenuDeleteChildren%").Delete()
-		dao.SysPermission.Ctx(ctx).Unscoped().WhereLike(dao.SysPermission.Columns().Name, "TestMenuDeleteChildren%").Delete()
+		dao.SysPermission.Ctx(ctx).Unscoped().WhereLike(dao.SysPermission.Columns().Name, "test:delete:%").Delete()
 	})
 
 	gtest.C(t, func(t *gtest.T) {
@@ -731,7 +738,7 @@ func TestMenu_DeleteMenuWithChildren(t *testing.T) {
 		// 获取父菜单的 permission ID
 		var parentPerms []*entity.SysPermission
 		err = dao.SysPermission.Ctx(ctx).
-			Where(dao.SysPermission.Columns().Name, parentMenuIn.Name).
+			Where(dao.SysPermission.Columns().Name, parentMenuIn.PermissionCode).
 			Scan(&parentPerms)
 		t.AssertNil(err)
 		parentPermId := parentPerms[0].Id
@@ -751,7 +758,7 @@ func TestMenu_DeleteMenuWithChildren(t *testing.T) {
 		// 获取子菜单的 permission ID
 		var childPerms []*entity.SysPermission
 		err = dao.SysPermission.Ctx(ctx).
-			Where(dao.SysPermission.Columns().Name, childMenuIn.Name).
+			Where(dao.SysPermission.Columns().Name, childMenuIn.PermissionCode).
 			Scan(&childPerms)
 		t.AssertNil(err)
 		childPermId := childPerms[0].Id
@@ -798,7 +805,7 @@ func TestMenu_UpdateButtonPermissionParentId(t *testing.T) {
 	// Cleanup function
 	t.Cleanup(func() {
 		dao.SysMenu.Ctx(ctx).Unscoped().WhereLike(dao.SysMenu.Columns().Name, "TestButtonUpdate%").Delete()
-		dao.SysPermission.Ctx(ctx).Unscoped().WhereLike(dao.SysPermission.Columns().Name, "TestButtonUpdate%").Delete()
+		dao.SysPermission.Ctx(ctx).Unscoped().WhereLike(dao.SysPermission.Columns().Name, "test:button:%").Delete()
 	})
 
 	gtest.C(t, func(t *gtest.T) {
@@ -828,13 +835,13 @@ func TestMenu_UpdateButtonPermissionParentId(t *testing.T) {
 		// 获取父菜单的 permission IDs
 		var parent1Perms, parent2Perms []*entity.SysPermission
 		err = dao.SysPermission.Ctx(ctx).
-			Where(dao.SysPermission.Columns().Name, parent1In.Name).
+			Where(dao.SysPermission.Columns().Name, parent1In.PermissionCode).
 			Scan(&parent1Perms)
 		t.AssertNil(err)
 		t.AssertEQ(len(parent1Perms), 1)
 
 		err = dao.SysPermission.Ctx(ctx).
-			Where(dao.SysPermission.Columns().Name, parent2In.Name).
+			Where(dao.SysPermission.Columns().Name, parent2In.PermissionCode).
 			Scan(&parent2Perms)
 		t.AssertNil(err)
 		t.AssertEQ(len(parent2Perms), 1)
@@ -853,7 +860,7 @@ func TestMenu_UpdateButtonPermissionParentId(t *testing.T) {
 		// 验证按钮的 permission ParentId 指向 parent1
 		var buttonPerms []*entity.SysPermission
 		err = dao.SysPermission.Ctx(ctx).
-			Where(dao.SysPermission.Columns().Name, buttonIn.Name).
+			Where(dao.SysPermission.Columns().Name, buttonIn.PermissionCode).
 			Scan(&buttonPerms)
 		t.AssertNil(err)
 		t.AssertEQ(len(buttonPerms), 1)
@@ -874,7 +881,7 @@ func TestMenu_UpdateButtonPermissionParentId(t *testing.T) {
 		// 4. 验证按钮的 permission ParentId 已更新为 parent2
 		var updatedButtonPerms []*entity.SysPermission
 		err = dao.SysPermission.Ctx(ctx).
-			Where(dao.SysPermission.Columns().Name, buttonIn.Name).
+			Where(dao.SysPermission.Columns().Name, buttonIn.PermissionCode).
 			Scan(&updatedButtonPerms)
 		t.AssertNil(err)
 		t.AssertEQ(len(updatedButtonPerms), 1)
