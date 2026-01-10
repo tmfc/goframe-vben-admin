@@ -76,7 +76,7 @@ func saveLocalUpload(file *ghttp.UploadFile, baseDir string) (string, error) {
 		return "", gerror.NewCode(gcode.CodeInvalidConfiguration, "upload local_dir is required")
 	}
 
-	datePath := time.Now().Format("2006/01")
+	datePath := uploadDatePath()
 	targetDir := gfile.Join(baseDir, datePath)
 	savedName, err := file.Save(targetDir)
 	if err != nil {
@@ -90,6 +90,10 @@ func buildObjectKey(prefix, filename string) string {
 	if cleanPrefix == "" {
 		cleanPrefix = "uploads"
 	}
-	datePath := time.Now().Format("2006/01")
+	datePath := uploadDatePath()
 	return path.Join(cleanPrefix, datePath, filename)
+}
+
+func uploadDatePath() string {
+	return time.Now().Format("2006/01")
 }
