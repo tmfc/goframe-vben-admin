@@ -28,8 +28,6 @@ type apiEnvelope struct {
 }
 
 func TestUploadLocalSuccess(t *testing.T) {
-	t.Parallel()
-
 	uploadDir := gfile.Temp(guid.S())
 	if err := gfile.Mkdir(uploadDir); err != nil {
 		t.Fatalf("failed to create upload dir: %v", err)
@@ -65,8 +63,6 @@ func TestUploadLocalSuccess(t *testing.T) {
 }
 
 func TestUploadLocalTooLarge(t *testing.T) {
-	t.Parallel()
-
 	uploadDir := gfile.Temp(guid.S())
 	if err := gfile.Mkdir(uploadDir); err != nil {
 		t.Fatalf("failed to create upload dir: %v", err)
@@ -96,8 +92,6 @@ func TestUploadLocalTooLarge(t *testing.T) {
 }
 
 func TestUploadLocalDisallowedType(t *testing.T) {
-	t.Parallel()
-
 	uploadDir := gfile.Temp(guid.S())
 	if err := gfile.Mkdir(uploadDir); err != nil {
 		t.Fatalf("failed to create upload dir: %v", err)
@@ -126,8 +120,6 @@ func TestUploadLocalDisallowedType(t *testing.T) {
 }
 
 func TestUploadS3Success(t *testing.T) {
-	t.Parallel()
-
 	restoreConfig := setUploadConfig(t, "s3", "", 1)
 	t.Cleanup(restoreConfig)
 
@@ -169,8 +161,6 @@ func TestUploadS3Success(t *testing.T) {
 }
 
 func TestUploadS3Failure(t *testing.T) {
-	t.Parallel()
-
 	restoreConfig := setUploadConfig(t, "s3", "", 1)
 	t.Cleanup(restoreConfig)
 

@@ -93,8 +93,3 @@ func buildObjectKey(prefix, filename string) string {
 	datePath := time.Now().Format("2006/01")
 	return path.Join(cleanPrefix, datePath, filename)
 }
-	if err != nil {
-		return "", err
-	}
-	return "/" + path.Join("uploads", datePath, filename), nil
-}
