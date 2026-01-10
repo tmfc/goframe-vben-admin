@@ -21,7 +21,7 @@ This plan outlines the steps to implement the file upload feature as described i
     -   [ ] Sub-task: Write unit tests for the backend API endpoint when configured for S3 storage.
     -   [ ] Sub-task: Test successful file upload to S3, returning the S3 object key.
     -   [ ] Sub-task: Test S3 connection failures and error handling.
--   [~] **Task: Implement S3 Storage Upload (Green Phase)**
+-   [x] **Task: Implement S3 Storage Upload (Green Phase)** (a51dde2)
     -   [ ] Sub-task: Integrate S3-compatible client library (e.g., MinIO client for GoFrame).
     -   [ ] Sub-task: Implement logic to upload files to the configured S3 bucket.
     -   [ ] Sub-task: Return the S3 object key upon successful upload.
