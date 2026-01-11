@@ -31,6 +31,7 @@ import {
   getRoleList,
   getRolePermissions,
 } from '#/api/sys/role';
+import { collectExpandedKeys, flattenTree, listToTree } from '#/utils/tree';
 import RoleFormModal from './modules/form.vue';
 
 const dialog = useDialog();
@@ -195,46 +196,14 @@ function handleDelete(id: string) {
 }
 
 function buildPermissionTree(list: PermissionItem[] = []) {
-  const nodeMap = new Map<string, { key: string; label: string; children: any[] }>();
-  const roots: Array<{ key: string; label: string; children: any[] }> = [];
-
-  for (const item of list || []) {
-    if (!item?.id) continue;
-    const key = String(item.id);
-    nodeMap.set(key, {
-      key,
-      label: item.name ?? key,
-      children: [],
-    });
-  }
-
-  for (const item of list || []) {
-    if (!item?.id) continue;
-    const key = String(item.id);
-    const parentId = item.parentId ? String(item.parentId) : '';
-    const node = nodeMap.get(key);
-    if (!node) continue;
-    if (!parentId || parentId === '0' || !nodeMap.has(parentId)) {
-      roots.push(node);
-    } else {
-      nodeMap.get(parentId)?.children.push(node);
-    }
-  }
-
-  const expandedKeys: string[] = [];
-  const walk = (nodes: any[], depth: number) => {
-    for (const node of nodes) {
-      if (depth <= 2) {
-        expandedKeys.push(node.key);
-      }
-      if (node.children?.length) {
-        walk(node.children, depth + 1);
-      }
-    }
-  };
-  walk(roots, 1);
-
-  return { tree: roots, expandedKeys };
+  const mapped = (list || []).map((item) => ({
+    ...item,
+    key: String(item.id),
+    label: item.name ?? String(item.id),
+  }));
+  const tree = listToTree(mapped);
+  const expandedKeys = collectExpandedKeys(tree, 2, { id: 'key' });
+  return { tree, expandedKeys };
 }
 
 async function fetchPermissionList() {
@@ -315,18 +284,13 @@ async function fetchData() {
 function flattenDeptTree(
   list: Array<{ id: string; name: string; children?: any[] }> = [],
 ) {
+  const flattened = flattenTree(list);
   const map = new Map<string, string>();
-  const walk = (items: any[]) => {
-    for (const item of items || []) {
-      if (item?.id) {
-        map.set(String(item.id), item.name ?? '');
-      }
-      if (item?.children?.length) {
-        walk(item.children);
-      }
+  for (const item of flattened) {
+    if (item?.id) {
+      map.set(String(item.id), item.name ?? '');
     }
-  };
-  walk(list);
+  }
   return map;
 }
 

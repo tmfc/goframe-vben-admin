@@ -27,6 +27,7 @@ import {
   getPermissionList,
   updatePermission,
 } from '#/api/sys/permission';
+import { collectExpandedKeys, listToTree } from '#/utils/tree';
 
 const dialog = useDialog();
 const loading = ref(false);
@@ -76,64 +77,18 @@ const modalTitle = computed(() =>
 );
 
 function buildTreeFromList(list: any[]) {
-  const nodeMap = new Map<string, any>();
-  const roots: any[] = [];
-
-  for (const item of list || []) {
-    const id = String(item.id);
-    nodeMap.set(id, { ...item, id, children: [] });
-  }
-
-  for (const item of list || []) {
-    const id = String(item.id);
-    const parentId = item.parentId ? String(item.parentId) : '';
-    const node = nodeMap.get(id);
-    if (!node) continue;
-    if (!parentId || parentId === '0' || !nodeMap.has(parentId)) {
-      roots.push(node);
-    } else {
-      nodeMap.get(parentId).children.push(node);
-    }
-  }
-
-  const expandedKeys: string[] = [];
-  const collectExpand = (nodes: any[], depth: number) => {
-    for (const node of nodes) {
-      if (depth <= 2) {
-        expandedKeys.push(node.id);
-      }
-      if (node.children?.length) {
-        collectExpand(node.children, depth + 1);
-      }
-    }
-  };
-  collectExpand(roots, 1);
-
-  return { tree: roots, expandedKeys };
+  const tree = listToTree(list);
+  const expandedKeys = collectExpandedKeys(tree, 2);
+  return { tree, expandedKeys };
 }
 
 function buildTreeOptions(list: any[]) {
-  const nodeMap = new Map<string, any>();
-  const roots: any[] = [];
-
-  for (const item of list || []) {
-    const id = String(item.id);
-    nodeMap.set(id, { key: id, label: item.name ?? id, children: [] });
-  }
-
-  for (const item of list || []) {
-    const id = String(item.id);
-    const parentId = item.parentId ? String(item.parentId) : '';
-    const node = nodeMap.get(id);
-    if (!node) continue;
-    if (!parentId || parentId === '0' || !nodeMap.has(parentId)) {
-      roots.push(node);
-    } else {
-      nodeMap.get(parentId).children.push(node);
-    }
-  }
-
-  return roots;
+  const mapped = (list || []).map((item) => ({
+    ...item,
+    key: String(item.id),
+    label: item.name ?? String(item.id),
+  }));
+  return listToTree(mapped);
 }
 
 const columns = reactive<DataTableColumns<any>>([

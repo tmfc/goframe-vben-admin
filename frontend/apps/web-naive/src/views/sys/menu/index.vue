@@ -33,6 +33,7 @@ import {
   getMenuList,
   updateMenu,
 } from '#/api/sys/menu';
+import { collectExpandedKeys, listToTree, sortTree } from '#/utils/tree';
 import { Grip, IconifyIcon } from '@vben/icons';
 import zhSystem from '#/locales/langs/zh-CN/system.json';
 import enSystem from '#/locales/langs/en-US/system.json';
@@ -136,33 +137,11 @@ function getTitleKey(row: any) {
 }
 
 function buildMenuTreeFromList(list: any[]) {
-  const nodeMap = new Map<string, any>();
-  const roots: any[] = [];
-
-  for (const item of list || []) {
-    const id = String(item.id);
-    nodeMap.set(id, {
-      id,
-      label: getMenuTitle(item),
-      children: [],
-    });
-  }
-
-  for (const item of list || []) {
-    const id = String(item.id);
-    const parentId = item.parentId ? String(item.parentId) : '';
-    const node = nodeMap.get(id);
-    if (!node) {
-      continue;
-    }
-    if (!parentId || parentId === '0' || !nodeMap.has(parentId)) {
-      roots.push(node);
-      continue;
-    }
-    nodeMap.get(parentId).children.push(node);
-  }
-
-  return roots;
+  const mapped = (list || []).map((item) => ({
+    ...item,
+    label: getMenuTitle(item),
+  }));
+  return listToTree(mapped);
 }
 
 const pagination = reactive({
@@ -735,58 +714,10 @@ watch(
 );
 
 function buildTableTreeFromList(list: any[]) {
-  const nodeMap = new Map<string, any>();
-  const roots: any[] = [];
-
-  for (const item of list || []) {
-    const id = String(item.id);
-    nodeMap.set(id, { ...item, id, children: [] });
-  }
-
-  for (const item of list || []) {
-    const id = String(item.id);
-    const parentId = item.parentId ? String(item.parentId) : '';
-    const node = nodeMap.get(id);
-    if (!node) continue;
-    if (!parentId || parentId === '0' || !nodeMap.has(parentId)) {
-      roots.push(node);
-    } else {
-      nodeMap.get(parentId).children.push(node);
-    }
-  }
-
-  // 递归排序函数,按 order 字段升序排序
-  function sortNodes(nodes: any[]) {
-    nodes.sort((a, b) => {
-      const orderA = a.order ?? 0;
-      const orderB = b.order ?? 0;
-      return orderA - orderB;
-    });
-    // 递归排序子节点
-    nodes.forEach(node => {
-      if (node.children && node.children.length > 0) {
-        sortNodes(node.children);
-      }
-    });
-  }
-
-  // 对根节点和所有子节点进行排序
-  sortNodes(roots);
-
-  const expandedKeys: string[] = [];
-  function collectExpand(nodes: any[], depth: number) {
-    for (const node of nodes) {
-      if (depth <= 2) {
-        expandedKeys.push(node.id);
-      }
-      if (node.children?.length) {
-        collectExpand(node.children, depth + 1);
-      }
-    }
-  }
-  collectExpand(roots, 1);
-
-  return { tree: roots, expandedKeys };
+  const tree = listToTree(list);
+  sortTree(tree, (a, b) => (a.order ?? 0) - (b.order ?? 0));
+  const expandedKeys = collectExpandedKeys(tree, 2);
+  return { tree, expandedKeys };
 }
 
 onMounted(() => {
