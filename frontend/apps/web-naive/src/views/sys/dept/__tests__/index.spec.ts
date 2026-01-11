@@ -8,6 +8,7 @@ vi.mock('#/api/sys/dept', () => ({
   updateDept: vi.fn(),
   deleteDept: vi.fn(),
   getDeptList: vi.fn(() => Promise.resolve({ items: [], total: 0 })),
+  getDeptTree: vi.fn(() => Promise.resolve({ list: [] })),
 }));
 
 vi.mock('@vben/common-ui', () => ({
@@ -16,6 +17,13 @@ vi.mock('@vben/common-ui', () => ({
 
 vi.mock('#/adapter/form', () => ({
   useVbenForm: vi.fn(() => ([vi.fn(), {}])),
+  z: {
+    number: () => ({
+      int: () => ({
+        min: () => ({}),
+      }),
+    }),
+  },
 }));
 
 describe('DeptManagement', () => {

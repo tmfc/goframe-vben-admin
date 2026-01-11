@@ -8,6 +8,7 @@ import (
 	"backend/internal/consts"
 
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/gogf/gf/v2/util/gconv"
 )
 
 func parseRoles(raw any) []string {
@@ -85,7 +86,7 @@ func resolveTenantID(ctx context.Context) string {
 	if err != nil {
 		return defaultTenantID
 	}
-	tenantID, _ := claims["tenantId"].(string)
+	tenantID := gconv.String(claims["tenantId"])
 	if strings.TrimSpace(tenantID) == "" {
 		return defaultTenantID
 	}

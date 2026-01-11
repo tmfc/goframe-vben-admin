@@ -3,18 +3,16 @@ address = "0.0.0.0"
 port = 5666
 
 [database.default]
-# 测试专用数据库连接，确保与开发库隔离。
-# 例：pgsql:user:pass@tcp(127.0.0.1:5432)/gva_test?sslmode=disable
-link = ""
+link = "pgsql:gva:gva@tcp(127.0.0.1:5433)/gva_test?sslmode=disable"
 type = "pgsql"
-debug = true
+debug = false
 
 [casbin]
 model = "resource/casbin/model.conf"
 
 [auth]
-jwt_secret = ""
-refresh_secret = ""
+jwt_secret = "52de8beae9d1651da5e7edeb6084c1c46b8e4de345c6b70689d3cc2afcba0f61"
+refresh_secret = "61db19d70ab3c35efd57cac26d5f308f7bdf2dbc9142cc42bfc54f1216bed698"
 
 [upload]
 storage = "local"

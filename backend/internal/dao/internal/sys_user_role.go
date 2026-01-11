@@ -21,6 +21,7 @@ type SysUserRoleDao struct {
 
 // SysUserRoleColumns defines and stores column names for the table sys_user_role.
 type SysUserRoleColumns struct {
+	Id        string //
 	TenantId  string //
 	UserId    string //
 	RoleId    string //
@@ -30,6 +31,7 @@ type SysUserRoleColumns struct {
 
 // sysUserRoleColumns holds the columns for the table sys_user_role.
 var sysUserRoleColumns = SysUserRoleColumns{
+	Id:        "id",
 	TenantId:  "tenant_id",
 	UserId:    "user_id",
 	RoleId:    "role_id",

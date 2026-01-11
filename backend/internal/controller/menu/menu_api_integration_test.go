@@ -30,7 +30,7 @@ func TestMenuAPIEndpoints(t *testing.T) {
 	testutil.RequireDatabase(t)
 
 	ctx := context.WithValue(context.TODO(), consts.CtxKeyTenantID, consts.DefaultTenantID)
-	ensureTestTenant(t, ctx, "00000000-0000-0000-0000-000000000000")
+	ensureTestTenant(t, ctx, "1")
 
 	t.Cleanup(func() {
 		dao.SysMenu.Ctx(ctx).Unscoped().WhereLike(dao.SysMenu.Columns().Name, "ApiMenu%").Delete()
@@ -55,9 +55,9 @@ func TestMenuAPIEndpoints(t *testing.T) {
 
 		var createRes v1.CreateMenuRes
 		t.AssertNil(json.Unmarshal(createEnv.Data, &createRes))
-		t.AssertNE(createRes.Id, "")
+		t.AssertNE(createRes.Id, 0)
 
-		getContent := client.GetContent(ctx, fmt.Sprintf("/sys-menu/%s", createRes.Id))
+		getContent := client.GetContent(ctx, fmt.Sprintf("/sys-menu/%d", createRes.Id))
 		getEnv := decodeMenuEnvelope(t, getContent)
 		t.Assert(getEnv.Code, gcode.CodeOK.Code())
 
@@ -67,8 +67,8 @@ func TestMenuAPIEndpoints(t *testing.T) {
 		t.AssertNil(json.Unmarshal(getEnv.Data, &getRes))
 		t.Assert(getRes.Name, "ApiMenuRoot")
 
-		updatePayload := fmt.Sprintf(`{"id":"%s","name":"ApiMenuUpdated","path":"/api-menu-updated","component":"/api/menu/updated","type":"menu","status":1,"order":20}`, createRes.Id)
-		updateContent := client.PutContent(ctx, fmt.Sprintf("/sys-menu/%s", createRes.Id), updatePayload)
+		updatePayload := fmt.Sprintf(`{"id":%d,"name":"ApiMenuUpdated","path":"/api-menu-updated","component":"/api/menu/updated","type":"menu","status":1,"order":20}`, createRes.Id)
+		updateContent := client.PutContent(ctx, fmt.Sprintf("/sys-menu/%d", createRes.Id), updatePayload)
 		updateEnv := decodeMenuEnvelope(t, updateContent)
 		t.Assert(updateEnv.Code, gcode.CodeOK.Code())
 
@@ -84,11 +84,11 @@ func TestMenuAPIEndpoints(t *testing.T) {
 		t.AssertNil(json.Unmarshal(listEnv.Data, &listRes))
 		t.Assert(hasMenuName(listRes.List, "ApiMenuUpdated"), true)
 
-		deleteContent := client.DeleteContent(ctx, fmt.Sprintf("/sys-menu/%s", createRes.Id))
+		deleteContent := client.DeleteContent(ctx, fmt.Sprintf("/sys-menu/%d", createRes.Id))
 		deleteEnv := decodeMenuEnvelope(t, deleteContent)
 		t.Assert(deleteEnv.Code, gcode.CodeOK.Code())
 
-		missingContent := client.GetContent(ctx, fmt.Sprintf("/sys-menu/%s", createRes.Id))
+		missingContent := client.GetContent(ctx, fmt.Sprintf("/sys-menu/%d", createRes.Id))
 		missingEnv := decodeMenuEnvelope(t, missingContent)
 		t.Assert(missingEnv.Code, gcode.CodeNotFound.Code())
 	})
@@ -148,7 +148,7 @@ func TestMenuAPIValidation(t *testing.T) {
 	testutil.RequireDatabase(t)
 
 	ctx := context.WithValue(context.TODO(), consts.CtxKeyTenantID, consts.DefaultTenantID)
-	ensureTestTenant(t, ctx, "00000000-0000-0000-0000-000000000000")
+	ensureTestTenant(t, ctx, "1")
 
 	s := startMenuAPIServer(t)
 	client := g.Client().ContentJson()
@@ -172,4 +172,3 @@ func TestMenuAPIValidation(t *testing.T) {
 		t.AssertNE(updateEnv.Code, gcode.CodeOK.Code())
 	})
 }
-

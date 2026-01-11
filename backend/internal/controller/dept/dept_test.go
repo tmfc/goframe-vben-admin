@@ -33,7 +33,7 @@ func TestDeptController_CreateDept(t *testing.T) {
 		req := &v1.CreateDeptReq{
 			SysDeptCreateIn: model.SysDeptCreateIn{
 				Name:      "TestDept1",
-				ParentId:  "0",
+				ParentId:  0,
 				Status:    1,
 				Order:     1,
 				CreatorId: 1,
@@ -61,7 +61,7 @@ func TestDeptController_CreateDept(t *testing.T) {
 		reqInvalid := &v1.CreateDeptReq{
 			SysDeptCreateIn: model.SysDeptCreateIn{
 				Name:      "",
-				ParentId:  "0",
+				ParentId:  0,
 				Status:    1,
 				Order:     1,
 				CreatorId: 1,
@@ -76,7 +76,7 @@ func TestDeptController_CreateDept(t *testing.T) {
 		reqInvalidParent := &v1.CreateDeptReq{
 			SysDeptCreateIn: model.SysDeptCreateIn{
 				Name:      "TestDeptInvalidParent",
-				ParentId:  "00000000-0000-0000-0000-000000000999",
+				ParentId:  999999,
 				Status:    1,
 				Order:     1,
 				CreatorId: 1,
@@ -106,7 +106,7 @@ func TestDeptController_GetDept(t *testing.T) {
 		createReq := &v1.CreateDeptReq{
 			SysDeptCreateIn: model.SysDeptCreateIn{
 				Name:      "TestDeptGet",
-				ParentId:  "0",
+				ParentId:  0,
 				Status:    1,
 				Order:     1,
 				CreatorId: 1,
@@ -122,14 +122,14 @@ func TestDeptController_GetDept(t *testing.T) {
 		t.Assert(getRes.SysDeptGetOut.SysDept.Name, "TestDeptGet")
 
 		// Test case 2: Department not found
-		getReqNotFound := &v1.GetDeptReq{ID: "00000000-0000-0000-0000-000000000999"}
+		getReqNotFound := &v1.GetDeptReq{ID: 999999}
 		getResNotFound, err := ctrl.GetDept(ctx, getReqNotFound)
 		t.AssertNil(getResNotFound)
 		t.AssertNE(err, nil)
 		t.Assert(gerror.Code(err), gcode.CodeNotFound)
 
 		// Test case 3: Invalid ID (empty) - should fail validation
-		getReqInvalid := &v1.GetDeptReq{ID: ""}
+		getReqInvalid := &v1.GetDeptReq{ID: 0}
 		getResInvalid, err := ctrl.GetDept(ctx, getReqInvalid)
 		t.AssertNil(getResInvalid)
 		t.AssertNE(err, nil)
@@ -154,7 +154,7 @@ func TestDeptController_UpdateDept(t *testing.T) {
 		createReq := &v1.CreateDeptReq{
 			SysDeptCreateIn: model.SysDeptCreateIn{
 				Name:      "TestDeptUpdate",
-				ParentId:  "0",
+				ParentId:  0,
 				Status:    1,
 				Order:     1,
 				CreatorId: 1,
@@ -167,7 +167,7 @@ func TestDeptController_UpdateDept(t *testing.T) {
 			ID: createRes.Id,
 			SysDeptUpdateIn: model.SysDeptUpdateIn{
 				Name:       "TestDeptUpdated",
-				ParentId:   "0",
+				ParentId:   0,
 				Status:     0,
 				Order:      2,
 				ModifierId: 1,
@@ -184,10 +184,10 @@ func TestDeptController_UpdateDept(t *testing.T) {
 
 		// Test case 2: Update non-existent department
 		updateReqNotFound := &v1.UpdateDeptReq{
-			ID: "00000000-0000-0000-0000-000000000999",
+			ID: 999999,
 			SysDeptUpdateIn: model.SysDeptUpdateIn{
 				Name:       "NonExistentDept",
-				ParentId:   "0",
+				ParentId:   0,
 				Status:     1,
 				Order:      1,
 				ModifierId: 1,
@@ -203,7 +203,7 @@ func TestDeptController_UpdateDept(t *testing.T) {
 			ID: createRes.Id,
 			SysDeptUpdateIn: model.SysDeptUpdateIn{
 				Name:       "",
-				ParentId:   "0",
+				ParentId:   0,
 				Status:     1,
 				Order:      1,
 				ModifierId: 1,
@@ -249,7 +249,7 @@ func TestDeptController_DeleteDept(t *testing.T) {
 		createReq := &v1.CreateDeptReq{
 			SysDeptCreateIn: model.SysDeptCreateIn{
 				Name:      "TestDeptDelete",
-				ParentId:  "0",
+				ParentId:  0,
 				Status:    1,
 				Order:     1,
 				CreatorId: 1,
@@ -270,14 +270,14 @@ func TestDeptController_DeleteDept(t *testing.T) {
 		t.Assert(gerror.Code(err), gcode.CodeNotFound)
 
 		// Test case 2: Delete non-existent department
-		deleteReqNotFound := &v1.DeleteDeptReq{ID: "00000000-0000-0000-0000-000000000999"}
+		deleteReqNotFound := &v1.DeleteDeptReq{ID: 999999}
 		res, err = ctrl.DeleteDept(ctx, deleteReqNotFound)
 		t.AssertNil(res)
 		t.AssertNE(err, nil)
 		t.Assert(gerror.Code(err), gcode.CodeNotFound)
 
 		// Test case 3: Delete with invalid ID (empty) - should fail validation
-		deleteReqInvalid := &v1.DeleteDeptReq{ID: ""}
+		deleteReqInvalid := &v1.DeleteDeptReq{ID: 0}
 		res, err = ctrl.DeleteDept(ctx, deleteReqInvalid)
 		t.AssertNil(res)
 		t.AssertNE(err, nil)
@@ -289,7 +289,7 @@ func TestDeptController_DeleteDept(t *testing.T) {
 		parentReq := &v1.CreateDeptReq{
 			SysDeptCreateIn: model.SysDeptCreateIn{
 				Name:      "TestDeptParent",
-				ParentId:  "0",
+				ParentId:  0,
 				Status:    1,
 				Order:     1,
 				CreatorId: 1,
@@ -333,7 +333,7 @@ func TestDeptController_GetDeptList(t *testing.T) {
 		_, _ = ctrl.CreateDept(ctx, &v1.CreateDeptReq{
 			SysDeptCreateIn: model.SysDeptCreateIn{
 				Name:      "TestDeptList1",
-				ParentId:  "0",
+				ParentId:  0,
 				Status:    1,
 				Order:     1,
 				CreatorId: 1,
@@ -342,7 +342,7 @@ func TestDeptController_GetDeptList(t *testing.T) {
 		_, _ = ctrl.CreateDept(ctx, &v1.CreateDeptReq{
 			SysDeptCreateIn: model.SysDeptCreateIn{
 				Name:      "TestDeptList2",
-				ParentId:  "0",
+				ParentId:  0,
 				Status:    1,
 				Order:     2,
 				CreatorId: 1,
@@ -388,7 +388,7 @@ func TestDeptController_GetDeptTree(t *testing.T) {
 		parentRes, _ := ctrl.CreateDept(ctx, &v1.CreateDeptReq{
 			SysDeptCreateIn: model.SysDeptCreateIn{
 				Name:      "TestDeptTreeRoot",
-				ParentId:  "0",
+				ParentId:  0,
 				Status:    1,
 				Order:     1,
 				CreatorId: 1,
@@ -427,7 +427,7 @@ func TestDeptController_GetDeptTree(t *testing.T) {
 		inactiveRes, _ := ctrl.CreateDept(ctx, &v1.CreateDeptReq{
 			SysDeptCreateIn: model.SysDeptCreateIn{
 				Name:      "TestDeptInactive",
-				ParentId:  "0",
+				ParentId:  0,
 				Status:    0,
 				Order:     1,
 				CreatorId: 1,

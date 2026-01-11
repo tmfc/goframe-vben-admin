@@ -291,7 +291,7 @@ func TestSysPermission_DeletePermission(t *testing.T) {
 		menuId, err := Menu().CreateMenu(ctx, model.SysMenuCreateIn{
 			Name:           "TestMenuPermissionA",
 			Type:           "menu",
-			ParentId:       "0",
+			ParentId:       0,
 			Status:         1,
 			Order:          1,
 			PermissionCode: "perm:menu:test",

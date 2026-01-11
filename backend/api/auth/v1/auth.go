@@ -16,7 +16,7 @@ type LoginRes struct {
 	AccessToken  string   `json:"accessToken"`
 	RefreshToken string   `json:"refreshToken"`
 	UserInfo     struct { // Based on frontend's expected UserInfo
-		ID       string   `json:"id"`
+		ID       int64    `json:"id"`
 		Username string   `json:"username"`
 		RealName string   `json:"realName"`
 		Avatar   string   `json:"avatar"`

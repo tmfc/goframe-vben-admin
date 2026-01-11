@@ -10,9 +10,9 @@ import (
 
 // SysDept is the golang structure for table sys_dept.
 type SysDept struct {
-	Id         string      `json:"id"         orm:"id"          ` //
-	TenantId   string      `json:"tenantId"   orm:"tenant_id"   ` //
-	ParentId   string      `json:"parentId"   orm:"parent_id"   ` //
+	Id         int64       `json:"id"         orm:"id"          ` //
+	TenantId   int64       `json:"tenantId"   orm:"tenant_id"   ` //
+	ParentId   int64       `json:"parentId"   orm:"parent_id"   ` //
 	Name       string      `json:"name"       orm:"name"        ` //
 	Order      int         `json:"order"      orm:"order"       ` //
 	Status     int         `json:"status"     orm:"status"      ` //

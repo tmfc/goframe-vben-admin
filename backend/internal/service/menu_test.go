@@ -182,7 +182,7 @@ func TestMenu_CreateDataUsesOrderAndStringType(t *testing.T) {
 			Type:  "menu",
 			Order: 7,
 		}
-		data := buildMenuCreateData(ctx, in, "")
+		data := buildMenuCreateData(ctx, in, 0)
 		columns := dao.SysMenu.Columns()
 
 		t.Assert(data[columns.Type], in.Type)
@@ -195,13 +195,13 @@ func TestMenu_CreateDataUsesOrderAndStringType(t *testing.T) {
 func TestMenu_UpdateDataUsesOrderAndStringType(t *testing.T) {
 	gtest.C(t, func(t *gtest.T) {
 		in := model.SysMenuUpdateIn{
-			ID:    "1",
+			ID:    1,
 			Name:  "menu-name",
 			Path:  "/menu-path",
 			Type:  "catalog",
 			Order: 11,
 		}
-		data := buildMenuUpdateData(in, "")
+		data := buildMenuUpdateData(in, 0)
 		columns := dao.SysMenu.Columns()
 
 		t.Assert(data[columns.Type], in.Type)
@@ -346,7 +346,7 @@ func TestMenu_Validation(t *testing.T) {
 		t.AssertNE(err, nil)
 
 		// Test updating a menu with a missing name
-		err = Menu().UpdateMenu(ctx, model.SysMenuUpdateIn{ID: "some-id", Path: "/api-menu-updated", Type: "menu"})
+		err = Menu().UpdateMenu(ctx, model.SysMenuUpdateIn{ID: 999999, Path: "/api-menu-updated", Type: "menu"})
 		t.AssertNE(err, nil)
 	})
 }

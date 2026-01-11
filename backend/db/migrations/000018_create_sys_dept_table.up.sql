@@ -1,7 +1,7 @@
 CREATE TABLE sys_dept (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    tenant_id UUID NOT NULL REFERENCES sys_tenant(id),
-    parent_id UUID,
+    id BIGSERIAL PRIMARY KEY,
+    tenant_id BIGINT NOT NULL REFERENCES sys_tenant(id),
+    parent_id BIGINT,
     name VARCHAR(255) NOT NULL,
     "order" INT NOT NULL DEFAULT 0,
     status SMALLINT NOT NULL DEFAULT 1,

@@ -1,6 +1,6 @@
 CREATE TABLE sys_user (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    tenant_id UUID NOT NULL REFERENCES sys_tenant(id),
+    id BIGSERIAL PRIMARY KEY,
+    tenant_id BIGINT NOT NULL REFERENCES sys_tenant(id),
     username VARCHAR(64) NOT NULL,
     password VARCHAR(255) NOT NULL,
     salt VARCHAR(64) NOT NULL,

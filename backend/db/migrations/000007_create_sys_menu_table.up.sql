@@ -1,7 +1,7 @@
 CREATE TABLE sys_menu (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    tenant_id UUID NOT NULL REFERENCES sys_tenant(id),
-    parent_id UUID,
+    id BIGSERIAL PRIMARY KEY,
+    tenant_id BIGINT NOT NULL REFERENCES sys_tenant(id),
+    parent_id BIGINT,
     name VARCHAR(255) NOT NULL,
     path VARCHAR(255) NOT NULL,
     component VARCHAR(255),

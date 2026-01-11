@@ -11,12 +11,12 @@ type CreateDeptReq struct {
 }
 
 type CreateDeptRes struct {
-	Id string `json:"id"`
+	Id int64 `json:"id"`
 }
 
 type GetDeptReq struct {
 	g.Meta `path:"/sys-dept/{id}" method:"get" summary:"Retrieve a department by ID" tags:"System Department"`
-	ID     string `json:"id" v:"required#ID不能为空"`
+	ID     int64 `json:"id" v:"required#ID不能为空"`
 }
 
 type GetDeptRes struct {
@@ -25,7 +25,7 @@ type GetDeptRes struct {
 
 type UpdateDeptReq struct {
 	g.Meta `path:"/sys-dept/{id}" method:"put" summary:"Update a department by ID" tags:"System Department"`
-	ID     string `json:"id" v:"required#ID不能为空"`
+	ID     int64 `json:"id" v:"required#ID不能为空"`
 	model.SysDeptUpdateIn
 }
 
@@ -33,7 +33,7 @@ type UpdateDeptRes struct{}
 
 type DeleteDeptReq struct {
 	g.Meta `path:"/sys-dept/{id}" method:"delete" summary:"Delete a department by ID" tags:"System Department"`
-	ID     string `json:"id" v:"required#ID不能为空"`
+	ID     int64 `json:"id" v:"required#ID不能为空"`
 }
 
 type DeleteDeptRes struct{}

@@ -12,7 +12,7 @@
 - [x] Task: 1.3 替换现有代码中的树形逻辑 (e95d5c9)
     - 更新 `dept`, `role`, `user` 等模块，使用新的工具函数替换重复的内联逻辑。
     - 运行测试确保替换后功能未受影响。
-- [ ] Task: Conductor - User Manual Verification 'Foundations' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'Foundations' (Protocol in workflow.md)
 
 ## Phase 2: 图标选择器优化 (Icon Picker)
 本阶段专注于安全性和离线支持，确保图标选择器不再依赖外部服务。

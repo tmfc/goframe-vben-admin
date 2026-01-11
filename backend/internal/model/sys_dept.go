@@ -7,7 +7,7 @@ import (
 // SysDeptCreateIn is the input for creating a new department.
 type SysDeptCreateIn struct {
 	Name      string `json:"name" v:"required#名称不能为空"`
-	ParentId  string `json:"parentId"`
+	ParentId  int64  `json:"parentId"`
 	Status    int    `json:"status"`
 	Order     int    `json:"order"`
 	CreatorId int64  `json:"creatorId"`
@@ -20,11 +20,11 @@ type SysDeptGetOut struct {
 
 // SysDeptUpdateIn is the input for updating a department.
 type SysDeptUpdateIn struct {
-	ID        string `json:"id" v:"required#ID不能为空"`
-	Name      string `json:"name" v:"required#名称不能为空"`
-	ParentId  string `json:"parentId"`
-	Status    int    `json:"status"`
-	Order     int    `json:"order"`
+	ID         int64  `json:"id" v:"required#ID不能为空"`
+	Name       string `json:"name" v:"required#名称不能为空"`
+	ParentId   int64  `json:"parentId"`
+	Status     int    `json:"status"`
+	Order      int    `json:"order"`
 	ModifierId int64  `json:"modifierId"`
 }
 
@@ -39,9 +39,9 @@ type SysDeptGetListOut struct {
 }
 
 type SysDeptTreeOut struct {
-	Id       string          `json:"id"`
+	Id       int64           `json:"id"`
 	Name     string          `json:"name"`
-	ParentId string          `json:"parentId"`
+	ParentId int64           `json:"parentId"`
 	Status   int             `json:"status"`
 	Order    int             `json:"order"`
 	Children []*SysDeptTreeOut `json:"children,omitempty"`

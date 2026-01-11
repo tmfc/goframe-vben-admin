@@ -20,11 +20,12 @@ func TestRBACFlow_EndToEnd(t *testing.T) {
 	testutil.RequireDatabase(t)
 	baseCtx := context.TODO()
 
-	tenantID := "00000000-0000-0000-0000-000000001000"
+	tenantID := "1000"
 	roleName := "TestRoleE2E"
 	permPath := "/api/rbac/e2e"
 	method := "get"
-	userID := "550e8400-e29b-41d4-a716-446655441000"
+	userID := int64(5000)
+	userIDStr := gconv.String(userID)
 	ctx := context.WithValue(baseCtx, consts.CtxKeyTenantID, tenantID)
 
 	t.Cleanup(func() {
@@ -81,7 +82,7 @@ func TestRBACFlow_EndToEnd(t *testing.T) {
 		t.Assert(denied, false)
 
 		// 先写入 Casbin 分组策略，再从 casbin_rule 反查用户角色权限
-		_, err = enforcer.AddGroupingPolicy("u_"+userID, gconv.String(roleID), tenantID)
+		_, err = enforcer.AddGroupingPolicy("u_"+userIDStr, gconv.String(roleID), tenantID)
 		t.AssertNil(err)
 		// 持久化当前内存策略到 casbin_rule 表，供 GetPermissionsByUser 查询
 		t.AssertNil(enforcer.SavePolicy())
@@ -89,9 +90,9 @@ func TestRBACFlow_EndToEnd(t *testing.T) {
 		// 调试：打印当前 g 规则与 role_permission 记录，便于排查 PermissionIDs 为空的原因
 		gRules, _ := dao.CasbinRule.CtxNoTenant(ctx).
 			Where(dao.CasbinRule.Columns().Ptype, "g").
-			Where(dao.CasbinRule.Columns().V0, "u_"+userID).
+			Where(dao.CasbinRule.Columns().V0, "u_"+userIDStr).
 			All()
-		t.Logf("casbin g rules for user=%s: %+v", userID, gRules)
+		t.Logf("casbin g rules for user=%s: %+v", userIDStr, gRules)
 
 		rolePermRows, _ := dao.SysRolePermission.CtxNoTenant(ctx).
 			Where(dao.SysRolePermission.Columns().RoleId, roleID).
@@ -112,8 +113,8 @@ func TestRBACFlow_TenantIsolation(t *testing.T) {
 	roleName := "TestRoleTenant"
 	pathA := "/api/rbac/tenant-a"
 	pathB := "/api/rbac/tenant-b"
-	tenantA := "00000000-0000-0000-0000-000000001001"
-	tenantB := "00000000-0000-0000-0000-000000001002"
+	tenantA := "1001"
+	tenantB := "1002"
 	ctxA := context.WithValue(baseCtx, consts.CtxKeyTenantID, tenantA)
 	ctxB := context.WithValue(baseCtx, consts.CtxKeyTenantID, tenantB)
 
@@ -180,7 +181,7 @@ func BenchmarkSyncRoleToCasbinLargePermissions(b *testing.B) {
 	}
 	ctx := context.TODO()
 
-	tenantID := "00000000-0000-0000-0000-000000001010"
+	tenantID := "1010"
 	roleName := "BenchRoleCasbin"
 	permPrefix := "/api/rbac/bench/"
 

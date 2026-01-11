@@ -21,22 +21,24 @@ type SysRolePermissionDao struct {
 
 // SysRolePermissionColumns defines and stores column names for the table sys_role_permission.
 type SysRolePermissionColumns struct {
+	Id           string //
 	RoleId       string //
 	PermissionId string //
-	TenantId     string //
 	CreatedAt    string //
 	UpdatedAt    string //
 	Scope        string //
+	TenantId     string //
 }
 
 // sysRolePermissionColumns holds the columns for the table sys_role_permission.
 var sysRolePermissionColumns = SysRolePermissionColumns{
+	Id:           "id",
 	RoleId:       "role_id",
 	PermissionId: "permission_id",
-	TenantId:     "tenant_id",
 	CreatedAt:    "created_at",
 	UpdatedAt:    "updated_at",
 	Scope:        "scope",
+	TenantId:     "tenant_id",
 }
 
 // NewSysRolePermissionDao creates and returns a new DAO object for table data access.

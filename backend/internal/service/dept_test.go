@@ -20,7 +20,7 @@ func TestDept_CreateDept(t *testing.T) {
 	testutil.RequireDatabase(t)
 
 	ctx := context.WithValue(context.TODO(), consts.CtxKeyTenantID, consts.DefaultTenantID)
-	testTenantId := "00000000-0000-0000-0000-000000000000"
+	testTenantId := "1"
 
 	// Ensure tenant exists
 	existing, err := dao.SysTenant.Ctx(ctx).Where(dao.SysTenant.Columns().Id, testTenantId).One()
@@ -41,7 +41,7 @@ func TestDept_CreateDept(t *testing.T) {
 		// Test case 1: Create root department
 		in := model.SysDeptCreateIn{
 			Name:      "Engineering",
-			ParentId:  "0",
+			ParentId:  0,
 			Status:    1,
 			Order:     1,
 			CreatorId: 1,
@@ -59,7 +59,7 @@ func TestDept_CreateDept(t *testing.T) {
 		// First create parent
 		parentIn := model.SysDeptCreateIn{
 			Name:      "Parent Dept",
-			ParentId:  "0",
+			ParentId:  0,
 			Status:    1,
 			Order:     1,
 			CreatorId: 1,
@@ -89,7 +89,7 @@ func TestDept_CreateDept(t *testing.T) {
 		// Test case 3: Create department with invalid parent
 		in := model.SysDeptCreateIn{
 			Name:      "Invalid Parent Dept",
-			ParentId:  "00000000-0000-0000-0000-000000000999",
+			ParentId:  999999,
 			Status:    1,
 			Order:     1,
 			CreatorId: 1,
@@ -103,7 +103,7 @@ func TestDept_CreateDept(t *testing.T) {
 		// Test case 4: Create department with empty name
 		in := model.SysDeptCreateIn{
 			Name:      "",
-			ParentId:  "0",
+			ParentId:  0,
 			Status:    1,
 			Order:     1,
 			CreatorId: 1,
@@ -117,7 +117,7 @@ func TestDept_GetDept(t *testing.T) {
 	testutil.RequireDatabase(t)
 
 	ctx := context.WithValue(context.TODO(), consts.CtxKeyTenantID, consts.DefaultTenantID)
-	testTenantId := "00000000-0000-0000-0000-000000000000"
+	testTenantId := "1"
 
 	// Ensure tenant exists
 	existing, err := dao.SysTenant.Ctx(ctx).Where(dao.SysTenant.Columns().Id, testTenantId).One()
@@ -138,7 +138,7 @@ func TestDept_GetDept(t *testing.T) {
 		// Test case 1: Get existing department
 		in := model.SysDeptCreateIn{
 			Name:      "Test Dept",
-			ParentId:  "0",
+			ParentId:  0,
 			Status:    1,
 			Order:     1,
 			CreatorId: 1,
@@ -157,7 +157,7 @@ func TestDept_GetDept(t *testing.T) {
 
 	gtest.C(t, func(t *gtest.T) {
 		// Test case 2: Get non-existent department
-		_, err := Dept().GetDept(ctx, "99999")
+		_, err := Dept().GetDept(ctx, 99999)
 		t.AssertNE(err, nil)
 	})
 }
@@ -166,7 +166,7 @@ func TestDept_UpdateDept(t *testing.T) {
 	testutil.RequireDatabase(t)
 
 	ctx := context.WithValue(context.TODO(), consts.CtxKeyTenantID, consts.DefaultTenantID)
-	testTenantId := "00000000-0000-0000-0000-000000000000"
+	testTenantId := "1"
 
 	// Ensure tenant exists
 	existing, err := dao.SysTenant.Ctx(ctx).Where(dao.SysTenant.Columns().Id, testTenantId).One()
@@ -187,7 +187,7 @@ func TestDept_UpdateDept(t *testing.T) {
 		// Test case 1: Update department
 		in := model.SysDeptCreateIn{
 			Name:      "Original Name",
-			ParentId:  "0",
+			ParentId:  0,
 			Status:    1,
 			Order:     1,
 			CreatorId: 1,
@@ -198,7 +198,7 @@ func TestDept_UpdateDept(t *testing.T) {
 		updateIn := model.SysDeptUpdateIn{
 			ID:         id,
 			Name:       "Updated Name",
-			ParentId:   "0",
+			ParentId:   0,
 			Status:     1,
 			Order:      2,
 			ModifierId: 2,
@@ -220,7 +220,7 @@ func TestDept_UpdateDept(t *testing.T) {
 		// Test case 2: Update department with invalid parent
 		in := model.SysDeptCreateIn{
 			Name:      "Test Dept",
-			ParentId:  "0",
+			ParentId:  0,
 			Status:    1,
 			Order:     1,
 			CreatorId: 1,
@@ -231,7 +231,7 @@ func TestDept_UpdateDept(t *testing.T) {
 		updateIn := model.SysDeptUpdateIn{
 			ID:         id,
 			Name:       "Test Dept",
-			ParentId:   "99999",
+			ParentId:   99999,
 			Status:     1,
 			Order:      1,
 			ModifierId: 1,
@@ -247,7 +247,7 @@ func TestDept_UpdateDept(t *testing.T) {
 		// Test case 3: Update department to be its own parent
 		in := model.SysDeptCreateIn{
 			Name:      "Test Dept",
-			ParentId:  "0",
+			ParentId:  0,
 			Status:    1,
 			Order:     1,
 			CreatorId: 1,
@@ -273,9 +273,9 @@ func TestDept_UpdateDept(t *testing.T) {
 	gtest.C(t, func(t *gtest.T) {
 		// Test case 4: Update non-existent department
 		updateIn := model.SysDeptUpdateIn{
-			ID:         "99999",
+			ID:         99999,
 			Name:       "Non-existent",
-			ParentId:   "0",
+			ParentId:   0,
 			Status:     1,
 			Order:      1,
 			ModifierId: 1,
@@ -289,7 +289,7 @@ func TestDept_DeleteDept(t *testing.T) {
 	testutil.RequireDatabase(t)
 
 	ctx := context.WithValue(context.TODO(), consts.CtxKeyTenantID, consts.DefaultTenantID)
-	testTenantId := "00000000-0000-0000-0000-000000000000"
+	testTenantId := "1"
 
 	// Ensure tenant exists
 	existing, err := dao.SysTenant.Ctx(ctx).Where(dao.SysTenant.Columns().Id, testTenantId).One()
@@ -310,7 +310,7 @@ func TestDept_DeleteDept(t *testing.T) {
 		// Test case 1: Delete department
 		in := model.SysDeptCreateIn{
 			Name:      "To Delete",
-			ParentId:  "0",
+			ParentId:  0,
 			Status:    1,
 			Order:     1,
 			CreatorId: 1,
@@ -331,7 +331,7 @@ func TestDept_DeleteDept(t *testing.T) {
 		// Create parent
 		parentIn := model.SysDeptCreateIn{
 			Name:      "Parent",
-			ParentId:  "0",
+			ParentId:  0,
 			Status:    1,
 			Order:     1,
 			CreatorId: 1,
@@ -361,7 +361,7 @@ func TestDept_DeleteDept(t *testing.T) {
 
 	gtest.C(t, func(t *gtest.T) {
 		// Test case 3: Delete non-existent department
-		err := Dept().DeleteDept(ctx, "00000000-0000-0000-0000-000000000999")
+		err := Dept().DeleteDept(ctx, 999999)
 		t.AssertNE(err, nil)
 	})
 }
@@ -370,7 +370,7 @@ func TestDept_GetDeptList(t *testing.T) {
 	testutil.RequireDatabase(t)
 
 	ctx := context.WithValue(context.TODO(), consts.CtxKeyTenantID, consts.DefaultTenantID)
-	testTenantId := "00000000-0000-0000-0000-000000000000"
+	testTenantId := "1"
 
 	// Ensure tenant exists
 	existing, err := dao.SysTenant.Ctx(ctx).Where(dao.SysTenant.Columns().Id, testTenantId).One()
@@ -394,7 +394,7 @@ func TestDept_GetDeptList(t *testing.T) {
 		// Test case 1: Get all departments
 		in := model.SysDeptCreateIn{
 			Name:      "List Test 1",
-			ParentId:  "0",
+			ParentId:  0,
 			Status:    1,
 			Order:     1,
 			CreatorId: 1,
@@ -404,7 +404,7 @@ func TestDept_GetDeptList(t *testing.T) {
 
 		in2 := model.SysDeptCreateIn{
 			Name:      "List Test 2",
-			ParentId:  "0",
+			ParentId:  0,
 			Status:    1,
 			Order:     2,
 			CreatorId: 1,
@@ -425,7 +425,7 @@ func TestDept_GetDeptList(t *testing.T) {
 		// Test case 2: Filter by name
 		in := model.SysDeptCreateIn{
 			Name:      "Engineering",
-			ParentId:  "0",
+			ParentId:  0,
 			Status:    1,
 			Order:     1,
 			CreatorId: 1,
@@ -449,7 +449,7 @@ func TestDept_GetDeptList(t *testing.T) {
 		// Test case 3: Filter by status
 		in := model.SysDeptCreateIn{
 			Name:      "Active Dept",
-			ParentId:  "0",
+			ParentId:  0,
 			Status:    1,
 			Order:     1,
 			CreatorId: 1,
@@ -473,7 +473,7 @@ func TestDept_GetDeptTree(t *testing.T) {
 	testutil.RequireDatabase(t)
 
 	ctx := context.WithValue(context.TODO(), consts.CtxKeyTenantID, consts.DefaultTenantID)
-	testTenantId := "00000000-0000-0000-0000-000000000000"
+	testTenantId := "1"
 
 	// Ensure tenant exists
 	existing, err := dao.SysTenant.Ctx(ctx).Where(dao.SysTenant.Columns().Id, testTenantId).One()
@@ -498,7 +498,7 @@ func TestDept_GetDeptTree(t *testing.T) {
 		// Create root
 		rootIn := model.SysDeptCreateIn{
 			Name:      "Tree Test Root",
-			ParentId:  "0",
+			ParentId:  0,
 			Status:    1,
 			Order:     1,
 			CreatorId: 1,
@@ -543,7 +543,7 @@ func TestDept_GetDeptTree(t *testing.T) {
 		// Test case 2: Inactive departments should not appear in tree
 		in := model.SysDeptCreateIn{
 			Name:      "Inactive Dept",
-			ParentId:  "0",
+			ParentId:  0,
 			Status:    0,
 			Order:     1,
 			CreatorId: 1,

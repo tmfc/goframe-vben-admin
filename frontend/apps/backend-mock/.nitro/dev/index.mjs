@@ -2067,7 +2067,7 @@ function generateMockDataList$2(count) {
   const dataList = [];
   for (let i = 0; i < count; i++) {
     const dataItem = {
-      id: faker.string.uuid(),
+      id: faker.number.int({ min: 1e3, max: 999999 }),
       pid: 0,
       name: faker.commerce.department(),
       status: faker.helpers.arrayElement([0, 1]),
@@ -2080,7 +2080,7 @@ function generateMockDataList$2(count) {
       dataItem.children = Array.from(
         { length: faker.number.int({ min: 1, max: 5 }) },
         () => ({
-          id: faker.string.uuid(),
+          id: faker.number.int({ min: 1e3, max: 999999 }),
           pid: dataItem.id,
           name: faker.commerce.department(),
           status: faker.helpers.arrayElement([0, 1]),
@@ -2185,7 +2185,7 @@ function generateMockDataList$1(count) {
   const dataList = [];
   for (let i = 0; i < count; i++) {
     const dataItem = {
-      id: faker.string.uuid(),
+      id: faker.number.int({ min: 1e3, max: 999999 }),
       name: faker.commerce.product(),
       status: faker.helpers.arrayElement([0, 1]),
       createTime: formatterCN.format(
@@ -2222,7 +2222,7 @@ const list$2 = eventHandler(async (event) => {
   }
   if (id) {
     listData = listData.filter(
-      (item) => item.id.toLowerCase().includes(String(id).toLowerCase())
+      (item) => String(item.id).includes(String(id))
     );
   }
   if (remark) {
@@ -2254,7 +2254,7 @@ function generateMockDataList(count) {
   const dataList = [];
   for (let i = 0; i < count; i++) {
     const dataItem = {
-      id: faker.string.uuid(),
+      id: faker.number.int({ min: 1e3, max: 999999 }),
       imageUrl: faker.image.avatar(),
       imageUrl2: faker.image.avatar(),
       open: faker.datatype.boolean(),

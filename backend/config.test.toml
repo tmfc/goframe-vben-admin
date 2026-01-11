@@ -1,0 +1,31 @@
+[server]
+address = "0.0.0.0"
+port = 5666
+
+[database.default]
+# 测试专用数据库连接，确保与开发库隔离。
+# 例：pgsql:user:pass@tcp(127.0.0.1:5432)/gva_test?sslmode=disable
+link = "pgsql:gva:gva@tcp(127.0.0.1:5433)/gva_test?sslmode=disable"
+type = "pgsql"
+debug = true
+
+[casbin]
+model = "resource/casbin/model.conf"
+
+[auth]
+jwt_secret = "test_jwt_secret_for_testing_only_do_not_use_in_production"
+refresh_secret = "test_refresh_secret_for_testing_only_do_not_use_in_production"
+
+[upload]
+storage = "local"
+max_size_mb = 10
+local_dir = "resource/uploads"
+
+[upload.s3]
+endpoint = ""
+region = ""
+bucket = ""
+access_key = ""
+secret_key = ""
+use_ssl = true
+prefix = "uploads"

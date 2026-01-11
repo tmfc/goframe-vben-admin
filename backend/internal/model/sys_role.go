@@ -63,7 +63,7 @@ type SysRoleDeleteIn struct {
 
 // AssignRoleToUserIn is the input for assigning a role to a user.
 type AssignRoleToUserIn struct {
-	UserId    string `json:"userId" v:"required#用户ID不能为空"`
+	UserId    int64  `json:"userId" v:"required#用户ID不能为空"`
 	RoleId    uint   `json:"roleId" v:"required#角色ID不能为空"`
 	CreatedBy uint   `json:"createdBy"`
 }
@@ -75,8 +75,8 @@ type AssignRoleToUserOut struct {
 
 // RemoveRoleFromUserIn is the input for removing a role from a user.
 type RemoveRoleFromUserIn struct {
-	UserId string `json:"userId" v:"required#用户ID不能为空"`
-	RoleId uint   `json:"roleId" v:"required#角色ID不能为空"`
+	UserId int64 `json:"userId" v:"required#用户ID不能为空"`
+	RoleId uint  `json:"roleId" v:"required#角色ID不能为空"`
 }
 
 // RemoveRoleFromUserOut is the output for removing a role from a user.
@@ -86,7 +86,7 @@ type RemoveRoleFromUserOut struct {
 
 // GetUserRolesIn is the input for getting user's roles.
 type GetUserRolesIn struct {
-	UserId string `json:"userId" v:"required#用户ID不能为空"`
+	UserId int64 `json:"userId" v:"required#用户ID不能为空"`
 }
 
 // GetUserRolesOut is the output for getting user's roles.
@@ -96,7 +96,7 @@ type GetUserRolesOut struct {
 
 // AssignRolesToUserIn is the input for assigning multiple roles to a user.
 type AssignRolesToUserIn struct {
-	UserId    string `json:"userId" v:"required#用户ID不能为空"`
+	UserId    int64  `json:"userId" v:"required#用户ID不能为空"`
 	RoleIds   []uint `json:"roleIds" v:"required#角色ID列表不能为空"`
 	CreatedBy uint   `json:"createdBy"`
 }

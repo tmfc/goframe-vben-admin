@@ -10,6 +10,7 @@ import (
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
+	"github.com/gogf/gf/v2/util/gconv"
 )
 
 var publicPaths = map[string]struct{}{
@@ -40,8 +41,8 @@ func CasbinAuthz() ghttp.HandlerFunc {
 			return
 		}
 
-		userID, _ := claims["id"].(string)
-		if userID == "" {
+		userID := gconv.String(claims["id"])
+		if strings.TrimSpace(userID) == "" {
 			writeAuthError(r, gerror.NewCode(consts.ErrorCodeUnauthorized, "invalid token subject"), authLogContext{path: r.URL.Path, method: r.Method})
 			return
 		}
@@ -66,7 +67,7 @@ func CasbinAuthz() ghttp.HandlerFunc {
 			}
 		}
 
-		tenantID, _ := claims["tenantId"].(string)
+		tenantID := gconv.String(claims["tenantId"])
 		if isSuper {
 			headerTenant := strings.TrimSpace(r.Header.Get("X-TENANT-ID"))
 			if headerTenant != "" {
@@ -122,7 +123,7 @@ func authorizeCasbin(ctx context.Context, req authRequest) error {
 		return err
 	}
 
-	tenantID := entry.user.TenantId
+	tenantID := gconv.String(entry.user.TenantId)
 	if strings.TrimSpace(req.tenantID) != "" {
 		tenantID = req.tenantID
 	}

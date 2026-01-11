@@ -14,13 +14,13 @@ type CreateMenuReq struct {
 
 // CreateMenuRes defines the response structure for creating a new menu.
 type CreateMenuRes struct {
-	Id string `json:"id"`
+	Id int64 `json:"id"`
 }
 
 // GenerateButtonsReq defines the request structure for generating default buttons under a menu.
 type GenerateButtonsReq struct {
 	g.Meta `path:"/sys-menu/{id}/generate-buttons" method:"post" summary:"Generate default buttons for a menu" tags:"System Menu"`
-	Id     string `json:"id" in:"path" v:"required#菜单ID不能为空"`
+	Id     int64 `json:"id" in:"path" v:"min:1#菜单ID不能为空"`
 }
 
 // GenerateButtonsRes defines the response structure for generated buttons.
@@ -32,7 +32,7 @@ type GenerateButtonsRes struct {
 // GetMenuReq defines the request structure for retrieving a menu.
 type GetMenuReq struct {
 	g.Meta `path:"/sys-menu/{id}" method:"get" summary:"Retrieve a menu by ID" tags:"System Menu"`
-	ID     string `json:"id" v:"required#ID不能为空"`
+	ID     int64 `json:"id" v:"min:1#ID不能为空"`
 }
 
 // GetMenuRes defines the response structure for retrieving a menu.
@@ -43,7 +43,7 @@ type GetMenuRes struct {
 // UpdateMenuReq defines the request structure for updating a menu.
 type UpdateMenuReq struct {
 	g.Meta `path:"/sys-menu/{id}" method:"put" summary:"Update a menu by ID" tags:"System Menu"`
-	ID     string `json:"id" v:"required#ID不能为空"`
+	ID     int64 `json:"id" v:"min:1#ID不能为空"`
 	model.SysMenuUpdateIn
 }
 
@@ -53,7 +53,7 @@ type UpdateMenuRes struct{}
 // DeleteMenuReq defines the request structure for deleting a menu.
 type DeleteMenuReq struct {
 	g.Meta `path:"/sys-menu/{id}" method:"delete" summary:"Delete a menu by ID" tags:"System Menu"`
-	ID     string `json:"id" v:"required#ID不能为空"`
+	ID     int64 `json:"id" v:"min:1#ID不能为空"`
 }
 
 // DeleteMenuRes defines the response structure for deleting a menu.
@@ -81,8 +81,8 @@ type MenuAllReq struct {
 type MenuAllRes []*MenuItem
 
 type MenuItem struct {
-	Id        int         `json:"id"`
-	Pid       int         `json:"pid,omitempty"`
+	Id        int64       `json:"id"`
+	Pid       int64       `json:"pid,omitempty"`
 	Name      string      `json:"name"`
 	Path      string      `json:"path"`
 	Component string      `json:"component,omitempty"`

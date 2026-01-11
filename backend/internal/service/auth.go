@@ -14,6 +14,7 @@ import (
 
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/util/gconv"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -147,7 +148,7 @@ func (s *sAuth) Login(ctx context.Context, in v1.LoginReq) (out *v1.LoginRes, er
 		return nil, err
 	}
 
-	s.store.Add(refreshToken, user.Id)
+	s.store.Add(refreshToken, gconv.String(user.Id))
 	SetRefreshTokenCookie(ctx, refreshToken)
 
 	homePath := user.HomePath
@@ -159,7 +160,7 @@ func (s *sAuth) Login(ctx context.Context, in v1.LoginReq) (out *v1.LoginRes, er
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 		UserInfo: struct {
-			ID       string   `json:"id"`
+			ID       int64    `json:"id"`
 			Username string   `json:"username"`
 			RealName string   `json:"realName"`
 			Avatar   string   `json:"avatar"`
@@ -186,7 +187,7 @@ func (s *sAuth) CreateUserForTest(ctx context.Context, username, password string
 	_, err = dao.SysUser.Ctx(ctx).Data(g.Map{
 		dao.SysUser.Columns().Username: username,
 		dao.SysUser.Columns().Password: string(hashedPassword),
-		dao.SysUser.Columns().TenantId: "00000000-0000-0000-0000-000000000000",
+		dao.SysUser.Columns().TenantId: consts.DefaultTenantID,
 	}).Insert()
 	return err
 }
@@ -203,11 +204,12 @@ func (s *sAuth) RefreshToken(ctx context.Context, in v1.RefreshTokenReq) (out *v
 		return nil, err
 	}
 
-	userID, _ := claims["id"].(string)
-	if userID == "" {
+	userID := gconv.Int64(claims["id"])
+	if userID == 0 {
 		return nil, gerror.NewCode(consts.ErrorCodeUnauthorized, "invalid refresh token")
 	}
-	if !s.store.Valid(tokenStr, userID) {
+	userIDStr := gconv.String(userID)
+	if !s.store.Valid(tokenStr, userIDStr) {
 		return nil, gerror.NewCode(consts.ErrorCodeRefreshTokenInvalid, "invalid refresh token")
 	}
 
@@ -216,7 +218,7 @@ func (s *sAuth) RefreshToken(ctx context.Context, in v1.RefreshTokenReq) (out *v
 	if err != nil {
 		return nil, err
 	}
-	if user.Id == "" {
+	if user.Id == 0 {
 		return nil, gerror.NewCode(consts.ErrorCodeUserNotFound, "user not found")
 	}
 
@@ -229,7 +231,7 @@ func (s *sAuth) RefreshToken(ctx context.Context, in v1.RefreshTokenReq) (out *v
 		return nil, err
 	}
 
-	s.store.Replace(tokenStr, refreshToken, userID)
+	s.store.Replace(tokenStr, refreshToken, userIDStr)
 	SetRefreshTokenCookie(ctx, refreshToken)
 
 	out = &v1.RefreshTokenRes{
@@ -261,8 +263,8 @@ func (s *sAuth) GetAccessCodes(ctx context.Context, in v1.GetAccessCodesReq) (ou
 		return nil, err
 	}
 
-	userID, _ := claims["id"].(string)
-	if userID == "" {
+	userID := gconv.Int64(claims["id"])
+	if userID == 0 {
 		return nil, gerror.NewCode(consts.ErrorCodeUnauthorized, "invalid access token")
 	}
 
@@ -271,12 +273,12 @@ func (s *sAuth) GetAccessCodes(ctx context.Context, in v1.GetAccessCodesReq) (ou
 	if err != nil {
 		return nil, err
 	}
-	if user.Id == "" {
+	if user.Id == 0 {
 		return nil, gerror.NewCode(consts.ErrorCodeUserNotFound, "user not found")
 	}
 
 	roles := parseRoles(user.Roles)
-	codes, err := accessCodesFromCasbin(ctx, user.TenantId, roles)
+	codes, err := accessCodesFromCasbin(ctx, gconv.String(user.TenantId), roles)
 	if err != nil || len(codes) == 0 {
 		codes = buildAccessCodes(roles)
 	}

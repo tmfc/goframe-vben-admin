@@ -23,7 +23,7 @@ func TestAuth_Login(t *testing.T) {
 	ctx := context.TODO()
 	testUsername := "testuser"
 	testPassword := "testpassword"
-	testTenantId := "00000000-0000-0000-0000-000000000000"
+	testTenantId := "1"
 
 	// Clean up before test (hard delete to avoid soft-delete key conflicts).
 	dao.SysUser.Ctx(ctx).Unscoped().Where(dao.SysUser.Columns().Username, testUsername).Delete()
@@ -144,7 +144,7 @@ func TestAuth_RefreshToken(t *testing.T) {
 	ctx := context.TODO()
 	testUsername := "testuser_refresh"
 	testPassword := "testpassword_refresh"
-	testTenantId := "00000000-0000-0000-0000-000000000000"
+	testTenantId := "1"
 
 	// Clean up before test
 	dao.SysUser.Ctx(ctx).Unscoped().Where(dao.SysUser.Columns().Username, testUsername).Delete()
@@ -210,7 +210,7 @@ func TestAuth_Logout(t *testing.T) {
 	ctx := context.TODO()
 	testUsername := "testuser_logout"
 	testPassword := "testpassword_logout"
-	testTenantId := "00000000-0000-0000-0000-000000000000"
+	testTenantId := "1"
 
 	// Clean up before test
 	dao.SysUser.Ctx(ctx).Unscoped().Where(dao.SysUser.Columns().Username, testUsername).Delete()
@@ -270,7 +270,7 @@ func TestAuth_GetAccessCodes(t *testing.T) {
 	ctx := context.TODO()
 	testUsername := "testuser_codes"
 	testPassword := "testpassword_codes"
-	testTenantId := "00000000-0000-0000-0000-000000000000"
+	testTenantId := "1"
 
 	// Clean up before test
 	dao.SysUser.Ctx(ctx).Unscoped().Where(dao.SysUser.Columns().Username, testUsername).Delete()
@@ -336,7 +336,7 @@ func TestAuth_CreateUserForTest(t *testing.T) {
 	ctx := context.TODO()
 	testUsername := "testuser_create"
 	testPassword := "testpassword_create"
-	testTenantId := "00000000-0000-0000-0000-000000000000"
+	testTenantId := "1"
 
 	// Clean up before test
 	dao.SysUser.Ctx(ctx).Unscoped().Where(dao.SysUser.Columns().Username, testUsername).Delete()

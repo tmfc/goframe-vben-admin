@@ -4,7 +4,7 @@ Here are the proposed table structures for `sys_tenant` and `sys_user` in a tabu
 
 | Column Name | Data Type              | Constraints/Description                                      |
 | :---------- | :--------------------- | :----------------------------------------------------------- |
-| `id`        | UUID PRIMARY KEY       | Unique identifier for the tenant, primary key. Default: `gen_random_uuid()` |
+| `id`        | BIGSERIAL PRIMARY KEY  | Auto-incrementing tenant identifier.                         |
 | `name`      | VARCHAR(255) NOT NULL  | Name of the tenant.                                          |
 | `status`    | SMALLINT NOT NULL      | Tenant status (e.g., 1 for active, 0 for inactive). Default: 1 |
 | `created_at`| TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP | Timestamp for creation.                                      |
@@ -15,8 +15,8 @@ Here are the proposed table structures for `sys_tenant` and `sys_user` in a tabu
 
 | Column Name   | Data Type              | Constraints/Description                                      |
 | :------------ | :--------------------- | :----------------------------------------------------------- |
-| `id`          | UUID PRIMARY KEY       | Unique identifier for the user, primary key. Default: `gen_random_uuid()` |
-| `tenant_id`   | UUID NOT NULL          | Foreign key to `sys_tenant.id`, identifies the tenant this user belongs to. |
+| `id`          | BIGSERIAL PRIMARY KEY  | Auto-incrementing user identifier.                           |
+| `tenant_id`   | BIGINT NOT NULL        | Foreign key to `sys_tenant.id`, identifies the tenant this user belongs to. |
 | `username`    | VARCHAR(64) NOT NULL   | User's login username. **Unique per tenant.**                |
 | `password`    | VARCHAR(255) NOT NULL  | Hashed password.                                             |
 | `salt`        | VARCHAR(64) NOT NULL   | Salt for password hashing.                                   |

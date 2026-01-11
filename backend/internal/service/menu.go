@@ -43,12 +43,12 @@ func NewMenu() *sMenu {
 // IMenu defines the menu service interface.
 type IMenu interface {
 	All(ctx context.Context) (v1.MenuAllRes, error)
-	CreateMenu(ctx context.Context, in model.SysMenuCreateIn) (id string, err error)
-	GetMenu(ctx context.Context, id string) (out *model.SysMenuGetOut, err error)
+	CreateMenu(ctx context.Context, in model.SysMenuCreateIn) (id int64, err error)
+	GetMenu(ctx context.Context, id int64) (out *model.SysMenuGetOut, err error)
 	UpdateMenu(ctx context.Context, in model.SysMenuUpdateIn) (err error)
-	DeleteMenu(ctx context.Context, id string) (err error)
+	DeleteMenu(ctx context.Context, id int64) (err error)
 	GetMenuList(ctx context.Context, in model.SysMenuGetListIn) (out *model.SysMenuGetListOut, err error)
-	GenerateButtons(ctx context.Context, id string) (created, skipped int, err error)
+	GenerateButtons(ctx context.Context, id int64) (created, skipped int, err error)
 }
 
 type sMenu struct{}
@@ -63,37 +63,25 @@ func (s *sMenu) All(ctx context.Context) (v1.MenuAllRes, error) {
 }
 
 // CreateMenu creates a new menu.
-func (s *sMenu) CreateMenu(ctx context.Context, in model.SysMenuCreateIn) (id string, err error) {
+func (s *sMenu) CreateMenu(ctx context.Context, in model.SysMenuCreateIn) (id int64, err error) {
 	if err = g.Validator().Data(in).Run(ctx); err != nil {
-		return "", err
+		return 0, err
 	}
 
 	parentId := in.ParentId
-	if parentId == "0" {
-		parentId = ""
-	}
 
 	// 使用事务确保 menu 和 permission 的创建是原子操作
 	err = dao.SysMenu.Transaction(ctx, func(ctx context.Context, tx gdb.TX) error {
 		insertData := buildMenuCreateData(ctx, in, parentId)
-		_, err = tx.Model("sys_menu").Data(insertData).Insert()
+		result, err := tx.Model("sys_menu").Data(insertData).Insert()
 		if err != nil {
 			return err
 		}
-
-		var insertedMenu entity.SysMenu
-		query := tx.Model("sys_menu").
-			Where(dao.SysMenu.Columns().Name, in.Name).
-			OrderDesc(dao.SysMenu.Columns().CreatedAt).
-			Limit(1)
-		if parentId != "" {
-			query = query.Where(dao.SysMenu.Columns().ParentId, parentId)
-		} else {
-			query = query.WhereNull(dao.SysMenu.Columns().ParentId)
-		}
-		if err = query.Scan(&insertedMenu); err != nil {
+		lastID, err := result.LastInsertId()
+		if err != nil {
 			return err
 		}
+		id = lastID
 
 		// 如果提供了 permission_code，则自动创建对应的 Permission
 		if in.PermissionCode != "" {
@@ -118,7 +106,7 @@ func (s *sMenu) CreateMenu(ctx context.Context, in model.SysMenuCreateIn) (id st
 
 			// 查找父菜单对应的 permission，设置 ParentId 以保持同构
 			var parentPermissionId int64 = 0
-			if parentId != "" {
+			if parentId != 0 {
 				var parentMenu entity.SysMenu
 				err = tx.Model("sys_menu").Where(dao.SysMenu.Columns().Id, parentId).Scan(&parentMenu)
 				if err != nil {
@@ -149,7 +137,6 @@ func (s *sMenu) CreateMenu(ctx context.Context, in model.SysMenuCreateIn) (id st
 			}
 		}
 
-		id = insertedMenu.Id
 		return nil
 	})
 
@@ -157,14 +144,14 @@ func (s *sMenu) CreateMenu(ctx context.Context, in model.SysMenuCreateIn) (id st
 }
 
 // GetMenu retrieves a menu by ID.
-func (s *sMenu) GetMenu(ctx context.Context, id string) (out *model.SysMenuGetOut, err error) {
+func (s *sMenu) GetMenu(ctx context.Context, id int64) (out *model.SysMenuGetOut, err error) {
 	out = &model.SysMenuGetOut{}
 	err = dao.SysMenu.Ctx(ctx).Where(dao.SysMenu.Columns().Id, id).Scan(&out.SysMenu)
 	if err != nil {
 		return nil, err
 	}
 	if out.SysMenu == nil {
-		return nil, gerror.NewCodef(gcode.CodeNotFound, "Menu with ID %s not found", id)
+		return nil, gerror.NewCodef(gcode.CodeNotFound, "Menu with ID %d not found", id)
 	}
 	return out, nil
 }
@@ -185,9 +172,6 @@ func (s *sMenu) UpdateMenu(ctx context.Context, in model.SysMenuUpdateIn) (err e
 		}
 
 		parentId := in.ParentId
-		if parentId == "0" {
-			parentId = ""
-		}
 
 		_, err = tx.Model("sys_menu").Data(buildMenuUpdateData(in, parentId)).
 			Where(dao.SysMenu.Columns().Id, in.ID).Update()
@@ -209,7 +193,7 @@ func (s *sMenu) UpdateMenu(ctx context.Context, in model.SysMenuUpdateIn) (err e
 			if len(currentPerms) > 0 {
 				// 查找新的父菜单对应的 permission
 				var newParentPermissionId int64 = 0
-				if parentId != "" {
+				if parentId != 0 {
 					var parentMenu entity.SysMenu
 					err = tx.Model("sys_menu").Where(dao.SysMenu.Columns().Id, parentId).Scan(&parentMenu)
 					if err != nil {
@@ -247,7 +231,7 @@ func (s *sMenu) UpdateMenu(ctx context.Context, in model.SysMenuUpdateIn) (err e
 		// 处理 permission 的同步
 		// 查找父菜单对应的 permission，设置 ParentId 以保持同构
 		var parentPermissionId int64 = 0
-		if parentId != "" {
+		if parentId != 0 {
 			var parentMenu entity.SysMenu
 			err = tx.Model("sys_menu").Where(dao.SysMenu.Columns().Id, parentId).Scan(&parentMenu)
 			if err != nil {
@@ -353,7 +337,7 @@ func (s *sMenu) UpdateMenu(ctx context.Context, in model.SysMenuUpdateIn) (err e
 }
 
 // DeleteMenu deletes a menu by ID.
-func (s *sMenu) DeleteMenu(ctx context.Context, id string) (err error) {
+func (s *sMenu) DeleteMenu(ctx context.Context, id int64) (err error) {
 	// 使用事务确保 menu 和 permission 的删除是原子操作
 	err = dao.SysMenu.Transaction(ctx, func(ctx context.Context, tx gdb.TX) error {
 		// 获取要删除的 menu 信息
@@ -373,7 +357,7 @@ func (s *sMenu) DeleteMenu(ctx context.Context, id string) (err error) {
 		}
 
 		// 递归查找所有子菜单并收集它们的 permissions
-		var allMenuIdsToDelete []string
+		var allMenuIdsToDelete []int64
 		var allPermIdsToDelete []int64
 
 		err = collectChildMenusAndPermissions(ctx, tx, id, &allMenuIdsToDelete, &allPermIdsToDelete)
@@ -435,7 +419,7 @@ func (s *sMenu) GetMenuList(ctx context.Context, in model.SysMenuGetListIn) (out
 	return out, nil
 }
 
-func buildMenuCreateData(ctx context.Context, in model.SysMenuCreateIn, parentId string) g.Map {
+func buildMenuCreateData(ctx context.Context, in model.SysMenuCreateIn, parentId int64) g.Map {
 	columns := dao.SysMenu.Columns()
 	data := g.Map{
 		columns.Name:      in.Name,
@@ -453,13 +437,13 @@ func buildMenuCreateData(ctx context.Context, in model.SysMenuCreateIn, parentId
 	if in.PermissionCode != "" {
 		data[columns.PermissionCode] = in.PermissionCode
 	}
-	if parentId != "" {
+	if parentId != 0 {
 		data[columns.ParentId] = parentId
 	}
 	return data
 }
 
-func buildMenuUpdateData(in model.SysMenuUpdateIn, parentId string) g.Map {
+func buildMenuUpdateData(in model.SysMenuUpdateIn, parentId int64) g.Map {
 	columns := dao.SysMenu.Columns()
 	data := g.Map{
 		columns.Name:      in.Name,
@@ -476,7 +460,7 @@ func buildMenuUpdateData(in model.SysMenuUpdateIn, parentId string) g.Map {
 	if in.PermissionCode != "" {
 		data[columns.PermissionCode] = in.PermissionCode
 	}
-	if parentId != "" {
+	if parentId != 0 {
 		data[columns.ParentId] = parentId
 	}
 	return data
@@ -709,9 +693,9 @@ func filterMenuRoutes(items []*v1.MenuItem) v1.MenuAllRes {
 }
 
 type menuRecord struct {
-	Id             string `json:"id" orm:"id"`
-	TenantId       string `json:"tenantId" orm:"tenant_id"`
-	ParentId       string `json:"parentId" orm:"parent_id"`
+	Id             int64 `json:"id" orm:"id"`
+	TenantId       int64 `json:"tenantId" orm:"tenant_id"`
+	ParentId       int64 `json:"parentId" orm:"parent_id"`
 	Name           string `json:"name" orm:"name"`
 	Path           string `json:"path" orm:"path"`
 	Component      string `json:"component" orm:"component"`
@@ -739,11 +723,11 @@ func fetchMenuFromDB(ctx context.Context) (v1.MenuAllRes, error) {
 		return nil, nil
 	}
 
-	itemsByID := make(map[string]*v1.MenuItem, len(records))
+	itemsByID := make(map[int64]*v1.MenuItem, len(records))
 	for _, record := range records {
 		item := &v1.MenuItem{
-			Id:        0,
-			Pid:       0,
+			Id:        record.Id,
+			Pid:       record.ParentId,
 			Name:      record.Name,
 			Path:      record.Path,
 			Component: record.Component,
@@ -770,7 +754,7 @@ func fetchMenuFromDB(ctx context.Context) (v1.MenuAllRes, error) {
 	var roots []*v1.MenuItem
 	for _, record := range records {
 		item := itemsByID[record.Id]
-		if record.ParentId == "" {
+		if record.ParentId == 0 {
 			roots = append(roots, item)
 			continue
 		}
@@ -831,7 +815,7 @@ func permissionLookupName(menu entity.SysMenu) string {
 }
 
 // collectChildMenusAndPermissions 递归收集子菜单及其对应的 permissions
-func collectChildMenusAndPermissions(ctx context.Context, tx gdb.TX, parentId string, menuIds *[]string, permIds *[]int64) error {
+func collectChildMenusAndPermissions(ctx context.Context, tx gdb.TX, parentId int64, menuIds *[]int64, permIds *[]int64) error {
 	var childMenus []entity.SysMenu
 	err := tx.Model("sys_menu").Where(dao.SysMenu.Columns().ParentId, parentId).Scan(&childMenus)
 	if err != nil {
@@ -867,13 +851,13 @@ func collectChildMenusAndPermissions(ctx context.Context, tx gdb.TX, parentId st
 }
 
 // GenerateButtons generates default Create/Edit/Delete buttons under the given menu (if missing).
-func (s *sMenu) GenerateButtons(ctx context.Context, id string) (created, skipped int, err error) {
+func (s *sMenu) GenerateButtons(ctx context.Context, id int64) (created, skipped int, err error) {
 	var parentMenu entity.SysMenu
 	err = dao.SysMenu.Ctx(ctx).Where(dao.SysMenu.Columns().Id, id).Scan(&parentMenu)
 	if err != nil {
 		return 0, 0, err
 	}
-	if parentMenu.Id == "" {
+	if parentMenu.Id == 0 {
 		return 0, 0, gerror.NewCode(gcode.CodeNotFound, "menu not found")
 	}
 	if parentMenu.Type != "menu" {

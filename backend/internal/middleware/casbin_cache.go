@@ -56,7 +56,7 @@ func loadCachedUser(ctx context.Context, userID string) (cachedUser, error) {
 	if err := dao.SysUser.Ctx(ctx).Where(dao.SysUser.Columns().Id, userID).Scan(&user); err != nil {
 		return cachedUser{}, err
 	}
-	if user.Id == "" {
+	if user.Id == 0 {
 		return cachedUser{}, gerror.NewCode(consts.ErrorCodeUserNotFound, "user not found")
 	}
 

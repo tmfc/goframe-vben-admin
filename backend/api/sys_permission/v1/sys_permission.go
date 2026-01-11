@@ -51,7 +51,7 @@ type DeletePermissionRes struct{}
 // GetPermissionsByUserReq defines the request structure for retrieving permissions of a user.
 type GetPermissionsByUserReq struct {
 	g.Meta `path:"/sys-permission/by-user/{userId}" method:"get" summary:"Get permissions by user" tags:"System Permission"`
-	UserID string `json:"userId" v:"required#用户ID不能为空"`
+	UserID int64 `json:"userId" v:"required#用户ID不能为空"`
 }
 
 // GetPermissionsByUserRes defines the response structure for retrieving permissions of a user.

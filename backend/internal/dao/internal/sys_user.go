@@ -30,13 +30,13 @@ type SysUserColumns struct {
 	HomePath   string //
 	Status     string //
 	Roles      string //
-	ExtInfo    string //
 	CreatedAt  string //
 	UpdatedAt  string //
 	DeletedAt  string //
 	CreatorId  string //
 	ModifierId string //
 	DeptId     string //
+	ExtInfo    string //
 }
 
 // sysUserColumns holds the columns for the table sys_user.
@@ -50,13 +50,13 @@ var sysUserColumns = SysUserColumns{
 	HomePath:   "home_path",
 	Status:     "status",
 	Roles:      "roles",
-	ExtInfo:    "ext_info",
 	CreatedAt:  "created_at",
 	UpdatedAt:  "updated_at",
 	DeletedAt:  "deleted_at",
 	CreatorId:  "creator_id",
 	ModifierId: "modifier_id",
 	DeptId:     "dept_id",
+	ExtInfo:    "ext_info",
 }
 
 // NewSysUserDao creates and returns a new DAO object for table data access.

@@ -1,18 +1,20 @@
 package service
 
 import (
+	"context"
+	"encoding/json"
+	"strings"
+
 	v1 "backend/api/user/v1"
 	"backend/internal/consts"
 	"backend/internal/dao"
 	"backend/internal/model"
 	"backend/internal/model/entity"
-	"context"
-	"encoding/json"
-	"strings"
 
 	"github.com/gogf/gf/v2/errors/gcode"
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/util/gconv"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -45,10 +47,10 @@ func NewUser() *sUser {
 type IUser interface {
 	Info(ctx context.Context, token string) (res *v1.UserInfoRes, err error)
 	List(ctx context.Context, in model.UserListIn) (out *model.UserListOut, err error)
-	Get(ctx context.Context, id string) (out *model.UserListItem, err error)
-	Create(ctx context.Context, in model.UserCreateIn) (id string, err error)
+	Get(ctx context.Context, id int64) (out *model.UserListItem, err error)
+	Create(ctx context.Context, in model.UserCreateIn) (id int64, err error)
 	Update(ctx context.Context, in model.UserUpdateIn) error
-	Delete(ctx context.Context, id string) error
+	Delete(ctx context.Context, id int64) error
 }
 
 type sUser struct{}
@@ -60,17 +62,17 @@ func (s *sUser) Info(ctx context.Context, token string) (res *v1.UserInfoRes, er
 		return nil, err
 	}
 
-	id, _ := claims["id"].(string)
-	if id == "" {
+	userID := gconv.Int64(claims["id"])
+	if userID == 0 {
 		return nil, gerror.NewCode(consts.ErrorCodeUnauthorized, "user id not found in token")
 	}
 
 	var user entity.SysUser
-	err = dao.SysUser.Ctx(ctx).Where(dao.SysUser.Columns().Id, id).Scan(&user)
+	err = dao.SysUser.Ctx(ctx).Where(dao.SysUser.Columns().Id, userID).Scan(&user)
 	if err != nil {
 		return nil, err
 	}
-	if user.Id == "" {
+	if user.Id == 0 {
 		return nil, gerror.NewCode(consts.ErrorCodeUserNotFound, "user not found")
 	}
 
@@ -145,7 +147,7 @@ func (s *sUser) List(ctx context.Context, in model.UserListIn) (out *model.UserL
 }
 
 // Get returns a single user by id.
-func (s *sUser) Get(ctx context.Context, id string) (out *model.UserListItem, err error) {
+func (s *sUser) Get(ctx context.Context, id int64) (out *model.UserListItem, err error) {
 	out = &model.UserListItem{}
 	tenantID := resolveTenantID(ctx)
 	err = dao.SysUser.Ctx(ctx).
@@ -168,7 +170,7 @@ func (s *sUser) Get(ctx context.Context, id string) (out *model.UserListItem, er
 	if err != nil {
 		return nil, err
 	}
-	if out.Id == "" {
+	if out.Id == 0 {
 		return nil, gerror.NewCode(gcode.CodeNotFound)
 	}
 	out.ExtInfo = parseExtInfo(out.ExtInfo)
@@ -176,10 +178,10 @@ func (s *sUser) Get(ctx context.Context, id string) (out *model.UserListItem, er
 }
 
 // Create creates a new user.
-func (s *sUser) Create(ctx context.Context, in model.UserCreateIn) (id string, err error) {
+func (s *sUser) Create(ctx context.Context, in model.UserCreateIn) (id int64, err error) {
 	// Validate input
 	if err = g.Validator().Data(in).Run(ctx); err != nil {
-		return "", err
+		return 0, err
 	}
 	tenantID := resolveTenantID(ctx)
 	// Check if username already exists
@@ -188,15 +190,15 @@ func (s *sUser) Create(ctx context.Context, in model.UserCreateIn) (id string, e
 		Where(dao.SysUser.Columns().Username, in.Username).
 		Count()
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 	if count > 0 {
-		return "", gerror.NewCodef(gcode.CodeValidationFailed, "Username '%s' already exists", in.Username)
+		return 0, gerror.NewCodef(gcode.CodeValidationFailed, "Username '%s' already exists", in.Username)
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(in.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 
 	roles := strings.TrimSpace(in.Roles)
@@ -205,8 +207,12 @@ func (s *sUser) Create(ctx context.Context, in model.UserCreateIn) (id string, e
 	}
 
 	extInfoStr := marshalExtInfo(in.ExtInfo)
+	deptValue := any(in.DeptId)
+	if in.DeptId == 0 {
+		deptValue = nil
+	}
 
-	_, err = dao.SysUser.Ctx(ctx).Data(g.Map{
+	result, err := dao.SysUser.Ctx(ctx).Data(g.Map{
 		"tenant_id": tenantID,
 		"username":  in.Username,
 		"password":  string(hashedPassword),
@@ -216,23 +222,17 @@ func (s *sUser) Create(ctx context.Context, in model.UserCreateIn) (id string, e
 		"home_path": in.HomePath,
 		"avatar":    in.Avatar,
 		"ext_info":  extInfoStr,
-		"dept_id":   in.DeptId,
+		"dept_id":   deptValue,
 	}).Insert()
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 
-	// Query the inserted user to get the UUID
-	var user entity.SysUser
-	err = dao.SysUser.Ctx(ctx).
-		Where(dao.SysUser.Columns().TenantId, tenantID).
-		Where(dao.SysUser.Columns().Username, in.Username).
-		Scan(&user)
+	lastID, err := result.LastInsertId()
 	if err != nil {
-		return "", err
+		return 0, err
 	}
-
-	return user.Id, nil
+	return lastID, nil
 }
 
 // Update updates an existing user; if password is provided, re-hash it.
@@ -260,6 +260,10 @@ func (s *sUser) Update(ctx context.Context, in model.UserUpdateIn) error {
 	}
 
 	extInfoStr := marshalExtInfo(in.ExtInfo)
+	deptValue := any(in.DeptId)
+	if in.DeptId == 0 {
+		deptValue = nil
+	}
 
 	updateData := g.Map{
 		dao.SysUser.Columns().Username: in.Username,
@@ -269,7 +273,7 @@ func (s *sUser) Update(ctx context.Context, in model.UserUpdateIn) error {
 		dao.SysUser.Columns().HomePath: in.HomePath,
 		dao.SysUser.Columns().Avatar:   in.Avatar,
 		dao.SysUser.Columns().ExtInfo:  extInfoStr,
-		dao.SysUser.Columns().DeptId:   in.DeptId,
+		dao.SysUser.Columns().DeptId:   deptValue,
 	}
 	if in.Password != "" {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(in.Password), bcrypt.DefaultCost)
@@ -287,7 +291,7 @@ func (s *sUser) Update(ctx context.Context, in model.UserUpdateIn) error {
 }
 
 // Delete removes a user by id.
-func (s *sUser) Delete(ctx context.Context, id string) error {
+func (s *sUser) Delete(ctx context.Context, id int64) error {
 	tenantID := resolveTenantID(ctx)
 	_, err := dao.SysUser.Ctx(ctx).
 		Where(dao.SysUser.Columns().TenantId, tenantID).

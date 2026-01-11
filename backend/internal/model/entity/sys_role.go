@@ -19,5 +19,5 @@ type SysRole struct {
 	UpdatedAt   *gtime.Time `json:"updatedAt"   orm:"updated_at"  ` //
 	CreatorId   int64       `json:"creatorId"   orm:"creator_id"  ` //
 	ModifierId  int64       `json:"modifierId"  orm:"modifier_id" ` //
-	TenantId    string      `json:"tenantId"    orm:"tenant_id"   ` //
+	TenantId    int64       `json:"tenantId"    orm:"tenant_id"   ` //
 }

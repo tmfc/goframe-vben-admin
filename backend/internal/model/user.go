@@ -11,13 +11,13 @@ type UserCreateIn struct {
 	Roles    string         `json:"roles"`
 	HomePath string         `json:"homePath"`
 	Avatar   string         `json:"avatar"`
-	DeptId   string         `json:"deptId"`
+	DeptId   int64          `json:"deptId"`
 	ExtInfo  map[string]any `json:"extInfo"`
 }
 
 // UserUpdateIn is the input for updating a user.
 type UserUpdateIn struct {
-	ID       string         `json:"id" v:"required"`
+	ID       int64          `json:"id" v:"required"`
 	Username string         `json:"username" v:"required"`
 	Password string         `json:"password"`
 	RealName string         `json:"realName"`
@@ -25,7 +25,7 @@ type UserUpdateIn struct {
 	Roles    string         `json:"roles"`
 	HomePath string         `json:"homePath"`
 	Avatar   string         `json:"avatar"`
-	DeptId   string         `json:"deptId"`
+	DeptId   int64          `json:"deptId"`
 	ExtInfo  map[string]any `json:"extInfo"`
 }
 
@@ -38,7 +38,7 @@ type UserListIn struct {
 
 // UserListItem is a lightweight user representation for list responses.
 type UserListItem struct {
-	Id        string         `json:"id"`
+	Id        int64          `json:"id"`
 	Username  string         `json:"username"`
 	RealName  string         `json:"realName"`
 	Status    int            `json:"status"`
@@ -47,7 +47,7 @@ type UserListItem struct {
 	Avatar    string         `json:"avatar"`
 	CreatedAt *gtime.Time    `json:"createdAt"`
 	ExtInfo   map[string]any `json:"extInfo"`
-	DeptId    string         `json:"deptId"`
+	DeptId    int64          `json:"deptId"`
 }
 
 // UserListOut is the output for listing users.

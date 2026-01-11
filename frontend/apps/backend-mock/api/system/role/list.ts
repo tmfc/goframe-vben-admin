@@ -21,7 +21,7 @@ function generateMockDataList(count: number) {
 
   for (let i = 0; i < count; i++) {
     const dataItem: Record<string, any> = {
-      id: faker.string.uuid(),
+      id: faker.number.int({ min: 1000, max: 999999 }),
       name: faker.commerce.product(),
       status: faker.helpers.arrayElement([0, 1]),
       createTime: formatterCN.format(
@@ -63,7 +63,7 @@ export default eventHandler(async (event) => {
   }
   if (id) {
     listData = listData.filter((item) =>
-      item.id.toLowerCase().includes(String(id).toLowerCase()),
+      String(item.id).includes(String(id)),
     );
   }
   if (remark) {

@@ -67,7 +67,7 @@ type DeleteRoleRes struct{}
 type AssignUsersToRoleReq struct {
 	g.Meta    `path:"/sys-role/{id}/assign-users" method:"post" summary:"Assign users to role" tags:"System Role"`
 	ID        uint     `json:"id" v:"required#ID不能为空"`
-	UserIds   []string `json:"userIds" v:"required#用户ID列表不能为空"`
+	UserIds   []int64 `json:"userIds" v:"required#用户ID列表不能为空"`
 	CreatedBy uint     `json:"createdBy"`
 }
 
@@ -81,7 +81,7 @@ type AssignUsersToRoleRes struct {
 type RemoveUsersFromRoleReq struct {
 	g.Meta  `path:"/sys-role/{id}/remove-users" method:"post" summary:"Remove users from role" tags:"System Role"`
 	ID      uint     `json:"id" v:"required#ID不能为空"`
-	UserIds []string `json:"userIds" v:"required#用户ID列表不能为空"`
+	UserIds []int64 `json:"userIds" v:"required#用户ID列表不能为空"`
 }
 
 // RemoveUsersFromRoleRes defines the response structure for removing users from a role.

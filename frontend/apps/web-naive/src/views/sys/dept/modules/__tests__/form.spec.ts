@@ -9,6 +9,13 @@ vi.mock('@vben/common-ui', () => ({
 
 vi.mock('#/adapter/form', () => ({
   useVbenForm: vi.fn(() => ([vi.fn(), {}])),
+  z: {
+    number: () => ({
+      int: () => ({
+        min: () => ({}),
+      }),
+    }),
+  },
 }));
 
 describe('Department Form', () => {

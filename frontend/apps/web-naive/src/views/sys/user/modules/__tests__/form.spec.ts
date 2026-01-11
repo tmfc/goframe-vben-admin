@@ -48,6 +48,7 @@ describe('User Form', () => {
           NForm,
         },
         stubs: {
+          teleport: true,
           NButton: defineComponent({
             props: {
               onClick: Function,
@@ -148,6 +149,7 @@ describe('User Form', () => {
           NForm,
         },
         stubs: {
+          teleport: true,
           NButton: defineComponent({
             props: {
               onClick: Function,

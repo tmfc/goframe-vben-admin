@@ -30,6 +30,16 @@ migrate -path backend/db/migrations -database "postgres://gva:gva@127.0.0.1:5433
 
 连接字符串请按 `backend/config.toml` 调整。
 
+## 初始化数据（Seed）
+
+数据库迁移完成后，在 `backend/` 目录执行：
+
+```bash
+go run ./main.go seed
+```
+
+可通过 `--file` 指定自定义种子文件，默认读取 `backend/resource/seed/initial.json`。
+
 ## 运行后端测试
 
 在 `backend/` 目录执行：

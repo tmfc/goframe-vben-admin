@@ -33,36 +33,31 @@ func NewDept() *sDept {
 }
 
 type IDept interface {
-	CreateDept(ctx context.Context, in model.SysDeptCreateIn) (id string, err error)
-	GetDept(ctx context.Context, id string) (out *model.SysDeptGetOut, err error)
+	CreateDept(ctx context.Context, in model.SysDeptCreateIn) (id int64, err error)
+	GetDept(ctx context.Context, id int64) (out *model.SysDeptGetOut, err error)
 	UpdateDept(ctx context.Context, in model.SysDeptUpdateIn) (err error)
-	DeleteDept(ctx context.Context, id string) (err error)
+	DeleteDept(ctx context.Context, id int64) (err error)
 	GetDeptList(ctx context.Context, in model.SysDeptGetListIn) (out *model.SysDeptGetListOut, err error)
 	GetDeptTree(ctx context.Context) (out []*model.SysDeptTreeOut, err error)
 }
 
 type sDept struct{}
 
-func (s *sDept) CreateDept(ctx context.Context, in model.SysDeptCreateIn) (id string, err error) {
+func (s *sDept) CreateDept(ctx context.Context, in model.SysDeptCreateIn) (id int64, err error) {
 	if err = g.Validator().Data(in).Run(ctx); err != nil {
-		return "", err
+		return 0, err
 	}
 
-	// Prepare parent_id value (convert "0" to NULL for root departments)
 	parentId := in.ParentId
-	if parentId == "0" {
-		parentId = ""
-	}
-
-	if parentId != "" {
+	if parentId != 0 {
 		parentCount, err := dao.SysDept.Ctx(ctx).
 			Where(dao.SysDept.Columns().Id, parentId).
 			Count()
 		if err != nil {
-			return "", err
+			return 0, err
 		}
 		if parentCount == 0 {
-			return "", gerror.NewCodef(gcode.CodeValidationFailed, "Parent department with ID %s not found", parentId)
+			return 0, gerror.NewCodef(gcode.CodeValidationFailed, "Parent department with ID %d not found", parentId)
 		}
 	}
 
@@ -74,43 +69,30 @@ func (s *sDept) CreateDept(ctx context.Context, in model.SysDeptCreateIn) (id st
 		columns.CreatorId: in.CreatorId,
 		columns.TenantId:  resolveTenantID(ctx),
 	}
-	if parentId != "" {
+	if parentId != 0 {
 		insertData[columns.ParentId] = parentId
 	}
 
-	_, err = dao.SysDept.Ctx(ctx).Data(insertData).Insert()
+	result, err := dao.SysDept.Ctx(ctx).Data(insertData).Insert()
 
 	if err != nil {
-		return "", err
+		return 0, err
 	}
-
-	// For UUID columns, we need to retrieve the inserted record to get the ID
-	var insertedDept entity.SysDept
-	query := dao.SysDept.Ctx(ctx).
-		Where(dao.SysDept.Columns().Name, in.Name).
-		OrderDesc(dao.SysDept.Columns().CreatedAt).
-		Limit(1)
-	if parentId != "" {
-		query = query.Where(dao.SysDept.Columns().ParentId, parentId)
-	} else {
-		query = query.WhereNull(dao.SysDept.Columns().ParentId)
-	}
-	err = query.Scan(&insertedDept)
+	lastID, err := result.LastInsertId()
 	if err != nil {
-		return "", err
+		return 0, err
 	}
-
-	return insertedDept.Id, nil
+	return lastID, nil
 }
 
-func (s *sDept) GetDept(ctx context.Context, id string) (out *model.SysDeptGetOut, err error) {
+func (s *sDept) GetDept(ctx context.Context, id int64) (out *model.SysDeptGetOut, err error) {
 	out = &model.SysDeptGetOut{}
 	err = dao.SysDept.Ctx(ctx).Where(dao.SysDept.Columns().Id, id).Scan(&out.SysDept)
 	if err != nil {
 		return nil, err
 	}
-	if out.SysDept == nil {
-		return nil, gerror.NewCodef(gcode.CodeNotFound, "Department with ID %s not found", id)
+	if out.SysDept == nil || out.SysDept.Id == 0 {
+		return nil, gerror.NewCodef(gcode.CodeNotFound, "Department with ID %d not found", id)
 	}
 	return out, nil
 }
@@ -122,11 +104,7 @@ func (s *sDept) UpdateDept(ctx context.Context, in model.SysDeptUpdateIn) (err e
 
 	// Prepare parent_id value (convert "0" to NULL for root departments)
 	parentId := in.ParentId
-	if parentId == "0" {
-		parentId = ""
-	}
-
-	if parentId != "" {
+	if parentId != 0 {
 		if parentId == in.ID {
 			return gerror.NewCodef(gcode.CodeValidationFailed, "Department parent cannot be itself")
 		}
@@ -137,7 +115,7 @@ func (s *sDept) UpdateDept(ctx context.Context, in model.SysDeptUpdateIn) (err e
 			return err
 		}
 		if parentCount == 0 {
-			return gerror.NewCodef(gcode.CodeValidationFailed, "Parent department with ID %s not found", parentId)
+			return gerror.NewCodef(gcode.CodeValidationFailed, "Parent department with ID %d not found", parentId)
 		}
 	}
 
@@ -146,10 +124,10 @@ func (s *sDept) UpdateDept(ctx context.Context, in model.SysDeptUpdateIn) (err e
 		Where(dao.SysDept.Columns().Id, in.ID).
 		Scan(&existingDept)
 	if err != nil {
-		return gerror.NewCodef(gcode.CodeNotFound, "Department with ID %s not found", in.ID)
+		return gerror.NewCodef(gcode.CodeNotFound, "Department with ID %d not found", in.ID)
 	}
-	if existingDept.Id == "" {
-		return gerror.NewCodef(gcode.CodeNotFound, "Department with ID %s not found", in.ID)
+	if existingDept.Id == 0 {
+		return gerror.NewCodef(gcode.CodeNotFound, "Department with ID %d not found", in.ID)
 	}
 
 	columns := dao.SysDept.Columns()
@@ -159,7 +137,7 @@ func (s *sDept) UpdateDept(ctx context.Context, in model.SysDeptUpdateIn) (err e
 		columns.Order:      in.Order,
 		columns.ModifierId: in.ModifierId,
 	}
-	if parentId != "" {
+	if parentId != 0 {
 		updateData[columns.ParentId] = parentId
 	} else {
 		updateData[columns.ParentId] = nil
@@ -173,16 +151,16 @@ func (s *sDept) UpdateDept(ctx context.Context, in model.SysDeptUpdateIn) (err e
 	return err
 }
 
-func (s *sDept) DeleteDept(ctx context.Context, id string) (err error) {
+func (s *sDept) DeleteDept(ctx context.Context, id int64) (err error) {
 	var existingDept entity.SysDept
 	err = dao.SysDept.Ctx(ctx).
 		Where(dao.SysDept.Columns().Id, id).
 		Scan(&existingDept)
 	if err != nil {
-		return gerror.NewCodef(gcode.CodeNotFound, "Department with ID %s not found", id)
+		return gerror.NewCodef(gcode.CodeNotFound, "Department with ID %d not found", id)
 	}
-	if existingDept.Id == "" {
-		return gerror.NewCodef(gcode.CodeNotFound, "Department with ID %s not found", id)
+	if existingDept.Id == 0 {
+		return gerror.NewCodef(gcode.CodeNotFound, "Department with ID %d not found", id)
 	}
 
 	childCount, err := dao.SysDept.Ctx(ctx).
@@ -192,11 +170,18 @@ func (s *sDept) DeleteDept(ctx context.Context, id string) (err error) {
 		return err
 	}
 	if childCount > 0 {
-		return gerror.NewCodef(gcode.CodeValidationFailed, "Department with ID %s has child departments", id)
+		return gerror.NewCodef(gcode.CodeValidationFailed, "Department with ID %d has child departments", id)
 	}
 
-	// Skip user association check due to type mismatch between sys_dept.id (UUID) and sys_user.dept_id (bigint)
-	// This should be fixed in a future migration to align the data types
+	userCount, err := dao.SysUser.Ctx(ctx).
+		Where(dao.SysUser.Columns().DeptId, id).
+		Count()
+	if err != nil {
+		return err
+	}
+	if userCount > 0 {
+		return gerror.NewCodef(gcode.CodeValidationFailed, "Department with ID %d has users", id)
+	}
 
 	_, err = dao.SysDept.Ctx(ctx).
 		Where(dao.SysDept.Columns().Id, id).
@@ -243,7 +228,7 @@ func (s *sDept) GetDeptTree(ctx context.Context) (out []*model.SysDeptTreeOut, e
 		return []*model.SysDeptTreeOut{}, nil
 	}
 
-	deptMap := make(map[string]*model.SysDeptTreeOut)
+	deptMap := make(map[int64]*model.SysDeptTreeOut)
 	for _, dept := range allDepts {
 		deptMap[dept.Id] = &model.SysDeptTreeOut{
 			Id:       dept.Id,
@@ -257,7 +242,7 @@ func (s *sDept) GetDeptTree(ctx context.Context) (out []*model.SysDeptTreeOut, e
 	var roots []*model.SysDeptTreeOut
 	for _, dept := range allDepts {
 		item := deptMap[dept.Id]
-		if dept.ParentId == "" || dept.ParentId == "0" {
+		if dept.ParentId == 0 {
 			roots = append(roots, item)
 			continue
 		}

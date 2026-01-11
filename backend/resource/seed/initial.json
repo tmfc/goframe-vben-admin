@@ -1,0 +1,758 @@
+{
+  "tenants": [
+    {
+      "id": 1,
+      "name": "Default Tenant",
+      "status": 1
+    }
+  ],
+  "depts": [
+    {
+      "name": "Headquarters",
+      "order": 0,
+      "status": 1
+    }
+  ],
+  "roles": [
+    {
+      "name": "super",
+      "description": "Super administrator",
+      "status": 1
+    },
+    {
+      "name": "admin",
+      "description": "Administrator",
+      "status": 1
+    },
+    {
+      "name": "user",
+      "description": "Default user",
+      "status": 1
+    },
+    {
+      "name": "guest",
+      "description": "Guest user",
+      "status": 1
+    }
+  ],
+  "permissions": [
+    {
+      "name": "all",
+      "description": "All permissions",
+      "status": 1
+    },
+    {
+      "name": "System:Menu:List",
+      "description": "System menu list",
+      "status": 1
+    },
+    {
+      "name": "System:Menu:Create",
+      "description": "System menu create",
+      "status": 1
+    },
+    {
+      "name": "System:Menu:Edit",
+      "description": "System menu edit",
+      "status": 1
+    },
+    {
+      "name": "System:Menu:Delete",
+      "description": "System menu delete",
+      "status": 1
+    },
+    {
+      "name": "System:Dept:List",
+      "description": "System dept list",
+      "status": 1
+    },
+    {
+      "name": "System:Dept:Create",
+      "description": "System dept create",
+      "status": 1
+    },
+    {
+      "name": "System:Dept:Edit",
+      "description": "System dept edit",
+      "status": 1
+    },
+    {
+      "name": "System:Dept:Delete",
+      "description": "System dept delete",
+      "status": 1
+    },
+    {
+      "name": "System:User:List",
+      "description": "System user list",
+      "status": 1
+    },
+    {
+      "name": "System:User:Create",
+      "description": "System user create",
+      "status": 1
+    },
+    {
+      "name": "System:User:Edit",
+      "description": "System user edit",
+      "status": 1
+    },
+    {
+      "name": "System:User:Delete",
+      "description": "System user delete",
+      "status": 1
+    },
+    {
+      "name": "System:Permission:List",
+      "description": "System permission list",
+      "status": 1
+    },
+    {
+      "name": "System:Permission:Create",
+      "description": "System permission create",
+      "status": 1
+    },
+    {
+      "name": "System:Permission:Edit",
+      "description": "System permission edit",
+      "status": 1
+    },
+    {
+      "name": "System:Permission:Delete",
+      "description": "System permission delete",
+      "status": 1
+    },
+    {
+      "name": "System:Role:List",
+      "description": "System role list",
+      "status": 1
+    },
+    {
+      "name": "System:Role:Create",
+      "description": "System role create",
+      "status": 1
+    },
+    {
+      "name": "System:Role:Edit",
+      "description": "System role edit",
+      "status": 1
+    },
+    {
+      "name": "System:Role:Delete",
+      "description": "System role delete",
+      "status": 1
+    }
+  ],
+  "menus": [
+    {
+      "id": 2000000001,
+      "tenant_id": 1,
+      "parent_id": null,
+      "name": "Dashboard",
+      "path": "/dashboard",
+      "component": null,
+      "icon": "lucide:layout-dashboard",
+      "order": -1,
+      "type": "catalog",
+      "visible": 1,
+      "status": 1,
+      "permission_code": null,
+      "meta": {
+        "title": "page.dashboard.title",
+        "order": -1
+      }
+    },
+    {
+      "id": 2000000002,
+      "tenant_id": 1,
+      "parent_id": 2000000001,
+      "name": "Analytics",
+      "path": "/analytics",
+      "component": "/dashboard/analytics/index",
+      "icon": "lucide:area-chart",
+      "order": 0,
+      "type": "menu",
+      "visible": 1,
+      "status": 1,
+      "permission_code": null,
+      "meta": {
+        "title": "page.dashboard.analytics",
+        "affixTab": true
+      }
+    },
+    {
+      "id": 2000000003,
+      "tenant_id": 1,
+      "parent_id": 2000000001,
+      "name": "Workspace",
+      "path": "/workspace",
+      "component": "/dashboard/workspace/index",
+      "icon": "carbon:workspace",
+      "order": 1,
+      "type": "menu",
+      "visible": 1,
+      "status": 1,
+      "permission_code": null,
+      "meta": {
+        "title": "page.dashboard.workspace"
+      }
+    },
+    {
+      "id": 2000000004,
+      "tenant_id": 1,
+      "parent_id": null,
+      "name": "Demos",
+      "path": "/demos",
+      "component": null,
+      "icon": "ic:baseline-view-in-ar",
+      "order": 1000,
+      "type": "catalog",
+      "visible": 1,
+      "status": 1,
+      "permission_code": null,
+      "meta": {
+        "title": "demos.title",
+        "order": 1000,
+        "keepAlive": true
+      }
+    },
+    {
+      "id": 2000000005,
+      "tenant_id": 1,
+      "parent_id": 2000000004,
+      "name": "NaiveDemos",
+      "path": "/demos/naive",
+      "component": "/demos/naive/index",
+      "icon": null,
+      "order": 0,
+      "type": "menu",
+      "visible": 1,
+      "status": 1,
+      "permission_code": null,
+      "meta": {
+        "title": "demos.naive"
+      }
+    },
+    {
+      "id": 2000000006,
+      "tenant_id": 1,
+      "parent_id": 2000000004,
+      "name": "Table",
+      "path": "/demos/table",
+      "component": "/demos/table/index",
+      "icon": null,
+      "order": 1,
+      "type": "menu",
+      "visible": 1,
+      "status": 1,
+      "permission_code": null,
+      "meta": {
+        "title": "demos.table"
+      }
+    },
+    {
+      "id": 2000000007,
+      "tenant_id": 1,
+      "parent_id": 2000000004,
+      "name": "Form",
+      "path": "/demos/form",
+      "component": "/demos/form/basic",
+      "icon": null,
+      "order": 2,
+      "type": "menu",
+      "visible": 1,
+      "status": 1,
+      "permission_code": null,
+      "meta": {
+        "title": "demos.form"
+      }
+    },
+    {
+      "id": 2000000008,
+      "tenant_id": 1,
+      "parent_id": null,
+      "name": "About",
+      "path": "/about",
+      "component": "_core/about/index",
+      "icon": "lucide:copyright",
+      "order": 9999,
+      "type": "menu",
+      "visible": 1,
+      "status": 1,
+      "permission_code": null,
+      "meta": {
+        "title": "demos.vben.about",
+        "order": 9999
+      }
+    },
+    {
+      "id": 2000000100,
+      "tenant_id": 1,
+      "parent_id": null,
+      "name": "System",
+      "path": "/system",
+      "component": null,
+      "icon": "carbon:settings",
+      "order": 9997,
+      "type": "catalog",
+      "visible": 1,
+      "status": 1,
+      "permission_code": null,
+      "meta": {
+        "title": "system.title",
+        "order": 9997
+      }
+    },
+    {
+      "id": 2000000101,
+      "tenant_id": 1,
+      "parent_id": 2000000100,
+      "name": "SystemMenu",
+      "path": "/system/menu",
+      "component": "/sys/menu/index",
+      "icon": "carbon:menu",
+      "order": 0,
+      "type": "menu",
+      "visible": 1,
+      "status": 1,
+      "permission_code": "System:Menu:List",
+      "meta": {
+        "title": "system.menu.title"
+      }
+    },
+    {
+      "id": 2000000105,
+      "tenant_id": 1,
+      "parent_id": 2000000100,
+      "name": "SystemDept",
+      "path": "/system/dept",
+      "component": "/sys/dept/index",
+      "icon": "ant-design:cluster-outlined",
+      "order": 1,
+      "type": "menu",
+      "visible": 1,
+      "status": 1,
+      "permission_code": "System:Dept:List",
+      "meta": {
+        "title": "system.dept.title"
+      }
+    },
+    {
+      "id": 2000000108,
+      "tenant_id": 1,
+      "parent_id": 2000000105,
+      "name": "SystemDeptCreate",
+      "path": "/system/dept/create",
+      "component": null,
+      "icon": null,
+      "order": 0,
+      "type": "button",
+      "visible": 1,
+      "status": 1,
+      "permission_code": "System:Dept:Create",
+      "meta": {
+        "title": "common.create"
+      }
+    },
+    {
+      "id": 2000000109,
+      "tenant_id": 1,
+      "parent_id": 2000000105,
+      "name": "SystemDeptEdit",
+      "path": "/system/dept/edit",
+      "component": null,
+      "icon": null,
+      "order": 0,
+      "type": "button",
+      "visible": 1,
+      "status": 1,
+      "permission_code": "System:Dept:Edit",
+      "meta": {
+        "title": "common.edit"
+      }
+    },
+    {
+      "id": 2000000110,
+      "tenant_id": 1,
+      "parent_id": 2000000105,
+      "name": "SystemDeptDelete",
+      "path": "/system/dept/delete",
+      "component": null,
+      "icon": null,
+      "order": 0,
+      "type": "button",
+      "visible": 1,
+      "status": 1,
+      "permission_code": "System:Dept:Delete",
+      "meta": {
+        "title": "common.delete"
+      }
+    },
+    {
+      "id": 2000000106,
+      "tenant_id": 1,
+      "parent_id": 2000000100,
+      "name": "SystemUser",
+      "path": "/system/user",
+      "component": "/sys/user/index",
+      "icon": "ant-design:user-outlined",
+      "order": 2,
+      "type": "menu",
+      "visible": 1,
+      "status": 1,
+      "permission_code": "System:User:List",
+      "meta": {
+        "title": "system.user.title"
+      }
+    },
+    {
+      "id": 2000000111,
+      "tenant_id": 1,
+      "parent_id": 2000000106,
+      "name": "SystemUserCreate",
+      "path": "/system/user/create",
+      "component": null,
+      "icon": null,
+      "order": 0,
+      "type": "button",
+      "visible": 1,
+      "status": 1,
+      "permission_code": "System:User:Create",
+      "meta": {
+        "title": "common.create"
+      }
+    },
+    {
+      "id": 2000000112,
+      "tenant_id": 1,
+      "parent_id": 2000000106,
+      "name": "SystemUserEdit",
+      "path": "/system/user/edit",
+      "component": null,
+      "icon": null,
+      "order": 0,
+      "type": "button",
+      "visible": 1,
+      "status": 1,
+      "permission_code": "System:User:Edit",
+      "meta": {
+        "title": "common.edit"
+      }
+    },
+    {
+      "id": 2000000113,
+      "tenant_id": 1,
+      "parent_id": 2000000106,
+      "name": "SystemUserDelete",
+      "path": "/system/user/delete",
+      "component": null,
+      "icon": null,
+      "order": 0,
+      "type": "button",
+      "visible": 1,
+      "status": 1,
+      "permission_code": "System:User:Delete",
+      "meta": {
+        "title": "common.delete"
+      }
+    },
+    {
+      "id": 2000000107,
+      "tenant_id": 1,
+      "parent_id": 2000000100,
+      "name": "SystemPermission",
+      "path": "/system/permission",
+      "component": "/sys/permission/index",
+      "icon": "ant-design:safety-outlined",
+      "order": 3,
+      "type": "menu",
+      "visible": 1,
+      "status": 1,
+      "permission_code": "System:Permission:List",
+      "meta": {
+        "title": "system.permission.title"
+      }
+    },
+    {
+      "id": 2000000114,
+      "tenant_id": 1,
+      "parent_id": 2000000107,
+      "name": "SystemPermissionCreate",
+      "path": "/system/permission/create",
+      "component": null,
+      "icon": null,
+      "order": 0,
+      "type": "button",
+      "visible": 1,
+      "status": 1,
+      "permission_code": "System:Permission:Create",
+      "meta": {
+        "title": "common.create"
+      }
+    },
+    {
+      "id": 2000000115,
+      "tenant_id": 1,
+      "parent_id": 2000000107,
+      "name": "SystemPermissionEdit",
+      "path": "/system/permission/edit",
+      "component": null,
+      "icon": null,
+      "order": 0,
+      "type": "button",
+      "visible": 1,
+      "status": 1,
+      "permission_code": "System:Permission:Edit",
+      "meta": {
+        "title": "common.edit"
+      }
+    },
+    {
+      "id": 2000000116,
+      "tenant_id": 1,
+      "parent_id": 2000000107,
+      "name": "SystemPermissionDelete",
+      "path": "/system/permission/delete",
+      "component": null,
+      "icon": null,
+      "order": 0,
+      "type": "button",
+      "visible": 1,
+      "status": 1,
+      "permission_code": "System:Permission:Delete",
+      "meta": {
+        "title": "common.delete"
+      }
+    },
+    {
+      "id": 2000000117,
+      "tenant_id": 1,
+      "parent_id": 2000000100,
+      "name": "SystemRole",
+      "path": "/system/role",
+      "component": "/sys/role/index",
+      "icon": "ant-design:team-outlined",
+      "order": 4,
+      "type": "menu",
+      "visible": 1,
+      "status": 1,
+      "permission_code": "System:Role:List",
+      "meta": {
+        "title": "system.role.title"
+      }
+    },
+    {
+      "id": 2000000118,
+      "tenant_id": 1,
+      "parent_id": 2000000117,
+      "name": "SystemRoleCreate",
+      "path": "/system/role/create",
+      "component": null,
+      "icon": null,
+      "order": 0,
+      "type": "button",
+      "visible": 1,
+      "status": 1,
+      "permission_code": "System:Role:Create",
+      "meta": {
+        "title": "common.create"
+      }
+    },
+    {
+      "id": 2000000119,
+      "tenant_id": 1,
+      "parent_id": 2000000117,
+      "name": "SystemRoleEdit",
+      "path": "/system/role/edit",
+      "component": null,
+      "icon": null,
+      "order": 0,
+      "type": "button",
+      "visible": 1,
+      "status": 1,
+      "permission_code": "System:Role:Edit",
+      "meta": {
+        "title": "common.edit"
+      }
+    },
+    {
+      "id": 2000000120,
+      "tenant_id": 1,
+      "parent_id": 2000000117,
+      "name": "SystemRoleDelete",
+      "path": "/system/role/delete",
+      "component": null,
+      "icon": null,
+      "order": 0,
+      "type": "button",
+      "visible": 1,
+      "status": 1,
+      "permission_code": "System:Role:Delete",
+      "meta": {
+        "title": "common.delete"
+      }
+    },
+    {
+      "id": 2000000102,
+      "tenant_id": 1,
+      "parent_id": 2000000101,
+      "name": "SystemMenuCreate",
+      "path": "/system/menu/create",
+      "component": null,
+      "icon": null,
+      "order": 0,
+      "type": "button",
+      "visible": 1,
+      "status": 1,
+      "permission_code": "System:Menu:Create",
+      "meta": {
+        "title": "common.create"
+      }
+    },
+    {
+      "id": 2000000103,
+      "tenant_id": 1,
+      "parent_id": 2000000101,
+      "name": "SystemMenuEdit",
+      "path": "/system/menu/edit",
+      "component": null,
+      "icon": null,
+      "order": 0,
+      "type": "button",
+      "visible": 1,
+      "status": 1,
+      "permission_code": "System:Menu:Edit",
+      "meta": {
+        "title": "common.edit"
+      }
+    },
+    {
+      "id": 2000000104,
+      "tenant_id": 1,
+      "parent_id": 2000000101,
+      "name": "SystemMenuDelete",
+      "path": "/system/menu/delete",
+      "component": null,
+      "icon": null,
+      "order": 0,
+      "type": "button",
+      "visible": 1,
+      "status": 1,
+      "permission_code": "System:Menu:Delete",
+      "meta": {
+        "title": "common.delete"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "vben",
+      "password_hash": "$2a$10$Nhe5dVZhZ3lcVzWH2bvOT.rS95QSk1PCBqzy7FSewXU7GiKiK3mlW",
+      "real_name": "Vben Super Admin",
+      "roles": [
+        "super"
+      ],
+      "home_path": "/dashboard",
+      "status": 1,
+      "dept_name": "Headquarters"
+    }
+  ],
+  "role_permissions": [
+    {
+      "role": "super",
+      "permission": "all"
+    },
+    {
+      "role": "admin",
+      "permission": "System:Menu:List"
+    },
+    {
+      "role": "admin",
+      "permission": "System:Menu:Edit"
+    },
+    {
+      "role": "admin",
+      "permission": "System:Dept:List"
+    },
+    {
+      "role": "admin",
+      "permission": "System:Dept:Edit"
+    },
+    {
+      "role": "admin",
+      "permission": "System:User:List"
+    },
+    {
+      "role": "admin",
+      "permission": "System:User:Edit"
+    },
+    {
+      "role": "admin",
+      "permission": "System:Permission:List"
+    },
+    {
+      "role": "admin",
+      "permission": "System:Permission:Edit"
+    },
+    {
+      "role": "admin",
+      "permission": "System:Role:List"
+    },
+    {
+      "role": "admin",
+      "permission": "System:Role:Edit"
+    },
+    {
+      "role": "user",
+      "permission": "System:Menu:List"
+    },
+    {
+      "role": "user",
+      "permission": "System:Dept:List"
+    },
+    {
+      "role": "user",
+      "permission": "System:User:List"
+    },
+    {
+      "role": "user",
+      "permission": "System:Permission:List"
+    },
+    {
+      "role": "user",
+      "permission": "System:Role:List"
+    },
+    {
+      "role": "guest",
+      "permission": "System:Menu:List"
+    }
+  ],
+  "user_roles": [
+    {
+      "username": "vben",
+      "role": "super"
+    }
+  ],
+  "casbin_rules": [
+    {
+      "ptype": "p",
+      "v0": "super",
+      "v1": "1",
+      "v2": "*",
+      "v3": "*"
+    },
+    {
+      "ptype": "p",
+      "v0": "admin",
+      "v1": "1",
+      "v2": "*",
+      "v3": "*"
+    },
+    {
+      "ptype": "p",
+      "v0": "staff",
+      "v1": "1",
+      "v2": "*",
+      "v3": "*"
+    }
+  ]
+}

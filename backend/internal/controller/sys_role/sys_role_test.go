@@ -256,11 +256,11 @@ func TestSysRoleController_AssignAndRemoveUsers(t *testing.T) {
 	testutil.RequireDatabase(t)
 
 	ctx := context.TODO()
-	userID1 := "550e8400-e29b-41d4-a716-446655440010"
-	userID2 := "550e8400-e29b-41d4-a716-446655440011"
+	userID1 := int64(4010)
+	userID2 := int64(4011)
 
 	t.Cleanup(func() {
-		dao.SysUserRole.Ctx(ctx).Unscoped().WhereIn(dao.SysUserRole.Columns().UserId, []string{userID1, userID2}).Delete()
+		dao.SysUserRole.Ctx(ctx).Unscoped().WhereIn(dao.SysUserRole.Columns().UserId, []int64{userID1, userID2}).Delete()
 		dao.SysUser.Ctx(ctx).Unscoped().WhereLike(dao.SysUser.Columns().Username, "TestRoleAssignUsers%").Delete()
 		dao.SysRole.Ctx(ctx).Unscoped().WhereLike(dao.SysRole.Columns().Name, "TestRoleAssignUsers%").Delete()
 	})
@@ -270,7 +270,7 @@ func TestSysRoleController_AssignAndRemoveUsers(t *testing.T) {
 	gtest.C(t, func(t *gtest.T) {
 		_, err := dao.SysUser.Ctx(ctx).Data(g.Map{
 			dao.SysUser.Columns().Id:       userID1,
-			dao.SysUser.Columns().TenantId: "00000000-0000-0000-0000-000000000000",
+			dao.SysUser.Columns().TenantId: "1",
 			dao.SysUser.Columns().Username: "TestRoleAssignUsers1",
 			dao.SysUser.Columns().Password: "password123",
 			dao.SysUser.Columns().RealName: "Test User 1",
@@ -280,7 +280,7 @@ func TestSysRoleController_AssignAndRemoveUsers(t *testing.T) {
 
 		_, err = dao.SysUser.Ctx(ctx).Data(g.Map{
 			dao.SysUser.Columns().Id:       userID2,
-			dao.SysUser.Columns().TenantId: "00000000-0000-0000-0000-000000000000",
+			dao.SysUser.Columns().TenantId: "1",
 			dao.SysUser.Columns().Username: "TestRoleAssignUsers2",
 			dao.SysUser.Columns().Password: "password123",
 			dao.SysUser.Columns().RealName: "Test User 2",
@@ -300,7 +300,7 @@ func TestSysRoleController_AssignAndRemoveUsers(t *testing.T) {
 
 		assignRes, err := ctrl.AssignUsersToRole(ctx, &v1.AssignUsersToRoleReq{
 			ID:        roleRes.Id,
-			UserIds:   []string{userID1, userID2},
+			UserIds:   []int64{userID1, userID2},
 			CreatedBy: 1,
 		})
 		t.AssertNil(err)
@@ -308,21 +308,21 @@ func TestSysRoleController_AssignAndRemoveUsers(t *testing.T) {
 
 		count, err := dao.SysUserRole.Ctx(ctx).
 			Where(dao.SysUserRole.Columns().RoleId, roleRes.Id).
-			WhereIn(dao.SysUserRole.Columns().UserId, []string{userID1, userID2}).
+			WhereIn(dao.SysUserRole.Columns().UserId, []int64{userID1, userID2}).
 			Count()
 		t.AssertNil(err)
 		t.Assert(count, 2)
 
 		removeRes, err := ctrl.RemoveUsersFromRole(ctx, &v1.RemoveUsersFromRoleReq{
 			ID:      roleRes.Id,
-			UserIds: []string{userID1, userID2},
+			UserIds: []int64{userID1, userID2},
 		})
 		t.AssertNil(err)
 		t.Assert(removeRes.Success, true)
 
 		count, err = dao.SysUserRole.Ctx(ctx).
 			Where(dao.SysUserRole.Columns().RoleId, roleRes.Id).
-			WhereIn(dao.SysUserRole.Columns().UserId, []string{userID1, userID2}).
+			WhereIn(dao.SysUserRole.Columns().UserId, []int64{userID1, userID2}).
 			Count()
 		t.AssertNil(err)
 		t.Assert(count, 0)
@@ -333,11 +333,11 @@ func TestSysRoleController_GetRoleUsers(t *testing.T) {
 	testutil.RequireDatabase(t)
 
 	ctx := context.TODO()
-	userID1 := "550e8400-e29b-41d4-a716-446655440012"
-	userID2 := "550e8400-e29b-41d4-a716-446655440013"
+	userID1 := int64(4012)
+	userID2 := int64(4013)
 
 	t.Cleanup(func() {
-		dao.SysUserRole.Ctx(ctx).Unscoped().WhereIn(dao.SysUserRole.Columns().UserId, []string{userID1, userID2}).Delete()
+		dao.SysUserRole.Ctx(ctx).Unscoped().WhereIn(dao.SysUserRole.Columns().UserId, []int64{userID1, userID2}).Delete()
 		dao.SysUser.Ctx(ctx).Unscoped().WhereLike(dao.SysUser.Columns().Username, "TestRoleGetUsers%").Delete()
 		dao.SysRole.Ctx(ctx).Unscoped().WhereLike(dao.SysRole.Columns().Name, "TestRoleGetUsers%").Delete()
 	})
@@ -347,7 +347,7 @@ func TestSysRoleController_GetRoleUsers(t *testing.T) {
 	gtest.C(t, func(t *gtest.T) {
 		_, err := dao.SysUser.Ctx(ctx).Data(g.Map{
 			dao.SysUser.Columns().Id:       userID1,
-			dao.SysUser.Columns().TenantId: "00000000-0000-0000-0000-000000000000",
+			dao.SysUser.Columns().TenantId: "1",
 			dao.SysUser.Columns().Username: "TestRoleGetUsers1",
 			dao.SysUser.Columns().Password: "password123",
 			dao.SysUser.Columns().RealName: "Test User 1",
@@ -357,7 +357,7 @@ func TestSysRoleController_GetRoleUsers(t *testing.T) {
 
 		_, err = dao.SysUser.Ctx(ctx).Data(g.Map{
 			dao.SysUser.Columns().Id:       userID2,
-			dao.SysUser.Columns().TenantId: "00000000-0000-0000-0000-000000000000",
+			dao.SysUser.Columns().TenantId: "1",
 			dao.SysUser.Columns().Username: "TestRoleGetUsers2",
 			dao.SysUser.Columns().Password: "password123",
 			dao.SysUser.Columns().RealName: "Test User 2",
@@ -377,7 +377,7 @@ func TestSysRoleController_GetRoleUsers(t *testing.T) {
 
 		_, err = ctrl.AssignUsersToRole(ctx, &v1.AssignUsersToRoleReq{
 			ID:      roleRes.Id,
-			UserIds: []string{userID1, userID2},
+			UserIds: []int64{userID1, userID2},
 		})
 		t.AssertNil(err)
 
@@ -385,7 +385,7 @@ func TestSysRoleController_GetRoleUsers(t *testing.T) {
 		t.AssertNil(err)
 		t.Assert(len(usersRes.Users), 2)
 
-		userIDs := map[string]bool{}
+		userIDs := map[int64]bool{}
 		for _, user := range usersRes.Users {
 			userIDs[user.Id] = true
 		}

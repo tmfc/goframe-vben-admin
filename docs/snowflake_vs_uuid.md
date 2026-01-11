@@ -50,16 +50,16 @@ So, should you use a Snowflake-like algorithm?
 **The case for Snowflake:**
 If you anticipate having a very high volume of data where query performance for recent records is critical, the time-sortable nature of Snowflake IDs is a huge benefit. An index on a Snowflake ID is effectively an index on the creation time, which can make queries like "find all users who signed up in the last 24 hours" very fast.
 
-**The case for UUIDs:**
-For most applications, including a multi-tenant SaaS platform that is just starting, the **simplicity and coordination-free nature of UUIDs** is a massive advantage.
+**The case for BIGINT auto-increment:**
+For most applications, including a multi-tenant SaaS platform that is just starting, the **simplicity of database-managed sequences** is a massive advantage.
 *   You don't need to build or manage a worker ID assignment system.
-*   PostgreSQL has a native `UUID` type, which is highly optimized. You can even set it to generate UUIDs automatically at the database level (`gen_random_uuid()`).
-*   The security benefit of having unguessable IDs is significant for a SaaS platform.
+*   PostgreSQL sequences are fast and reliable, and `BIGINT` keeps indexes compact.
+*   Operationally simple for joins, pagination, and ordering.
 
 **Final Recommendation:**
 
-Stick with **UUIDs** for now.
+Stick with **BIGINT auto-increment** for now.
 
-The operational simplicity of not having to manage worker IDs is a big win at the beginning of a project. The security benefits are also very relevant for a SaaS application. While Snowflake IDs offer performance advantages for time-based queries, this is a micro-optimization that is likely not necessary at this stage.
+The operational simplicity of not having to manage worker IDs is a big win at the beginning of a project. While Snowflake IDs offer performance advantages for time-based queries, this is a micro-optimization that is likely not necessary at this stage.
 
-It's a good "default" choice that is highly scalable and secure. If, in the future, your application scales to a point where you can prove that UUIDs are a bottleneck, you can always plan a migration to a different ID generation scheme. But starting with UUIDs is a very safe and robust decision.
+It's a good default choice that is highly scalable and operationally simple. If, in the future, your application scales to a point where you can prove that BIGINT sequences are a bottleneck, you can always plan a migration to a different ID generation scheme.

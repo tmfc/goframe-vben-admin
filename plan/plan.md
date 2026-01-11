@@ -15,7 +15,7 @@ Implement the backend services and database schema to support the user, departme
 
 **Database Schema Design - User Table (`sys_user`)**:
 
-*   `id` (PK, UUID/INT) - Unique identifier for the user.
+*   `id` (PK, BIGSERIAL) - Unique identifier for the user.
 *   `username` (UNIQUE, VARCHAR) - User's login username.
 *   `password` (VARCHAR) - Hashed password.
 *   `salt` (VARCHAR) - Salt for password hashing.
@@ -58,7 +58,7 @@ Implement the backend services and database schema to support the user, departme
 **Database Schema Design**:
 
 *   **Role Table (`sys_role`)**:
-    *   `id` (PK, UUID/INT)
+    *   `id` (PK, BIGSERIAL)
     *   `tenant_id` (FK to `sys_tenant.id`) - Tenant scope for the role.
     *   `name` (UNIQUE, VARCHAR) - Role name (e.g., 'admin', 'user', 'super').
     *   `description` (VARCHAR) - Description of the role.
@@ -66,7 +66,7 @@ Implement the backend services and database schema to support the user, departme
     *   `created_at` (DATETIME), `updated_at` (DATETIME), `deleted_at` (DATETIME).
     *   Unique constraint on (`tenant_id`, `name`) to allow same role names across tenants.
 *   **Permission Table (`sys_permission`)**:
-    *   `id` (PK, UUID/INT)
+    *   `id` (PK, BIGSERIAL)
     *   `tenant_id` (FK to `sys_tenant.id`) - Tenant scope for the permission.
     *   `code` (UNIQUE, VARCHAR) - Permission code (e.g., 'user:create', 'menu:edit'), corresponds to `accessCodes` in frontend.
     *   `name` (VARCHAR) - Name of the permission.
@@ -111,7 +111,7 @@ Implement the backend services and database schema to support the user, departme
 
 **Database Schema Design - Menu Table (`sys_menu`)**:
 
-*   `id` (PK, UUID/INT)
+*   `id` (PK, BIGSERIAL)
 *   `parent_id` (FK to `sys_menu.id` for nested menus)
 *   `name` (VARCHAR) - Menu item name.
 *   `path` (VARCHAR) - Frontend route path.
@@ -143,7 +143,7 @@ Implement the backend services and database schema to support the user, departme
 
 **Database Schema Design - Department Table (`sys_dept`)**:
 
-*   `id` (PK, UUID/INT)
+*   `id` (PK, BIGSERIAL)
 *   `parent_id` (FK to `sys_dept.id` for hierarchical departments)
 *   `name` (UNIQUE, VARCHAR) - Department name.
 *   `order` (INT) - Order for sorting departments.

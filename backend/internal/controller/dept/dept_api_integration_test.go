@@ -30,7 +30,7 @@ func TestDeptAPIEndpoints(t *testing.T) {
 	testutil.RequireDatabase(t)
 
 	ctx := context.WithValue(context.TODO(), consts.CtxKeyTenantID, consts.DefaultTenantID)
-	ensureTestTenant(t, ctx, "00000000-0000-0000-0000-000000000000")
+	ensureTestTenant(t, ctx, "1")
 
 	t.Cleanup(func() {
 		dao.SysDept.Ctx(ctx).Unscoped().WhereLike(dao.SysDept.Columns().Name, "ApiDept%").Delete()
@@ -41,15 +41,15 @@ func TestDeptAPIEndpoints(t *testing.T) {
 	client.SetPrefix(fmt.Sprintf("http://127.0.0.1:%d", s.GetListenedPort()))
 
 	gtest.C(t, func(t *gtest.T) {
-		createContent := client.PostContent(ctx, "/sys-dept", `{"name":"ApiDeptRoot","parentId":"0","status":1,"order":1,"creatorId":1}`)
+		createContent := client.PostContent(ctx, "/sys-dept", `{"name":"ApiDeptRoot","parentId":0,"status":1,"order":1,"creatorId":1}`)
 		createEnv := decodeEnvelope(t, createContent)
 		t.Assert(createEnv.Code, gcode.CodeOK.Code())
 
 		var createRes v1.CreateDeptRes
 		t.AssertNil(json.Unmarshal(createEnv.Data, &createRes))
-		t.AssertNE(createRes.Id, "")
+		t.AssertNE(createRes.Id, 0)
 
-		getContent := client.GetContent(ctx, fmt.Sprintf("/sys-dept/%s", createRes.Id))
+		getContent := client.GetContent(ctx, fmt.Sprintf("/sys-dept/%d", createRes.Id))
 		getEnv := decodeEnvelope(t, getContent)
 		t.Assert(getEnv.Code, gcode.CodeOK.Code())
 
@@ -59,7 +59,7 @@ func TestDeptAPIEndpoints(t *testing.T) {
 		t.AssertNil(json.Unmarshal(getEnv.Data, &getRes))
 		t.Assert(getRes.Name, "ApiDeptRoot")
 
-		updateContent := client.PutContent(ctx, fmt.Sprintf("/sys-dept/%s", createRes.Id), `{"name":"ApiDeptUpdated","parentId":"0","status":1,"order":2,"modifierId":1}`)
+		updateContent := client.PutContent(ctx, fmt.Sprintf("/sys-dept/%d", createRes.Id), `{"name":"ApiDeptUpdated","parentId":0,"status":1,"order":2,"modifierId":1}`)
 		updateEnv := decodeEnvelope(t, updateContent)
 		t.Assert(updateEnv.Code, gcode.CodeOK.Code())
 
@@ -90,11 +90,11 @@ func TestDeptAPIEndpoints(t *testing.T) {
 		t.AssertNil(json.Unmarshal(treeEnv.Data, &treeRes))
 		t.Assert(containsDept(treeRes.List, "ApiDeptUpdated"), true)
 
-		deleteContent := client.DeleteContent(ctx, fmt.Sprintf("/sys-dept/%s", createRes.Id))
+		deleteContent := client.DeleteContent(ctx, fmt.Sprintf("/sys-dept/%d", createRes.Id))
 		deleteEnv := decodeEnvelope(t, deleteContent)
 		t.Assert(deleteEnv.Code, gcode.CodeOK.Code())
 
-		missingContent := client.GetContent(ctx, fmt.Sprintf("/sys-dept/%s", createRes.Id))
+		missingContent := client.GetContent(ctx, fmt.Sprintf("/sys-dept/%d", createRes.Id))
 		missingEnv := decodeEnvelope(t, missingContent)
 		t.Assert(missingEnv.Code, gcode.CodeNotFound.Code())
 	})

@@ -12,6 +12,7 @@ import (
 	_ "github.com/gogf/gf/contrib/drivers/pgsql/v2"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/test/gtest"
+	"github.com/gogf/gf/v2/util/gconv"
 )
 
 func TestSysRole_SyncRoleToCasbin(t *testing.T) {
@@ -74,7 +75,7 @@ func TestSysRole_SyncRoleToCasbin(t *testing.T) {
 		var role entity.SysRole
 		err = dao.SysRole.Ctx(ctx).Where(dao.SysRole.Columns().Id, roleID).Scan(&role)
 		t.AssertNil(err)
-		domain := NormalizeDomain(role.TenantId)
+		domain := NormalizeDomain(gconv.String(role.TenantId))
 
 		count, err := dao.CasbinRule.Ctx(ctx).
 			Where(dao.CasbinRule.Columns().Ptype, "p").
@@ -151,7 +152,7 @@ func TestSysRole_RemoveRoleFromCasbin(t *testing.T) {
 		var role entity.SysRole
 		err = dao.SysRole.Ctx(ctx).Where(dao.SysRole.Columns().Id, roleID).Scan(&role)
 		t.AssertNil(err)
-		domain := NormalizeDomain(role.TenantId)
+		domain := NormalizeDomain(gconv.String(role.TenantId))
 
 		count, err := dao.CasbinRule.Ctx(ctx).
 			Where(dao.CasbinRule.Columns().Ptype, "p").
@@ -245,7 +246,7 @@ func TestSysRole_SyncAllRolesToCasbin(t *testing.T) {
 		var role entity.SysRole
 		err = dao.SysRole.Ctx(ctx).Where(dao.SysRole.Columns().Id, roleA).Scan(&role)
 		t.AssertNil(err)
-		domain := NormalizeDomain(role.TenantId)
+		domain := NormalizeDomain(gconv.String(role.TenantId))
 
 		countA, err := dao.CasbinRule.Ctx(ctx).
 			Where(dao.CasbinRule.Columns().Ptype, "p").

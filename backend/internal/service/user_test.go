@@ -21,7 +21,7 @@ func TestUser_Info(t *testing.T) {
 	ctx := context.TODO()
 	testUsername := "testuser_info"
 	testPassword := "testpassword"
-	testTenantId := "00000000-0000-0000-0000-000000000000"
+	testTenantId := "1"
 
 	// Clean up before test
 	dao.SysUser.Ctx(ctx).Unscoped().Where(dao.SysUser.Columns().Username, testUsername).Delete()
@@ -87,7 +87,7 @@ func TestUser_Info_WithDefaultRole(t *testing.T) {
 	ctx := context.TODO()
 	testUsername := "testuser_default_role"
 	testPassword := "testpassword"
-	testTenantId := "00000000-0000-0000-0000-000000000000"
+	testTenantId := "1"
 
 	// Clean up before test
 	dao.SysUser.Ctx(ctx).Unscoped().Where(dao.SysUser.Columns().Username, testUsername).Delete()
@@ -152,7 +152,7 @@ func TestUser_Info_WithCustomHomePath(t *testing.T) {
 	ctx := context.TODO()
 	testUsername := "testuser_homepath"
 	testPassword := "testpassword"
-	testTenantId := "00000000-0000-0000-0000-000000000000"
+	testTenantId := "1"
 	customHomePath := "/custom/dashboard"
 
 	// Clean up before test

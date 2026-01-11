@@ -6,7 +6,7 @@ BEGIN
         WHERE table_name = 'sys_role' AND column_name = 'tenant_id'
     ) THEN
         ALTER TABLE "sys_role"
-            ADD COLUMN "tenant_id" UUID NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000' REFERENCES sys_tenant(id);
+            ADD COLUMN "tenant_id" BIGINT NOT NULL DEFAULT 1 REFERENCES sys_tenant(id);
     END IF;
 END $$;
 

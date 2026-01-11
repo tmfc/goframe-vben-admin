@@ -29,7 +29,7 @@ func (c *ControllerV1) CreateDept(ctx context.Context, req *v1.CreateDeptReq) (r
 }
 
 func (c *ControllerV1) GetDept(ctx context.Context, req *v1.GetDeptReq) (res *v1.GetDeptRes, err error) {
-	if req.ID == "" {
+	if req.ID == 0 {
 		return nil, gerror.NewCode(gcode.CodeValidationFailed, "ID不能为空")
 	}
 	res = &v1.GetDeptRes{}
@@ -42,7 +42,7 @@ func (c *ControllerV1) GetDept(ctx context.Context, req *v1.GetDeptReq) (res *v1
 
 func (c *ControllerV1) UpdateDept(ctx context.Context, req *v1.UpdateDeptReq) (res *v1.UpdateDeptRes, err error) {
 	res = &v1.UpdateDeptRes{}
-	if req.ID == "" {
+	if req.ID == 0 {
 		return nil, gerror.NewCode(gcode.CodeValidationFailed, "ID不能为空")
 	}
 	req.SysDeptUpdateIn.ID = req.ID
@@ -54,7 +54,7 @@ func (c *ControllerV1) UpdateDept(ctx context.Context, req *v1.UpdateDeptReq) (r
 
 func (c *ControllerV1) DeleteDept(ctx context.Context, req *v1.DeleteDeptReq) (res *v1.DeleteDeptRes, err error) {
 	res = &v1.DeleteDeptRes{}
-	if req.ID == "" {
+	if req.ID == 0 {
 		return nil, gerror.NewCode(gcode.CodeValidationFailed, "ID不能为空")
 	}
 	if err = service.Dept().DeleteDept(ctx, req.ID); err != nil {

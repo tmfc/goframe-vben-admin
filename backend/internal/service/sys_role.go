@@ -11,6 +11,7 @@ import (
 	"github.com/gogf/gf/v2/errors/gcode"
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/util/gconv"
 )
 
 type sSysRole struct{}
@@ -194,7 +195,7 @@ func (s *sSysRole) UpdateRole(ctx context.Context, in model.SysRoleUpdateIn) (er
 		return err
 	}
 	if strings.TrimSpace(existingRole.Name) != strings.TrimSpace(in.Name) {
-		if err := removeRolePolicies(ctx, existingRole.Name, existingRole.TenantId); err != nil {
+		if err := removeRolePolicies(ctx, existingRole.Name, gconv.String(existingRole.TenantId)); err != nil {
 			return err
 		}
 	}
@@ -241,7 +242,7 @@ func (s *sSysRole) DeleteRole(ctx context.Context, in model.SysRoleDeleteIn) (er
 	if err != nil {
 		return err
 	}
-	return removeRolePolicies(ctx, existingRole.Name, existingRole.TenantId)
+	return removeRolePolicies(ctx, existingRole.Name, gconv.String(existingRole.TenantId))
 }
 
 type rolePermissionRecord struct {
@@ -260,7 +261,7 @@ func (s *sSysRole) SyncRoleToCasbin(ctx context.Context, roleID uint) (err error
 	if roleName == "" {
 		return gerror.NewCodef(gcode.CodeValidationFailed, "Role name cannot be empty")
 	}
-	domain := NormalizeDomain(role.TenantId)
+	domain := NormalizeDomain(gconv.String(role.TenantId))
 
 	enforcer, err := Casbin(ctx)
 	if err != nil {
@@ -310,7 +311,7 @@ func (s *sSysRole) RemoveRoleFromCasbin(ctx context.Context, roleID uint) (err e
 	if err != nil {
 		return err
 	}
-	return removeRolePolicies(ctx, role.Name, role.TenantId)
+	return removeRolePolicies(ctx, role.Name, gconv.String(role.TenantId))
 }
 
 // SyncAllRolesToCasbin syncs all roles to Casbin.
@@ -381,7 +382,7 @@ func (s *sSysRole) AssignRoleToUser(ctx context.Context, in model.AssignRoleToUs
 		return nil, err
 	}
 	if userCount == 0 {
-		return nil, gerror.NewCodef(gcode.CodeNotFound, "User with ID %s not found", in.UserId)
+		return nil, gerror.NewCodef(gcode.CodeNotFound, "User with ID %d not found", in.UserId)
 	}
 
 	// Check if role exists
@@ -512,7 +513,7 @@ func (s *sSysRole) AssignRolesToUser(ctx context.Context, in model.AssignRolesTo
 		return nil, err
 	}
 	if userCount == 0 {
-		return nil, gerror.NewCodef(gcode.CodeNotFound, "User with ID %s not found", in.UserId)
+		return nil, gerror.NewCodef(gcode.CodeNotFound, "User with ID %d not found", in.UserId)
 	}
 
 	// Check if all roles exist
@@ -579,7 +580,7 @@ func (s *sSysRole) GetUsersByRole(ctx context.Context, in model.GetUsersByRoleIn
 
 	// Get user IDs from user_role table
 	var userRoles []struct {
-		UserId string
+		UserId int64
 	}
 	err = dao.SysUserRole.Ctx(ctx).
 		Fields(dao.SysUserRole.Columns().UserId).
@@ -595,7 +596,7 @@ func (s *sSysRole) GetUsersByRole(ctx context.Context, in model.GetUsersByRoleIn
 	}
 
 	// Get user IDs
-	userIds := make([]string, len(userRoles))
+	userIds := make([]int64, len(userRoles))
 	for i, ur := range userRoles {
 		userIds[i] = ur.UserId
 	}
@@ -771,7 +772,7 @@ func (s *sSysRole) GetPermissionsByUser(ctx context.Context, in model.UserPermis
 	var roleIDs []uint
 	casbinResult, err := dao.CasbinRule.Ctx(ctx).
 		Where(dao.CasbinRule.Columns().Ptype, "g").
-		Where(dao.CasbinRule.Columns().V0, "u_"+in.UserID).
+		Where(dao.CasbinRule.Columns().V0, "u_"+gconv.String(in.UserID)).
 		Fields(dao.CasbinRule.Columns().V1).
 		All()
 	if err != nil {

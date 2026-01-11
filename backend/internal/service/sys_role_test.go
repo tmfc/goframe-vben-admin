@@ -413,15 +413,12 @@ func TestSysRole_AssignRoleToUser(t *testing.T) {
 	gtest.C(t, func(t *gtest.T) {
 		var err error
 		// Create a test user
-		userID := "550e8400-e29b-41d4-a716-446655440001"
-		_, err = dao.SysUser.Ctx(ctx).Data(g.Map{
-			dao.SysUser.Columns().Id:       userID,
-			dao.SysUser.Columns().TenantId: "00000000-0000-0000-0000-000000000000",
-			dao.SysUser.Columns().Username: "TestUserRole1",
-			dao.SysUser.Columns().Password: "password123",
-			dao.SysUser.Columns().RealName: "Test User",
-			dao.SysUser.Columns().Status:   1,
-		}).Insert()
+		userID, err := User().Create(ctx, model.UserCreateIn{
+			Username: "TestUserRole1",
+			Password: "password123",
+			RealName: "Test User",
+			Status:   1,
+		})
 		t.AssertNil(err)
 
 		// Create a test role
@@ -445,13 +442,13 @@ func TestSysRole_AssignRoleToUser(t *testing.T) {
 		t.Assert(assignOut.Success, true)
 
 		// Verify assignment
-		var userRole *entity.SysUserRole
-		err = dao.SysUserRole.Ctx(ctx).
+		count, err := dao.SysUserRole.CtxNoTenant(ctx).
+			Where(dao.SysUserRole.Columns().TenantId, "1").
 			Where(dao.SysUserRole.Columns().UserId, userID).
 			Where(dao.SysUserRole.Columns().RoleId, roleID).
-			Scan(&userRole)
+			Count()
 		t.AssertNil(err)
-		t.AssertNE(userRole, nil)
+		t.Assert(count, 1)
 
 		// Test case 2: Duplicate assignment (should succeed but not create duplicate)
 		assignOut2, err := SysRole().AssignRoleToUser(ctx, assignIn)
@@ -460,7 +457,7 @@ func TestSysRole_AssignRoleToUser(t *testing.T) {
 
 		// Test case 3: Assign to non-existent user
 		assignInInvalidUser := model.AssignRoleToUserIn{
-			UserId:    "00000000-0000-0000-0000-000000000000",
+			UserId:    999999,
 			RoleId:    roleID,
 			CreatedBy: 1,
 		}
@@ -492,10 +489,10 @@ func TestSysRole_RemoveRoleFromUser(t *testing.T) {
 	gtest.C(t, func(t *gtest.T) {
 		var err error
 		// Create a test user
-		userID := "550e8400-e29b-41d4-a716-446655440002"
+		userID := int64(4002)
 		_, err = dao.SysUser.Ctx(ctx).Data(g.Map{
 			dao.SysUser.Columns().Id:       userID,
-			dao.SysUser.Columns().TenantId: "00000000-0000-0000-0000-000000000000",
+			dao.SysUser.Columns().TenantId: "1",
 			dao.SysUser.Columns().Username: "TestUserRoleRemove1",
 			dao.SysUser.Columns().Password: "password123",
 
@@ -530,13 +527,13 @@ func TestSysRole_RemoveRoleFromUser(t *testing.T) {
 		t.Assert(removeOut.Success, true)
 
 		// Verify removal
-		var userRole *entity.SysUserRole
-		err = dao.SysUserRole.Ctx(ctx).
+		count, err := dao.SysUserRole.CtxNoTenant(ctx).
+			Where(dao.SysUserRole.Columns().TenantId, "1").
 			Where(dao.SysUserRole.Columns().UserId, userID).
 			Where(dao.SysUserRole.Columns().RoleId, roleID).
-			Scan(&userRole)
+			Count()
 		t.AssertNil(err)
-		t.AssertNil(userRole)
+		t.Assert(count, 0)
 
 		// Test case 2: Remove already removed assignment (should succeed)
 		removeOut2, err := SysRole().RemoveRoleFromUser(ctx, removeIn)
@@ -559,10 +556,10 @@ func TestSysRole_GetUserRoles(t *testing.T) {
 	gtest.C(t, func(t *gtest.T) {
 		var err error
 		// Create a test user
-		userID := "550e8400-e29b-41d4-a716-446655440003"
+		userID := int64(4003)
 		_, err = dao.SysUser.Ctx(ctx).Data(g.Map{
 			dao.SysUser.Columns().Id:       userID,
-			dao.SysUser.Columns().TenantId: "00000000-0000-0000-0000-000000000000",
+			dao.SysUser.Columns().TenantId: "1",
 			dao.SysUser.Columns().Username: "TestUserRoleGet1",
 			dao.SysUser.Columns().Password: "password123",
 
@@ -606,10 +603,10 @@ func TestSysRole_GetUserRoles(t *testing.T) {
 		t.Assert(len(getOut.Roles), 2)
 
 		// Test case 2: Get roles for user with no roles
-		userID2 := "550e8400-e29b-41d4-a716-446655440004"
+		userID2 := int64(4004)
 		_, err = dao.SysUser.Ctx(ctx).Data(g.Map{
 			dao.SysUser.Columns().Id:       userID2,
-			dao.SysUser.Columns().TenantId: "00000000-0000-0000-0000-000000000000",
+			dao.SysUser.Columns().TenantId: "1",
 			dao.SysUser.Columns().Username: "TestUserRoleGet2",
 			dao.SysUser.Columns().Password: "password123",
 
@@ -640,10 +637,10 @@ func TestSysRole_AssignRolesToUser(t *testing.T) {
 	gtest.C(t, func(t *gtest.T) {
 		var err error
 		// Create a test user
-		userID := "550e8400-e29b-41d4-a716-446655440003"
+		userID := int64(4003)
 		_, err = dao.SysUser.Ctx(ctx).Data(g.Map{
 			dao.SysUser.Columns().Id:       userID,
-			dao.SysUser.Columns().TenantId: "00000000-0000-0000-0000-000000000000",
+			dao.SysUser.Columns().TenantId: "1",
 			dao.SysUser.Columns().Username: "TestUserRoleAssign1",
 			dao.SysUser.Columns().Password: "password123",
 
@@ -742,10 +739,10 @@ func TestSysRole_GetUsersByRole(t *testing.T) {
 		t.AssertNil(err)
 
 		// Create test users
-		userID1 := "550e8400-e29b-41d4-a716-446655440004"
+		userID1 := int64(4004)
 		_, err = dao.SysUser.Ctx(ctx).Data(g.Map{
 			dao.SysUser.Columns().Id:       userID1,
-			dao.SysUser.Columns().TenantId: "00000000-0000-0000-0000-000000000000",
+			dao.SysUser.Columns().TenantId: "1",
 			dao.SysUser.Columns().Username: "TestUsersByRole1",
 			dao.SysUser.Columns().Password: "password123",
 
@@ -754,10 +751,10 @@ func TestSysRole_GetUsersByRole(t *testing.T) {
 		}).Insert()
 		t.AssertNil(err)
 
-		userID2 := "550e8400-e29b-41d4-a716-446655440005"
+		userID2 := int64(4005)
 		_, err = dao.SysUser.Ctx(ctx).Data(g.Map{
 			dao.SysUser.Columns().Id:       userID2,
-			dao.SysUser.Columns().TenantId: "00000000-0000-0000-0000-000000000000",
+			dao.SysUser.Columns().TenantId: "1",
 			dao.SysUser.Columns().Username: "TestUsersByRole2",
 			dao.SysUser.Columns().Password: "password123",
 
@@ -1019,7 +1016,7 @@ func TestSysRole_GetPermissionsByUser(t *testing.T) {
 		userIn := model.UserCreateIn{
 			Username: "testusergetperms",
 			Password: "password",
-			DeptId:   "00000000-0000-0000-0000-000000000000",
+			DeptId:   1,
 		}
 		userID, err := User().Create(ctx, userIn)
 		t.AssertNil(err)
@@ -1049,9 +1046,9 @@ func TestSysRole_GetPermissionsByUser(t *testing.T) {
 		// 3. Assign roles to user (using casbin)
 		enforcer, err := Casbin(ctx)
 		t.AssertNil(err)
-		_, err = enforcer.AddGroupingPolicy("u_"+userID, gconv.String(role1ID), "00000000-0000-0000-0000-000000000000")
+		_, err = enforcer.AddGroupingPolicy("u_"+gconv.String(userID), gconv.String(role1ID), "1")
 		t.AssertNil(err)
-		_, err = enforcer.AddGroupingPolicy("u_"+userID, gconv.String(role2ID), "00000000-0000-0000-0000-000000000000")
+		_, err = enforcer.AddGroupingPolicy("u_"+gconv.String(userID), gconv.String(role2ID), "1")
 		t.AssertNil(err)
 
 		// 4. Get permissions for user
@@ -1063,7 +1060,7 @@ func TestSysRole_GetPermissionsByUser(t *testing.T) {
 		user2In := model.UserCreateIn{
 			Username: "testusergetpermsnoroles",
 			Password: "password",
-			DeptId:   "00000000-0000-0000-0000-000000000000",
+			DeptId:   1,
 		}
 		user2ID, err := User().Create(ctx, user2In)
 		t.AssertNil(err)

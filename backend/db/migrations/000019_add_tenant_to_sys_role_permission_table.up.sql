@@ -6,7 +6,7 @@ BEGIN
         WHERE table_name = 'sys_role_permission' AND column_name = 'tenant_id'
     ) THEN
         ALTER TABLE "sys_role_permission"
-            ADD COLUMN "tenant_id" UUID NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000';
+            ADD COLUMN "tenant_id" BIGINT NOT NULL DEFAULT 1 REFERENCES sys_tenant(id);
     END IF;
 END $$;
 
@@ -14,18 +14,18 @@ DO $$
 BEGIN
     IF EXISTS (
         SELECT 1 FROM pg_constraint
-        WHERE conname = 'sys_role_permission_pkey'
+        WHERE conname = 'uq_sys_role_permission_role_permission'
           AND conrelid = 'sys_role_permission'::regclass
     ) THEN
-        ALTER TABLE "sys_role_permission" DROP CONSTRAINT sys_role_permission_pkey;
+        ALTER TABLE "sys_role_permission" DROP CONSTRAINT uq_sys_role_permission_role_permission;
     END IF;
 
     IF NOT EXISTS (
         SELECT 1 FROM pg_constraint
-        WHERE conname = 'pk_sys_role_permission'
+        WHERE conname = 'uq_sys_role_permission_tenant_role_permission'
           AND conrelid = 'sys_role_permission'::regclass
     ) THEN
         ALTER TABLE "sys_role_permission"
-            ADD CONSTRAINT pk_sys_role_permission PRIMARY KEY ("tenant_id", "role_id", "permission_id");
+            ADD CONSTRAINT uq_sys_role_permission_tenant_role_permission UNIQUE ("tenant_id", "role_id", "permission_id");
     END IF;
 END $$;

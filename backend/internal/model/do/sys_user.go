@@ -27,4 +27,5 @@ type SysUser struct {
 	CreatorId  any         //
 	ModifierId any         //
 	DeptId     any         //
+	ExtInfo    any         //
 }

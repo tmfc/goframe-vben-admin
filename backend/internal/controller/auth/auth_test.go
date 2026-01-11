@@ -22,7 +22,7 @@ func TestAuthController_Login(t *testing.T) {
 	ctx := context.TODO()
 	testUsername := "ctrltestuser"
 	testPassword := "ctrltestpassword"
-	testTenantId := "00000000-0000-0000-0000-000000000000"
+	testTenantId := "1"
 
 	// Clean up before test.
 	dao.SysUser.Ctx(ctx).Unscoped().Where(dao.SysUser.Columns().Username, testUsername).Delete()

@@ -18,7 +18,7 @@ function generateMockDataList(count: number) {
 
   for (let i = 0; i < count; i++) {
     const dataItem: Record<string, any> = {
-      id: faker.string.uuid(),
+      id: faker.number.int({ min: 1000, max: 999999 }),
       pid: 0,
       name: faker.commerce.department(),
       status: faker.helpers.arrayElement([0, 1]),
@@ -31,7 +31,7 @@ function generateMockDataList(count: number) {
       dataItem.children = Array.from(
         { length: faker.number.int({ min: 1, max: 5 }) },
         () => ({
-          id: faker.string.uuid(),
+          id: faker.number.int({ min: 1000, max: 999999 }),
           pid: dataItem.id,
           name: faker.commerce.department(),
           status: faker.helpers.arrayElement([0, 1]),

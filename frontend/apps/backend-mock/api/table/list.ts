@@ -12,7 +12,7 @@ function generateMockDataList(count: number) {
 
   for (let i = 0; i < count; i++) {
     const dataItem = {
-      id: faker.string.uuid(),
+      id: faker.number.int({ min: 1000, max: 999999 }),
       imageUrl: faker.image.avatar(),
       imageUrl2: faker.image.avatar(),
       open: faker.datatype.boolean(),

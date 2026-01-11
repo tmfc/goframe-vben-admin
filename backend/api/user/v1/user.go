@@ -13,7 +13,7 @@ type UserInfoReq struct {
 
 // UserInfoRes defines the response structure for the authenticated user's profile.
 type UserInfoRes struct {
-	UserId   string   `json:"userId"`
+	UserId   int64    `json:"userId"`
 	Username string   `json:"username"`
 	RealName string   `json:"realName"`
 	Avatar   string   `json:"avatar"`
@@ -45,13 +45,13 @@ type CreateUserReq struct {
 
 // CreateUserRes defines the response structure for creating a user.
 type CreateUserRes struct {
-	Id string `json:"id"`
+	Id int64 `json:"id"`
 }
 
 // UpdateUserReq defines the request structure for updating a user.
 type UpdateUserReq struct {
 	g.Meta `path:"/users/{id}" method:"put" summary:"Update user" tags:"User"`
-	ID     string `json:"id" v:"required#ID不能为空"`
+	ID     int64 `json:"id" v:"required#ID不能为空"`
 	model.UserUpdateIn
 }
 
@@ -61,7 +61,7 @@ type UpdateUserRes struct{}
 // DeleteUserReq defines the request structure for deleting a user.
 type DeleteUserReq struct {
 	g.Meta `path:"/users/{id}" method:"delete" summary:"Delete user" tags:"User"`
-	ID     string `json:"id" v:"required#ID不能为空"`
+	ID     int64 `json:"id" v:"required#ID不能为空"`
 }
 
 // DeleteUserRes defines the response structure for deleting a user.
@@ -70,7 +70,7 @@ type DeleteUserRes struct{}
 // GetUserReq defines the request structure for retrieving a user.
 type GetUserReq struct {
 	g.Meta `path:"/users/{id}" method:"get" summary:"Get user" tags:"User"`
-	ID     string `json:"id" v:"required#ID不能为空"`
+	ID     int64 `json:"id" v:"required#ID不能为空"`
 }
 
 // GetUserRes defines the response structure for retrieving a user.

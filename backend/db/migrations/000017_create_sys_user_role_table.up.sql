@@ -1,6 +1,7 @@
 CREATE TABLE "sys_user_role" (
-    "tenant_id" UUID NOT NULL REFERENCES sys_tenant(id),
-    "user_id" UUID NOT NULL REFERENCES sys_user(id) ON DELETE CASCADE,
+    "id" BIGSERIAL PRIMARY KEY,
+    "tenant_id" BIGINT NOT NULL REFERENCES sys_tenant(id),
+    "user_id" BIGINT NOT NULL REFERENCES sys_user(id) ON DELETE CASCADE,
     "role_id" BIGINT NOT NULL REFERENCES sys_role(id) ON DELETE CASCADE,
     "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     "created_by" BIGINT,

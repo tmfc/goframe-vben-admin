@@ -21,8 +21,8 @@ func TestCasbinAuthz_AllowsRolePermission(t *testing.T) {
 	roleName := "role_allow"
 	path := "/api/allowed"
 	method := "get"
-	tenantID := "00000000-0000-0000-0000-000000000001"
-	userID := "550e8400-e29b-41d4-a716-446655440201"
+	tenantID := "101"
+	userID := "4201"
 	ctxTenant := context.WithValue(ctx, consts.CtxKeyTenantID, tenantID)
 	ctxNoTenant := dao.WithoutTenant(ctx)
 
@@ -74,8 +74,8 @@ func TestCasbinAuthz_MultiRoleAllows(t *testing.T) {
 	roleAllow := "role_multi_allow"
 	path := "/api/multi"
 	method := "post"
-	tenantID := "00000000-0000-0000-0000-000000000002"
-	userID := "550e8400-e29b-41d4-a716-446655440202"
+	tenantID := "102"
+	userID := "4202"
 	ctxTenant := context.WithValue(ctx, consts.CtxKeyTenantID, tenantID)
 	ctxNoTenant := dao.WithoutTenant(ctx)
 
@@ -124,8 +124,8 @@ func TestCasbinAuthz_DeniesWithoutPermission(t *testing.T) {
 	testutil.RequireDatabase(t)
 	ctx := context.TODO()
 
-	userID := "550e8400-e29b-41d4-a716-446655440203"
-	tenantID := "00000000-0000-0000-0000-000000000003"
+	userID := "4203"
+	tenantID := "103"
 	ctxTenant := context.WithValue(ctx, consts.CtxKeyTenantID, tenantID)
 	ctxNoTenant := dao.WithoutTenant(ctx)
 
@@ -169,9 +169,9 @@ func TestCasbinAuthz_TenantIsolation(t *testing.T) {
 	roleName := "role_tenant"
 	path := "/api/tenant"
 	method := "get"
-	tenantA := "00000000-0000-0000-0000-000000000004"
-	tenantB := "00000000-0000-0000-0000-000000000005"
-	userID := "550e8400-e29b-41d4-a716-446655440204"
+	tenantA := "104"
+	tenantB := "105"
+	userID := "4204"
 	ctxTenantA := context.WithValue(ctx, consts.CtxKeyTenantID, tenantA)
 	ctxTenantB := context.WithValue(ctx, consts.CtxKeyTenantID, tenantB)
 	ctxNoTenant := dao.WithoutTenant(ctx)
@@ -235,8 +235,8 @@ func TestCasbinAuthz_UsesCache(t *testing.T) {
 	roleName := "role_cache"
 	path := "/api/cache"
 	method := "get"
-	tenantID := "00000000-0000-0000-0000-000000000006"
-	userID := "550e8400-e29b-41d4-a716-446655440205"
+	tenantID := "106"
+	userID := "4205"
 	ctxTenant := context.WithValue(ctx, consts.CtxKeyTenantID, tenantID)
 	ctxNoTenant := dao.WithoutTenant(ctx)
 

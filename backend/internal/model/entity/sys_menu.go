@@ -10,9 +10,9 @@ import (
 
 // SysMenu is the golang structure for table sys_menu.
 type SysMenu struct {
-	Id             string      `json:"id"             orm:"id"              ` //
-	TenantId       string      `json:"tenantId"       orm:"tenant_id"       ` //
-	ParentId       string      `json:"parentId"       orm:"parent_id"       ` //
+	Id             int64       `json:"id"             orm:"id"              ` //
+	TenantId       int64       `json:"tenantId"       orm:"tenant_id"       ` //
+	ParentId       int64       `json:"parentId"       orm:"parent_id"       ` //
 	Name           string      `json:"name"           orm:"name"            ` //
 	Path           string      `json:"path"           orm:"path"            ` //
 	Component      string      `json:"component"      orm:"component"       ` //

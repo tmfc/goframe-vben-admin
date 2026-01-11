@@ -279,7 +279,7 @@ func TestSysPermissionController_GetPermissionsByUser(t *testing.T) {
 		userID, err := service.User().Create(ctx, model.UserCreateIn{
 			Username: "testuserperm1",
 			Password: "password",
-			DeptId:   "00000000-0000-0000-0000-000000000000",
+			DeptId:   1,
 		})
 		t.AssertNil(err)
 
@@ -300,9 +300,9 @@ func TestSysPermissionController_GetPermissionsByUser(t *testing.T) {
 
 		enforcer, err := service.Casbin(ctx)
 		t.AssertNil(err)
-		_, err = enforcer.AddGroupingPolicy("u_"+userID, gconv.String(role1ID), "00000000-0000-0000-0000-000000000000")
+		_, err = enforcer.AddGroupingPolicy("u_"+gconv.String(userID), gconv.String(role1ID), "1")
 		t.AssertNil(err)
-		_, err = enforcer.AddGroupingPolicy("u_"+userID, gconv.String(role2ID), "00000000-0000-0000-0000-000000000000")
+		_, err = enforcer.AddGroupingPolicy("u_"+gconv.String(userID), gconv.String(role2ID), "1")
 		t.AssertNil(err)
 
 		permsRes, err := ctrl.GetPermissionsByUser(ctx, &v1.GetPermissionsByUserReq{UserID: userID})
@@ -312,7 +312,7 @@ func TestSysPermissionController_GetPermissionsByUser(t *testing.T) {
 		user2ID, err := service.User().Create(ctx, model.UserCreateIn{
 			Username: "testuserperm2",
 			Password: "password",
-			DeptId:   "00000000-0000-0000-0000-000000000000",
+			DeptId:   1,
 		})
 		t.AssertNil(err)
 
