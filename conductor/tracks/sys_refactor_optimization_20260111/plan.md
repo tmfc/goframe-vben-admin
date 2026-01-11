@@ -6,10 +6,10 @@
 - [x] Task: 1.1 定义 Menu 和 Permission 的 TypeScript 接口 (cd5e3ed)
     - 在 `src/api/sys/menu.ts` 和 `src/api/sys/permission.ts` 中定义实体接口（如 `MenuItem`, `PermissionItem`）和请求/响应类型。
     - 替换 API 文件中的 `any` 类型。
-- [ ] Task: 1.2 创建树形结构工具库
+- [~] Task: 1.2 创建树形结构工具库
     - 在 `frontend/apps/web-naive/src/utils/tree.ts` 中实现 `listToTree`, `flattenTree`, `collectExpandedKeys` 等函数。
     - 编写单元测试验证工具函数的正确性。
-- [ ] Task: 1.3 替换现有代码中的树形逻辑
+- [~] Task: 1.3 替换现有代码中的树形逻辑
     - 更新 `dept`, `role`, `user` 等模块，使用新的工具函数替换重复的内联逻辑。
     - 运行测试确保替换后功能未受影响。
 - [ ] Task: Conductor - User Manual Verification 'Foundations' (Protocol in workflow.md)
