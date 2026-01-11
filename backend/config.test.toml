@@ -7,7 +7,7 @@ port = 5666
 # 例：pgsql:user:pass@tcp(127.0.0.1:5432)/gva_test?sslmode=disable
 link = "pgsql:gva:gva@tcp(127.0.0.1:5433)/gva_test?sslmode=disable"
 type = "pgsql"
-debug = true
+debug = false
 
 [casbin]
 model = "resource/casbin/model.conf"
