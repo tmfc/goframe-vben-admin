@@ -32,7 +32,7 @@
     - 使用 `useVbenForm` 定义表单 Schema。
     - 迁移现有的权限代码自动生成逻辑 (`generatePermissionCode`)。
     - 更新 `src/views/sys/menu/index.vue` 使用新的弹窗组件。
-- [ ] Task: 3.2 重构权限表单 (Permission Form)
+- [~] Task: 3.2 重构权限表单 (Permission Form)
     - 创建 `src/views/sys/permission/modules/form.vue`。
     - 使用 `useVbenForm` 定义表单 Schema。
     - 更新 `src/views/sys/permission/index.vue` 使用新的弹窗组件。
