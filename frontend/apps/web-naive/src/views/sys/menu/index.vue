@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import type { DataTableColumns, FormInst, FormRules } from 'naive-ui';
+import type { DataTableColumns, FormInst } from 'naive-ui';
 
-import { computed, h, onMounted, reactive, ref, watch } from 'vue';
+import { h, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import {
@@ -20,11 +20,11 @@ import {
   NSelect,
   NSpace,
   NTag,
-  NTreeSelect,
   useMessage,
 } from 'naive-ui';
 
-import MenuIconPicker from './components/MenuIconPicker.vue';
+import MenuFormModal from './modules/form.vue';
+import { generatePermissionCode } from './utils';
 
 import {
   createMenu,
@@ -32,6 +32,7 @@ import {
   generateButtons,
   getMenuList,
   updateMenu,
+  type MenuItem,
 } from '#/api/sys/menu';
 import { collectExpandedKeys, listToTree, sortTree } from '#/utils/tree';
 import { Grip, IconifyIcon } from '@vben/icons';
@@ -40,11 +41,9 @@ import enSystem from '#/locales/langs/en-US/system.json';
 import { $t } from '#/locales';
 
 const loading = ref(false);
-const saving = ref(false);
 const generating = ref(false);
 const showModal = ref(false);
-const editingId = ref<null | string>(null);
-const formRef = ref<FormInst | null>(null);
+const editingRecord = ref<MenuItem | null>(null);
 const message = useMessage();
 
 const filters = reactive({
@@ -56,37 +55,6 @@ const { locale } = useI18n();
 const localeSystemMap: Record<string, any> = {
   'zh-CN': zhSystem,
   'en-US': enSystem,
-};
-
-const form = reactive({
-  name: '',
-  path: '',
-  component: '',
-  icon: '',
-  type: 'menu',
-  parentId: null as null | string,
-  metaTitle: '',
-  status: 1,
-  order: 0,
-  permissionCode: '',
-  autoGeneratePermission: true,
-});
-
-const rules: FormRules = {
-  name: [
-    {
-      required: true,
-      message: $t('system.menu.validation.nameRequired'),
-      trigger: 'blur',
-    },
-  ],
-  type: [
-    {
-      required: true,
-      message: $t('system.menu.validation.typeRequired'),
-      trigger: 'change',
-    },
-  ],
 };
 
 const statusOptions = [
@@ -103,8 +71,7 @@ const typeOptions = [
 
 const data = ref<any[]>([]);
 const defaultExpandedRowKeys = ref<string[]>([]);
-const menuTreeOptions = ref<any[]>([]);
-const rawMenuList = ref<any[]>([]);
+const rawMenuList = ref<MenuItem[]>([]);
 const titleKeyOptions = ref<{ label: string; value: string }[]>([]);
 
 function getMeta(row: any) {
@@ -134,14 +101,6 @@ function getMenuTitle(row: any) {
 function getTitleKey(row: any) {
   const meta = getMeta(row);
   return meta?.title ?? '';
-}
-
-function buildMenuTreeFromList(list: any[]) {
-  const mapped = (list || []).map((item) => ({
-    ...item,
-    label: getMenuTitle(item),
-  }));
-  return listToTree(mapped);
 }
 
 const pagination = reactive({
@@ -357,12 +316,6 @@ const buttonColumns = reactive<DataTableColumns<any>>([
 
 const rowKey = (row: any) => row.id;
 
-const modalTitle = computed(() =>
-  editingId.value
-    ? $t('system.menu.actions.edit')
-    : $t('system.menu.actions.create'),
-);
-
 const buttonModal = reactive({
   show: false,
   menuId: '' as string,
@@ -403,15 +356,6 @@ async function fetchMenuList() {
   }
 }
 
-async function fetchMenuTree() {
-  const res = await getMenuList({});
-  const list = res?.list || [];
-  menuTreeOptions.value = [
-    { id: '0', label: $t('system.menu.form.root') },
-    ...buildMenuTreeFromList(list),
-  ];
-}
-
 function handleSearch() {
   pagination.page = 1;
   fetchMenuList();
@@ -425,95 +369,16 @@ function resetFilters() {
 }
 
 function openCreate() {
-  editingId.value = null;
-  resetForm();
-  fetchMenuTree();
+  editingRecord.value = null;
   showModal.value = true;
 }
 
-function openEdit(row: any) {
-  editingId.value = row.id;
-  form.name = row.name ?? '';
-  form.path = row.path ?? '';
-  form.component = row.component ?? '';
-  form.icon = row.icon ?? '';
-  form.type = row.type ?? 'menu';
-  form.parentId = row.parentId || null;
-  if (row.meta && typeof row.meta === 'string') {
-    try {
-      const parsed = JSON.parse(row.meta);
-      form.metaTitle = parsed?.title ?? '';
-    } catch {
-      form.metaTitle = '';
-    }
-  } else if (row.meta && typeof row.meta === 'object') {
-    form.metaTitle = row.meta?.title ?? '';
-  } else {
-    form.metaTitle = '';
-  }
-  form.status = row.status ?? 1;
-  form.order = row.order ?? 0;
-  form.permissionCode = row.permissionCode ?? '';
-  form.autoGeneratePermission = !row.permissionCode;
-  fetchMenuTree();
+function openEdit(row: MenuItem) {
+  editingRecord.value = row;
   showModal.value = true;
 }
 
-function resetForm() {
-  form.name = '';
-  form.path = '';
-  form.component = '';
-  form.icon = '';
-  form.type = 'menu';
-  form.parentId = null;
-  form.metaTitle = '';
-  form.status = 1;
-  form.order = 0;
-  form.permissionCode = '';
-  form.autoGeneratePermission = true;
-  formRef.value?.restoreValidation();
-}
-
-function closeModal() {
-  showModal.value = false;
-}
-
-async function submitForm() {
-  if (!formRef.value) {
-    return;
-  }
-  try {
-    await formRef.value.validate();
-  } catch {
-    return;
-  }
-  saving.value = true;
-  try {
-    const payload = {
-      name: form.name,
-      path: form.path,
-      component: form.component,
-      icon: form.icon,
-      type: form.type,
-      parentId: form.parentId || '0',
-      status: form.status,
-      order: form.order,
-      permissionCode: form.permissionCode || undefined,
-      ...(form.metaTitle
-        ? { meta: JSON.stringify({ title: form.metaTitle }) }
-        : {}),
-    };
-    await (editingId.value
-      ? updateMenu(editingId.value, { ...payload, id: editingId.value })
-      : createMenu(payload));
-    showModal.value = false;
-    fetchMenuList();
-  } finally {
-    saving.value = false;
-  }
-}
-
-async function handleDelete(row: any) {
+async function handleDelete(row: MenuItem) {
   await deleteMenu(row.id);
   fetchMenuList();
 }
@@ -642,73 +507,16 @@ function rebuildTitleKeyOptionsFromLocale() {
   }));
 }
 
-function generatePermissionCode(name: string, type: string, parentId?: string | null): string {
-  // 将菜单名称转换为帕斯卡命名 (首字母大写)
-  const pascalCaseName = name
-    .replace(/[-_\s]+(.)?/g, (_: string, char: string) => (char ? char.toUpperCase() : ''))
-    .replace(/^(.)/, (_: string, char: string) => char.toUpperCase());
-
-  // 根据类型生成不同的前缀
-  const prefixMap: Record<string, string> = {
-    menu: 'Menu',
-    catalog: 'Catalog',
-    link: 'Link',
-    embedded: 'Embedded',
-    button: 'Button',
-  };
-
-  const prefix = prefixMap[type] || 'Menu';
-
-  // 如果是按钮类型,需要获取父菜单的路径
-  if (type === 'button' && parentId) {
-    const parentMenu = rawMenuList.value.find((item) => String(item.id) === String(parentId));
-    if (parentMenu && parentMenu.permissionCode) {
-      // 从父菜单的权限代码中提取路径部分,去掉最后的操作词
-      const parentPath = parentMenu.permissionCode;
-      return `${parentPath}:${pascalCaseName}`;
-    }
-  }
-
-  // 如果是菜单类型,需要获取完整的父级路径
-  if (type !== 'button' && parentId) {
-    const pathParts: string[] = [];
-    let currentId = String(parentId);
-
-    // 向上遍历父级菜单
-    while (currentId && currentId !== '0') {
-      const parent = rawMenuList.value.find((item) => String(item.id) === currentId);
-      if (!parent) break;
-
-      const pascalParentName = (parent.name || '')
-        .replace(/[-_\s]+(.)?/g, (_, char) => (char ? char.toUpperCase() : ''))
-        .replace(/^(.)/, (_, char) => char.toUpperCase());
-
-      pathParts.unshift(pascalParentName);
-      currentId = parent.parentId ? String(parent.parentId) : '';
-    }
-
-    // 构建完整路径: Menu:System:Permission:List
-    const fullPath = pathParts.length > 0 ? `${prefix}:${pathParts.join(':')}:${pascalCaseName}` : `${prefix}:${pascalCaseName}`;
-    return fullPath;
-  }
-
-  return `${prefix}:${pascalCaseName}`;
-}
-
-watch(
-  () => [form.name, form.type, form.autoGeneratePermission, form.parentId],
-  ([name, type, autoGenerate]) => {
-    if (autoGenerate && name && type) {
-      form.permissionCode = generatePermissionCode(String(name), String(type), form.parentId);
-    }
-  },
-);
-
 watch(
   () => [buttonForm.name, buttonForm.autoGeneratePermission, buttonModal.menuId],
   ([name, autoGenerate]) => {
     if (autoGenerate && name) {
-      buttonForm.permissionCode = generatePermissionCode(String(name), 'button', buttonModal.menuId);
+      buttonForm.permissionCode = generatePermissionCode(
+        String(name),
+        'button',
+        buttonModal.menuId,
+        rawMenuList.value,
+      );
     }
   },
 );
@@ -722,7 +530,6 @@ function buildTableTreeFromList(list: any[]) {
 
 onMounted(() => {
   fetchMenuList();
-  fetchMenuTree();
   rebuildTitleKeyOptionsFromLocale();
 });
 
@@ -780,85 +587,11 @@ watch(
       />
     </NCard>
 
-    <NModal
+    <MenuFormModal
       v-model:show="showModal"
-      preset="dialog"
-      :title="modalTitle"
-      :mask-closable="false"
-    >
-      <NForm ref="formRef" :model="form" :rules="rules" label-placement="top">
-        <NGrid cols="2" x-gap="16" y-gap="8">
-          <NFormItemGi :label="$t('system.menu.form.name')" path="name">
-            <NInput
-              v-model:value="form.name"
-              :placeholder="$t('system.menu.form.namePlaceholder')"
-            />
-          </NFormItemGi>
-          <NFormItemGi :label="$t('system.menu.form.titleKey')">
-            <NSelect
-              v-model:value="form.metaTitle"
-              :options="titleKeyOptions"
-              filterable
-              clearable
-              tag
-              :placeholder="$t('system.menu.form.titleKeyPlaceholder')"
-            />
-          </NFormItemGi>
-          <NFormItemGi :label="$t('system.menu.form.path')" path="path">
-            <NInput v-model:value="form.path" placeholder="/system/menu" />
-          </NFormItemGi>
-          <NFormItemGi :label="$t('system.menu.form.component')" path="component">
-            <NInput
-              v-model:value="form.component"
-              placeholder="/system/menu/list"
-            />
-          </NFormItemGi>
-          <NFormItemGi :label="$t('system.menu.form.type')" path="type">
-            <NSelect v-model:value="form.type" :options="typeOptions" />
-          </NFormItemGi>
-          <NFormItemGi :label="$t('system.menu.form.icon')">
-            <MenuIconPicker v-model="form.icon" />
-          </NFormItemGi>
-          <NFormItemGi :label="$t('system.menu.form.parent')">
-            <NTreeSelect
-              v-model:value="form.parentId"
-              :options="menuTreeOptions"
-              key-field="id"
-              label-field="label"
-              children-field="children"
-              :placeholder="$t('system.menu.form.root')"
-              clearable
-            />
-          </NFormItemGi>
-          <NFormItemGi :label="$t('system.menu.form.order')">
-            <NInputNumber v-model:value="form.order" :min="0" />
-          </NFormItemGi>
-          <NFormItemGi :label="$t('system.menu.form.status')">
-            <NSelect v-model:value="form.status" :options="statusOptions" />
-          </NFormItemGi>
-          <NFormItemGi :label="$t('system.menu.form.permissionCode')">
-            <NInput
-              v-model:value="form.permissionCode"
-              :placeholder="$t('system.menu.form.permissionCodePlaceholder')"
-              :disabled="form.autoGeneratePermission"
-            />
-          </NFormItemGi>
-          <NFormItemGi :label="''">
-            <NCheckbox v-model:checked="form.autoGeneratePermission">
-              {{ $t('system.menu.form.autoGeneratePermission') }}
-            </NCheckbox>
-          </NFormItemGi>
-        </NGrid>
-      </NForm>
-      <template #action>
-        <NSpace>
-          <NButton @click="closeModal">{{ $t('common.cancel') }}</NButton>
-          <NButton type="primary" :loading="saving" @click="submitForm">
-            {{ $t('common.confirm') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
+      :record="editingRecord"
+      @success="fetchMenuList"
+    />
 
     <NModal
       v-model:show="buttonModal.show"
