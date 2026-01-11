@@ -17,9 +17,9 @@
 ## Phase 2: 图标选择器优化 (Icon Picker)
 本阶段专注于安全性和离线支持，确保图标选择器不再依赖外部服务。
 
-- [ ] Task: 2.1 引入本地图标集
+- [x] Task: 2.1 引入本地图标集
     - 确定项目中需要的常用图标集（如 `ant-design` 等），并配置本地离线使用方式（可能利用 `@iconify/json` 或 Vben 的图标机制）。
-- [ ] Task: 2.2 重构 MenuIconPicker 组件
+- [x] Task: 2.2 重构 MenuIconPicker 组件
     - 修改 `src/views/sys/menu/components/MenuIconPicker.vue`。
     - 移除 `fetch` 请求，改为从本地数据源加载图标。
 - [ ] Task: Conductor - User Manual Verification 'Icon Picker' (Protocol in workflow.md)

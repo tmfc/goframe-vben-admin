@@ -8,6 +8,7 @@ import { refDebounced } from '@vueuse/core';
 import { NButton, NInput, NPagination, NPopover } from 'naive-ui';
 
 import { $t } from '#/locales';
+import antDesignIcons from './ant-design-icons.json';
 
 interface Props {
   modelValue?: string;
@@ -18,7 +19,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   modelValue: '',
-  prefix: '',
+  prefix: 'ant-design',
   pageSize: 36,
   placeholder: '',
 });
@@ -35,38 +36,20 @@ const activePrefix = ref('');
 const innerIcons = ref<string[]>([]);
 
 const iconsCache: Record<string, string[]> = {};
-const pendingRequests: Record<string, Promise<string[]>> = {};
 
 async function fetchIconsData(prefix: string): Promise<string[]> {
   if (iconsCache[prefix]?.length) {
     return iconsCache[prefix];
   }
-  if (pendingRequests[prefix]) {
-    return pendingRequests[prefix];
-  }
-  pendingRequests[prefix] = (async () => {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 1000 * 10);
-      const response = await fetch(
-        `https://api.iconify.design/collection?prefix=${prefix}`,
-        { signal: controller.signal },
-      ).then((res) => res.json());
-      clearTimeout(timeoutId);
-      const list = response?.uncategorized || [];
-      if (response?.categories) {
-        for (const category in response.categories) {
-          list.push(...(response.categories[category] || []));
-        }
-      }
-      iconsCache[prefix] = list.map((value: string) => `${prefix}:${value}`);
-    } catch (error) {
-      console.error(`Failed to fetch icons for prefix ${prefix}:`, error);
-      iconsCache[prefix] = [];
-    }
+  
+  if (prefix === 'ant-design') {
+    iconsCache[prefix] = antDesignIcons.map((name) => `${prefix}:${name}`);
     return iconsCache[prefix];
-  })();
-  return pendingRequests[prefix];
+  }
+
+  // TODO: Add more local icon sets here
+  console.warn(`Icon set ${prefix} not found locally.`);
+  return [];
 }
 
 function resolvePrefix(value: string) {
