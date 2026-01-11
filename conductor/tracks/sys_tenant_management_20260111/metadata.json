@@ -1,0 +1,8 @@
+{
+  "track_id": "sys_tenant_management_20260111",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-01-11T00:00:00Z",
+  "updated_at": "2026-01-11T00:00:00Z",
+  "description": "在frontend的naive app中添加租户管理页面 tenant management"
+}

@@ -42,103 +42,128 @@
       "status": 1
     },
     {
+      "name": "System",
+      "description": "System root",
+      "status": 1
+    },
+    {
       "name": "System:Menu:List",
       "description": "System menu list",
+      "parent_name": "System",
       "status": 1
     },
     {
       "name": "System:Menu:Create",
       "description": "System menu create",
+      "parent_name": "System:Menu:List",
       "status": 1
     },
     {
       "name": "System:Menu:Edit",
       "description": "System menu edit",
+      "parent_name": "System:Menu:List",
       "status": 1
     },
     {
       "name": "System:Menu:Delete",
       "description": "System menu delete",
+      "parent_name": "System:Menu:List",
       "status": 1
     },
     {
       "name": "System:Dept:List",
       "description": "System dept list",
+      "parent_name": "System",
       "status": 1
     },
     {
       "name": "System:Dept:Create",
       "description": "System dept create",
+      "parent_name": "System:Dept:List",
       "status": 1
     },
     {
       "name": "System:Dept:Edit",
       "description": "System dept edit",
+      "parent_name": "System:Dept:List",
       "status": 1
     },
     {
       "name": "System:Dept:Delete",
       "description": "System dept delete",
+      "parent_name": "System:Dept:List",
       "status": 1
     },
     {
       "name": "System:User:List",
       "description": "System user list",
+      "parent_name": "System",
       "status": 1
     },
     {
       "name": "System:User:Create",
       "description": "System user create",
+      "parent_name": "System:User:List",
       "status": 1
     },
     {
       "name": "System:User:Edit",
       "description": "System user edit",
+      "parent_name": "System:User:List",
       "status": 1
     },
     {
       "name": "System:User:Delete",
       "description": "System user delete",
+      "parent_name": "System:User:List",
       "status": 1
     },
     {
       "name": "System:Permission:List",
       "description": "System permission list",
+      "parent_name": "System",
       "status": 1
     },
     {
       "name": "System:Permission:Create",
       "description": "System permission create",
+      "parent_name": "System:Permission:List",
       "status": 1
     },
     {
       "name": "System:Permission:Edit",
       "description": "System permission edit",
+      "parent_name": "System:Permission:List",
       "status": 1
     },
     {
       "name": "System:Permission:Delete",
       "description": "System permission delete",
+      "parent_name": "System:Permission:List",
       "status": 1
     },
     {
       "name": "System:Role:List",
       "description": "System role list",
+      "parent_name": "System",
       "status": 1
     },
     {
       "name": "System:Role:Create",
       "description": "System role create",
+      "parent_name": "System:Role:List",
       "status": 1
     },
     {
       "name": "System:Role:Edit",
       "description": "System role edit",
+      "parent_name": "System:Role:List",
       "status": 1
     },
     {
       "name": "System:Role:Delete",
       "description": "System role delete",
+      "parent_name": "System:Role:List",
       "status": 1
     }
   ],

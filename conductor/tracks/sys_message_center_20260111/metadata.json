@@ -1,0 +1,8 @@
+{
+  "track_id": "sys_message_center_20260111",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-01-11T00:00:00Z",
+  "updated_at": "2026-01-11T00:00:00Z",
+  "description": "为系统添加消息中心功能,各个业务模块的消息都汇总到一起;需要支持点击消息中的跳转链接跳转到业务指定的地址;需要支持webosocket或者SSE推送消息到网页,预留短信/邮件通知的扩展可能性"
+}

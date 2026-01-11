@@ -1,4 +1,73 @@
 import type { MenuItem } from '#/api/sys/menu';
+import { $t } from '#/locales';
+import { ref, watch } from 'vue';
+import { useI18n } from '@vben/locales';
+import zhSystem from '#/locales/langs/zh-CN/system.json';
+import enSystem from '#/locales/langs/en-US/system.json';
+
+export function getMeta(row: any) {
+  if (!row) return null;
+  const rawMeta = row.meta;
+  if (typeof rawMeta === 'string') {
+    try {
+      return JSON.parse(rawMeta);
+    } catch {
+      return null;
+    }
+  }
+  if (rawMeta && typeof rawMeta === 'object') return rawMeta;
+  return null;
+}
+
+export function getMenuTitle(row: any) {
+  if (!row) return '';
+  const meta = getMeta(row);
+  const titleKey = meta?.title;
+  if (titleKey) {
+    return $t(titleKey);
+  }
+  return row.name ?? '';
+}
+
+export function useTitleOptions() {
+  const { locale } = useI18n();
+  const options = ref<{ label: string; value: string }[]>([]);
+  
+  const localeSystemMap: Record<string, any> = {
+    'zh-CN': zhSystem,
+    'en-US': enSystem,
+  };
+
+  function rebuild() {
+    const set = new Set<string>();
+    function collect(obj: any, prefix = '') {
+      if (!obj || typeof obj !== 'object') return;
+      Object.entries(obj).forEach(([k, v]) => {
+        const keyPath = prefix ? `${prefix}${k}` : k;
+        if (typeof v === 'string') {
+          set.add(keyPath);
+          return;
+        }
+        if (v && typeof v === 'object') {
+          collect(v, `${keyPath}.`);
+        }
+      });
+    }
+    const currentLocale = locale.value;
+    const currentSystem = localeSystemMap[currentLocale] || localeSystemMap['zh-CN'];
+    collect(currentSystem?.common, 'common.');
+    collect(currentSystem?.menu, 'system.menu.');
+    collect(currentSystem?.permission, 'system.permission.');
+    options.value = Array.from(set).map((key) => ({
+      label: `${$t(key)} (${key})`,
+      value: key,
+    }));
+  }
+
+  watch(() => locale.value, rebuild, { immediate: true });
+
+  return options;
+}
 
 export function generatePermissionCode(
   name: string,

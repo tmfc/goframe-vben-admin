@@ -156,9 +156,15 @@ const permissionModal = ref({
   roleId: '',
   roleName: '',
 });
-const permissionTree = ref<Array<{ key: string; label: string; children?: any[] }>>(
-  [],
-);
+type PermissionTreeNode = PermissionItem & {
+  key: string;
+  label: string;
+  children?: PermissionTreeNode[];
+  isLeaf?: boolean;
+};
+
+const permissionTree = ref<PermissionTreeNode[]>([]);
+const permissionParentMap = ref<Map<string, string>>(new Map());
 const permissionCheckedKeys = ref<string[]>([]);
 const permissionExpandedKeys = ref<string[]>([]);
 const permissionLoading = ref(false);
@@ -195,13 +201,60 @@ function handleDelete(id: string) {
   });
 }
 
+function markLeafNodes(nodes: PermissionTreeNode[]) {
+  for (const node of nodes) {
+    if (node.children && node.children.length > 0) {
+      node.isLeaf = false;
+      markLeafNodes(node.children);
+    } else {
+      node.isLeaf = true;
+    }
+  }
+}
+
+function buildPermissionParentMap(list: PermissionItem[] = []) {
+  const map = new Map<string, string>();
+  for (const item of list) {
+    const id = String(item.id);
+    const parentId = item.parentId;
+    if (
+      parentId === null ||
+      parentId === undefined ||
+      parentId === '' ||
+      parentId === 0 ||
+      parentId === '0'
+    ) {
+      continue;
+    }
+    map.set(id, String(parentId));
+  }
+  return map;
+}
+
+function normalizePermissionKeys(keys: Array<string | number>, parentMap: Map<string, string>) {
+  const normalized = new Set(keys.map(String));
+  for (const key of Array.from(normalized)) {
+    let parent = parentMap.get(key);
+    while (parent) {
+      if (normalized.has(parent)) {
+        break;
+      }
+      normalized.add(parent);
+      parent = parentMap.get(parent);
+    }
+  }
+  return Array.from(normalized);
+}
+
 function buildPermissionTree(list: PermissionItem[] = []) {
   const mapped = (list || []).map((item) => ({
     ...item,
     key: String(item.id),
     label: item.name ?? String(item.id),
-  }));
-  const tree = listToTree(mapped);
+  })) as PermissionTreeNode[];
+  const tree = listToTree(mapped) as PermissionTreeNode[];
+  markLeafNodes(tree);
+  permissionParentMap.value = buildPermissionParentMap(list);
   const expandedKeys = collectExpandedKeys(tree, 2, { id: 'key' });
   return { tree, expandedKeys };
 }
@@ -226,7 +279,11 @@ async function openPermissionModal(record: Role) {
       fetchPermissionList(),
       getRolePermissions(String(record.id)),
     ]);
-    permissionCheckedKeys.value = (rolePermRes?.permissionIds || []).map(String);
+    const rawKeys = (rolePermRes?.permissionIds || []).map(String);
+    permissionCheckedKeys.value = normalizePermissionKeys(
+      rawKeys,
+      permissionParentMap.value,
+    );
   } catch (error) {
     console.error(error);
   } finally {
@@ -242,7 +299,11 @@ async function submitPermissionChange() {
   if (!permissionModal.value.roleId) return;
   permissionSaving.value = true;
   try {
-    const permissionIds = permissionCheckedKeys.value
+    const normalizedKeys = normalizePermissionKeys(
+      permissionCheckedKeys.value,
+      permissionParentMap.value,
+    );
+    const permissionIds = normalizedKeys
       .map((key) => Number(key))
       .filter((value) => Number.isFinite(value));
     await assignRolePermissions(permissionModal.value.roleId, { permissionIds });
@@ -252,6 +313,13 @@ async function submitPermissionChange() {
   } finally {
     permissionSaving.value = false;
   }
+}
+
+function handlePermissionChecked(keys: Array<string | number>) {
+  permissionCheckedKeys.value = normalizePermissionKeys(
+    keys,
+    permissionParentMap.value,
+  );
 }
 
 function handleSearch() {
@@ -382,8 +450,10 @@ onMounted(() => {
           v-model:checked-keys="permissionCheckedKeys"
           :data="permissionTree"
           :default-expanded-keys="permissionExpandedKeys"
+          :cascade="false"
           checkable
           block-line
+          @update:checked-keys="handlePermissionChecked"
         />
         <NEmpty v-else :description="$t('system.role.permissions.empty')" />
       </NSpin>

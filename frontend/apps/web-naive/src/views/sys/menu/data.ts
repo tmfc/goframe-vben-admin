@@ -6,6 +6,7 @@ import { getMenuList } from '#/api/sys/menu';
 import { listToTree } from '#/utils/tree';
 
 import MenuIconPicker from './components/MenuIconPicker.vue';
+import { getMenuTitle } from './utils';
 
 export function useFormSchema(): VbenFormSchema[] {
   return [
@@ -20,6 +21,17 @@ export function useFormSchema(): VbenFormSchema[] {
       fieldName: 'name',
       label: $t('system.menu.form.name'),
       rules: 'required',
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        clearable: true,
+        filterable: true,
+        placeholder: $t('system.menu.form.titleKeyPlaceholder'),
+        tag: true,
+      },
+      fieldName: 'metaTitle',
+      label: $t('system.menu.form.titleKey'),
     },
     {
       component: 'Input',
@@ -51,21 +63,23 @@ export function useFormSchema(): VbenFormSchema[] {
       label: $t('system.menu.form.icon'),
     },
     {
-      component: 'ApiTreeSelect',
-      componentProps: {
-        api: async () => {
-          const res = await getMenuList();
-          const list = res.list || [];
-          const tree = listToTree(list);
-          return [
-            {
-              id: '0',
-              name: $t('system.menu.form.root'),
-            },
-            ...tree,
-          ];
-        },
-        childrenField: 'children',
+            component: 'ApiTreeSelect',
+            componentProps: {
+              api: async () => {
+                const res = await getMenuList();
+                const list = (res.list || []).map((item) => ({
+                  ...item,
+                  name: getMenuTitle(item),
+                }));
+                const tree = listToTree(list);
+                return [
+                  {
+                    id: '0',
+                    name: $t('system.menu.form.root'),
+                  },
+                  ...tree,
+                ];
+              },        childrenField: 'children',
         labelField: 'name',
         placeholder: $t('system.menu.form.root'),
         valueField: 'id',

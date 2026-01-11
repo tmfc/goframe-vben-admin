@@ -52,12 +52,12 @@ async function fetchIconsData(prefix: string): Promise<string[]> {
   return [];
 }
 
-function resolvePrefix(value: string) {
+function resolvePrefix(value: string): string {
   if (props.prefix) {
     return props.prefix;
   }
   if (value?.includes(':')) {
-    return value.split(':')[0];
+    return value.split(':')[0] || '';
   }
   return 'ant-design';
 }

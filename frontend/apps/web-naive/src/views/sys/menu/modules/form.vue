@@ -9,7 +9,7 @@ import type { MenuItem } from '#/api/sys/menu';
 import { $t } from '#/locales';
 
 import { useFormSchema } from '../data';
-import { generatePermissionCode } from '../utils';
+import { generatePermissionCode, getMeta, useTitleOptions } from '../utils';
 
 const props = defineProps<{
   record: MenuItem | null;
@@ -23,6 +23,7 @@ const emit = defineEmits<{
 
 const saving = ref(false);
 const rawMenuList = ref<MenuItem[]>([]);
+const titleOptions = useTitleOptions();
 
 const [Form, formApi] = useVbenForm({
   handleValuesChange: (values) => {
@@ -43,6 +44,19 @@ const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
 });
 
+watch(
+  () => titleOptions.value,
+  (options) => {
+    formApi.updateSchema([
+      {
+        fieldName: 'metaTitle',
+        componentProps: { options },
+      },
+    ]);
+  },
+  { immediate: true },
+);
+
 const isUpdate = computed(() => Boolean(props.record?.id));
 const modalTitle = computed(() =>
   isUpdate.value
@@ -61,8 +75,10 @@ watch(
     if (!show) return;
     await fetchRawMenuList();
     if (props.record) {
+      const meta = getMeta(props.record);
       formApi.setValues({
         ...props.record,
+        metaTitle: meta?.title || '',
         autoGeneratePermission: !props.record.permissionCode,
       });
     } else {
@@ -72,6 +88,7 @@ watch(
         icon: '',
         id: '',
         name: '',
+        metaTitle: '',
         order: 0,
         parentId: '0',
         path: '',
@@ -97,6 +114,7 @@ async function handleSubmit() {
     const data = {
       ...values,
       parentId: values.parentId || '0',
+      meta: values.metaTitle ? JSON.stringify({ title: values.metaTitle }) : undefined,
     } as any;
     await (isUpdate.value
       ? updateMenu(values.id, data)

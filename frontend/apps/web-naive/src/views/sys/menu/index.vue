@@ -2,7 +2,7 @@
 import type { DataTableColumns, FormInst } from 'naive-ui';
 
 import { h, onMounted, reactive, ref, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { useI18n } from '@vben/locales';
 
 import {
   NButton,
@@ -24,7 +24,7 @@ import {
 } from 'naive-ui';
 
 import MenuFormModal from './modules/form.vue';
-import { generatePermissionCode } from './utils';
+import { generatePermissionCode, useTitleOptions } from './utils';
 
 import {
   createMenu,
@@ -72,7 +72,7 @@ const typeOptions = [
 const data = ref<any[]>([]);
 const defaultExpandedRowKeys = ref<string[]>([]);
 const rawMenuList = ref<MenuItem[]>([]);
-const titleKeyOptions = ref<{ label: string; value: string }[]>([]);
+const titleKeyOptions = useTitleOptions();
 
 function getMeta(row: any) {
   if (!row) return null;
