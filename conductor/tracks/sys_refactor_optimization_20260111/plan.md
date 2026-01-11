@@ -3,7 +3,7 @@
 ## Phase 1: 类型定义与工具提取 (Foundations)
 本阶段旨在建立坚实的基础，通过完善类型系统和提取公共逻辑，为后续的 UI 重构做准备。
 
-- [~] Task: 1.1 定义 Menu 和 Permission 的 TypeScript 接口
+- [x] Task: 1.1 定义 Menu 和 Permission 的 TypeScript 接口 (cd5e3ed)
     - 在 `src/api/sys/menu.ts` 和 `src/api/sys/permission.ts` 中定义实体接口（如 `MenuItem`, `PermissionItem`）和请求/响应类型。
     - 替换 API 文件中的 `any` 类型。
 - [ ] Task: 1.2 创建树形结构工具库
