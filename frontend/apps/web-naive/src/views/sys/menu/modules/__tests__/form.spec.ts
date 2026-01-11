@@ -11,6 +11,7 @@ const formApi = {
   setValues: vi.fn(),
   resetForm: vi.fn(),
   setFieldValue: vi.fn(),
+  updateSchema: vi.fn(),
   formValues: {},
 };
 
@@ -31,6 +32,14 @@ vi.mock('#/api/sys/menu', () => ({
   createMenu: vi.fn(() => Promise.resolve()),
   updateMenu: vi.fn(() => Promise.resolve()),
 }));
+
+vi.mock('../../utils', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../utils')>();
+  return {
+    ...actual,
+    useTitleOptions: () => ({ value: [] }),
+  };
+});
 
 describe('Menu Form', () => {
   it('should mount successfully', () => {
