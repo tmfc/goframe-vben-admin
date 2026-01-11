@@ -396,6 +396,7 @@ const buttonEditingId = ref<null | string>(null);
 
 const buttonForm = reactive({
   name: '',
+  permission: '',
   titleKey: '',
   metaTitle: '',
   status: 1,
@@ -408,8 +409,6 @@ async function fetchMenuList() {
   try {
     loading.value = true;
     const res = await getMenuList({
-      page: 1,
-      pageSize: 1000,
       name: filters.name || undefined,
       status: filters.status === null ? undefined : String(filters.status),
     });
@@ -426,10 +425,7 @@ async function fetchMenuList() {
 }
 
 async function fetchMenuTree() {
-  const res = await getMenuList({
-    page: 1,
-    pageSize: 1000,
-  });
+  const res = await getMenuList({});
   const list = res?.list || [];
   menuTreeOptions.value = [
     { id: '0', label: $t('system.menu.form.root') },
@@ -520,7 +516,7 @@ async function submitForm() {
       component: form.component,
       icon: form.icon,
       type: form.type,
-      parentId: form.parentId || 0,
+      parentId: form.parentId || '0',
       status: form.status,
       order: form.order,
       permissionCode: form.permissionCode || undefined,
@@ -670,8 +666,8 @@ function rebuildTitleKeyOptionsFromLocale() {
 function generatePermissionCode(name: string, type: string, parentId?: string | null): string {
   // 将菜单名称转换为帕斯卡命名 (首字母大写)
   const pascalCaseName = name
-    .replace(/[-_\s]+(.)?/g, (_, char) => (char ? char.toUpperCase() : ''))
-    .replace(/^(.)/, (_, char) => char.toUpperCase());
+    .replace(/[-_\s]+(.)?/g, (_: string, char: string) => (char ? char.toUpperCase() : ''))
+    .replace(/^(.)/, (_: string, char: string) => char.toUpperCase());
 
   // 根据类型生成不同的前缀
   const prefixMap: Record<string, string> = {

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { PaginationProps } from 'naive-ui';
 import type { Role } from '#/api/sys/role';
-import type { Permission } from '#/api/sys/permission';
+import type { PermissionItem } from '#/api/sys/permission';
 
 import { h, onMounted, ref } from 'vue';
 
@@ -194,7 +194,7 @@ function handleDelete(id: string) {
   });
 }
 
-function buildPermissionTree(list: Permission[] = []) {
+function buildPermissionTree(list: PermissionItem[] = []) {
   const nodeMap = new Map<string, { key: string; label: string; children: any[] }>();
   const roots: Array<{ key: string; label: string; children: any[] }> = [];
 
@@ -239,7 +239,7 @@ function buildPermissionTree(list: Permission[] = []) {
 
 async function fetchPermissionList() {
   const permissionRes = await getPermissionList({ page: 1, pageSize: 1000 });
-  const list = permissionRes?.items || permissionRes?.list || [];
+  const list = permissionRes?.items || [];
   const { tree, expandedKeys } = buildPermissionTree(list);
   permissionTree.value = tree;
   permissionExpandedKeys.value = expandedKeys;

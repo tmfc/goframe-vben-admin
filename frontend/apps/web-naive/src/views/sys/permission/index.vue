@@ -218,7 +218,9 @@ function parsePermissionDescription(desc: string): string {
   if (match) {
     const prefix = match[1];
     const i18nKey = match[2];
-    return `${prefix}${$t(i18nKey)}`;
+    if (i18nKey) {
+      return `${prefix}${$t(i18nKey)}`;
+    }
   }
 
   return desc;
@@ -233,7 +235,7 @@ async function fetchPermissionList() {
       name: filters.name || undefined,
       status: filters.status === null ? undefined : String(filters.status),
     });
-    const list = res?.items || res?.list || [];
+    const list = res?.items || [];
     rawList.value = list;
     const { tree, expandedKeys } = buildTreeFromList(list);
     data.value = tree;
