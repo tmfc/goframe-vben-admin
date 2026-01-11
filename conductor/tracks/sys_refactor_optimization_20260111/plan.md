@@ -24,7 +24,7 @@
     - 移除 `fetch` 请求，改为从本地数据源加载图标。
 - [x] Task: Conductor - User Manual Verification 'Icon Picker' (Protocol in workflow.md)
 
-## Phase 3: 菜单与权限模块重构 (Refactoring)
+## Phase 3: 菜单与权限模块重构 (Refactoring) [checkpoint: 7cd98d0]
 本阶段是核心工作，将菜单和权限模块迁移到标准的 Vben Form 架构。
 
 - [x] Task: 3.1 重构菜单表单 (Menu Form) (853fd7c)
@@ -38,4 +38,4 @@
     - 更新 `src/views/sys/permission/index.vue` 使用新的弹窗组件。
 - [x] Task: 3.3 完善测试用例 (7f4b5cb)
     - 确保 `menu` 和 `permission` 模块有基本的单元测试覆盖，特别是新的表单逻辑。
-- [ ] Task: Conductor - User Manual Verification 'Refactoring' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Refactoring' (Protocol in workflow.md)
