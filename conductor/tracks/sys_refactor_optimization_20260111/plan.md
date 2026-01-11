@@ -36,6 +36,6 @@
     - 创建 `src/views/sys/permission/modules/form.vue`。
     - 使用 `useVbenForm` 定义表单 Schema。
     - 更新 `src/views/sys/permission/index.vue` 使用新的弹窗组件。
-- [~] Task: 3.3 完善测试用例
+- [x] Task: 3.3 完善测试用例 (7f4b5cb)
     - 确保 `menu` 和 `permission` 模块有基本的单元测试覆盖，特别是新的表单逻辑。
 - [ ] Task: Conductor - User Manual Verification 'Refactoring' (Protocol in workflow.md)
