@@ -14,7 +14,7 @@
     - 运行测试确保替换后功能未受影响。
 - [x] Task: Conductor - User Manual Verification 'Foundations' (Protocol in workflow.md)
 
-## Phase 2: 图标选择器优化 (Icon Picker)
+## Phase 2: 图标选择器优化 (Icon Picker) [checkpoint: e32eb48]
 本阶段专注于安全性和离线支持，确保图标选择器不再依赖外部服务。
 
 - [x] Task: 2.1 引入本地图标集 (dc1b614)
@@ -22,7 +22,7 @@
 - [x] Task: 2.2 重构 MenuIconPicker 组件 (dc1b614)
     - 修改 `src/views/sys/menu/components/MenuIconPicker.vue`。
     - 移除 `fetch` 请求，改为从本地数据源加载图标。
-- [ ] Task: Conductor - User Manual Verification 'Icon Picker' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Icon Picker' (Protocol in workflow.md)
 
 ## Phase 3: 菜单与权限模块重构 (Refactoring)
 本阶段是核心工作，将菜单和权限模块迁移到标准的 Vben Form 架构。
