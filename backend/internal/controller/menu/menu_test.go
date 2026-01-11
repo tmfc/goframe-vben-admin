@@ -20,13 +20,13 @@ func TestMenuController_All(t *testing.T) {
 
 	gtest.C(t, func(t *gtest.T) {
 		// Test case 1: Get all menus
-		res, err := ctrl.All(ctx, &v1.MenuAllReq{})
+		res, err := ctrl.MenuAll(ctx, &v1.MenuAllReq{})
 		t.AssertNil(err)
 		t.AssertNE(res, nil)
-		t.AssertGT(len(res), 0)
+		t.AssertGT(len(*res), 0)
 
 		// Verify menus have valid structure
-		for _, menu := range res {
+		for _, menu := range *res {
 			t.AssertNE(menu.Path, "")
 			t.AssertNE(menu.Name, "")
 		}
@@ -41,13 +41,13 @@ func TestMenuController_All_MenuStructure(t *testing.T) {
 
 	gtest.C(t, func(t *gtest.T) {
 		// Test case 1: Verify menu structure
-		res, err := ctrl.All(ctx, &v1.MenuAllReq{})
+		res, err := ctrl.MenuAll(ctx, &v1.MenuAllReq{})
 		t.AssertNil(err)
-		t.AssertGT(len(res), 0)
+		t.AssertGT(len(*res), 0)
 
 		// Verify menu types are valid
 		validTypes := []string{"menu", "catalog", "embedded", "link"}
-		for _, menu := range res {
+		for _, menu := range *res {
 			t.AssertIN(menu.Type, validTypes)
 		}
 	})
@@ -61,12 +61,12 @@ func TestMenuController_All_HierarchicalStructure(t *testing.T) {
 
 	gtest.C(t, func(t *gtest.T) {
 		// Test case 1: Verify hierarchical structure
-		res, err := ctrl.All(ctx, &v1.MenuAllReq{})
+		res, err := ctrl.MenuAll(ctx, &v1.MenuAllReq{})
 		t.AssertNil(err)
-		t.AssertGT(len(res), 0)
+		t.AssertGT(len(*res), 0)
 
 		// Check for catalog menus with children
-		for _, menu := range res {
+		for _, menu := range *res {
 			if menu.Type == "catalog" {
 				// Catalog menus typically have children
 				if len(menu.Children) > 0 {
@@ -89,12 +89,12 @@ func TestMenuController_All_MetaFields(t *testing.T) {
 
 	gtest.C(t, func(t *gtest.T) {
 		// Test case 1: Verify meta fields exist
-		res, err := ctrl.All(ctx, &v1.MenuAllReq{})
+		res, err := ctrl.MenuAll(ctx, &v1.MenuAllReq{})
 		t.AssertNil(err)
-		t.AssertGT(len(res), 0)
+		t.AssertGT(len(*res), 0)
 
 		// Check that menus have meta information
-		for _, menu := range res {
+		for _, menu := range *res {
 			if menu.Meta != nil {
 				t.AssertNE(menu.Meta.Title, "")
 			}
@@ -110,11 +110,11 @@ func TestMenuController_All_NoEmptyPaths(t *testing.T) {
 
 	gtest.C(t, func(t *gtest.T) {
 		// Test case 1: Verify no empty paths
-		res, err := ctrl.All(ctx, &v1.MenuAllReq{})
+		res, err := ctrl.MenuAll(ctx, &v1.MenuAllReq{})
 		t.AssertNil(err)
 
 		// Verify no menus with empty path
-		for _, menu := range res {
+		for _, menu := range *res {
 			t.AssertNE(menu.Path, "")
 			// Check children recursively
 			checkNoEmptyPaths(menu, t)
@@ -130,11 +130,11 @@ func TestMenuController_All_NoButtonTypes(t *testing.T) {
 
 	gtest.C(t, func(t *gtest.T) {
 		// Test case 1: Verify no button type menus
-		res, err := ctrl.All(ctx, &v1.MenuAllReq{})
+		res, err := ctrl.MenuAll(ctx, &v1.MenuAllReq{})
 		t.AssertNil(err)
 
 		// Verify no button type menus are in the result
-		checkNoButtonTypes(res, t)
+		checkNoButtonTypes(*res, t)
 	})
 }
 
@@ -146,11 +146,11 @@ func TestMenuController_All_WorkspaceMenu(t *testing.T) {
 
 	gtest.C(t, func(t *gtest.T) {
 		// Test case 1: Check for workspace menu
-		res, err := ctrl.All(ctx, &v1.MenuAllReq{})
+		res, err := ctrl.MenuAll(ctx, &v1.MenuAllReq{})
 		t.AssertNil(err)
 
 		// Find workspace menu
-		workspace := findMenuByPath(res, "/workspace")
+		workspace := findMenuByPath(*res, "/workspace")
 		if workspace != nil {
 			t.Assert(workspace.Name, "Workspace")
 			// Don't assert on type as it may vary
@@ -168,11 +168,11 @@ func TestMenuController_All_SystemMenu(t *testing.T) {
 
 	gtest.C(t, func(t *gtest.T) {
 		// Test case 1: Check for system menu
-		res, err := ctrl.All(ctx, &v1.MenuAllReq{})
+		res, err := ctrl.MenuAll(ctx, &v1.MenuAllReq{})
 		t.AssertNil(err)
 
 		// Find system menu
-		systemMenu := findMenuByPath(res, "/system")
+		systemMenu := findMenuByPath(*res, "/system")
 		if systemMenu != nil {
 			t.Assert(systemMenu.Type, "catalog")
 			t.Assert(systemMenu.Name, "System")

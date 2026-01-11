@@ -31,8 +31,8 @@ func (c *ControllerV1) UserInfo(ctx context.Context, req *v1.UserInfoReq) (res *
 	return service.User().Info(ctx, token)
 }
 
-// List returns paginated users.
-func (c *ControllerV1) List(ctx context.Context, req *v1.UserListReq) (res *v1.UserListRes, err error) {
+// UserList returns paginated users.
+func (c *ControllerV1) UserList(ctx context.Context, req *v1.UserListReq) (res *v1.UserListRes, err error) {
 	out, err := service.User().List(ctx, model.UserListIn{
 		Page:     req.Page,
 		PageSize: req.PageSize,
@@ -47,8 +47,8 @@ func (c *ControllerV1) List(ctx context.Context, req *v1.UserListReq) (res *v1.U
 	}, nil
 }
 
-// Get returns a single user by id.
-func (c *ControllerV1) Get(ctx context.Context, req *v1.GetUserReq) (res *v1.GetUserRes, err error) {
+// GetUser returns a single user by id.
+func (c *ControllerV1) GetUser(ctx context.Context, req *v1.GetUserReq) (res *v1.GetUserRes, err error) {
 	out, err := service.User().Get(ctx, req.ID)
 	if err != nil {
 		return nil, err
@@ -56,8 +56,8 @@ func (c *ControllerV1) Get(ctx context.Context, req *v1.GetUserReq) (res *v1.Get
 	return &v1.GetUserRes{UserListItem: out}, nil
 }
 
-// Create creates a new user.
-func (c *ControllerV1) Create(ctx context.Context, req *v1.CreateUserReq) (res *v1.CreateUserRes, err error) {
+// CreateUser creates a new user.
+func (c *ControllerV1) CreateUser(ctx context.Context, req *v1.CreateUserReq) (res *v1.CreateUserRes, err error) {
 	id, err := service.User().Create(ctx, req.UserCreateIn)
 	if err != nil {
 		return nil, err
@@ -65,8 +65,8 @@ func (c *ControllerV1) Create(ctx context.Context, req *v1.CreateUserReq) (res *
 	return &v1.CreateUserRes{Id: id}, nil
 }
 
-// Update updates an existing user.
-func (c *ControllerV1) Update(ctx context.Context, req *v1.UpdateUserReq) (res *v1.UpdateUserRes, err error) {
+// UpdateUser updates an existing user.
+func (c *ControllerV1) UpdateUser(ctx context.Context, req *v1.UpdateUserReq) (res *v1.UpdateUserRes, err error) {
 	in := req.UserUpdateIn
 	in.ID = req.ID
 	if err := service.User().Update(ctx, in); err != nil {
@@ -75,8 +75,8 @@ func (c *ControllerV1) Update(ctx context.Context, req *v1.UpdateUserReq) (res *
 	return &v1.UpdateUserRes{}, nil
 }
 
-// Delete removes a user by id.
-func (c *ControllerV1) Delete(ctx context.Context, req *v1.DeleteUserReq) (res *v1.DeleteUserRes, err error) {
+// DeleteUser removes a user by id.
+func (c *ControllerV1) DeleteUser(ctx context.Context, req *v1.DeleteUserReq) (res *v1.DeleteUserRes, err error) {
 	if err := service.User().Delete(ctx, req.ID); err != nil {
 		return nil, err
 	}

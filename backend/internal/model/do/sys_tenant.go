@@ -11,11 +11,18 @@ import (
 
 // SysTenant is the golang structure of table sys_tenant for DAO operations like Where/Data.
 type SysTenant struct {
-	g.Meta    `orm:"table:sys_tenant, do:true"`
-	Id        any         //
-	Name      any         //
-	Status    any         //
-	CreatedAt *gtime.Time //
-	UpdatedAt *gtime.Time //
-	DeletedAt *gtime.Time //
+	g.Meta         `orm:"table:sys_tenant, do:true"`
+	Id             any         //
+	Name           any         //
+	Status         any         //
+	CreatedAt      *gtime.Time //
+	UpdatedAt      *gtime.Time //
+	DeletedAt      *gtime.Time //
+	Code           any         //
+	ContactName    any         //
+	ContactMobile  any         //
+	StartAt        *gtime.Time //
+	ExpireAt       *gtime.Time //
+	PackageVersion any         //
+	Domain         any         //
 }

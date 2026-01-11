@@ -21,22 +21,36 @@ type SysTenantDao struct {
 
 // SysTenantColumns defines and stores column names for the table sys_tenant.
 type SysTenantColumns struct {
-	Id        string //
-	Name      string //
-	Status    string //
-	CreatedAt string //
-	UpdatedAt string //
-	DeletedAt string //
+	Id             string //
+	Name           string //
+	Status         string //
+	CreatedAt      string //
+	UpdatedAt      string //
+	DeletedAt      string //
+	Code           string //
+	ContactName    string //
+	ContactMobile  string //
+	StartAt        string //
+	ExpireAt       string //
+	PackageVersion string //
+	Domain         string //
 }
 
 // sysTenantColumns holds the columns for the table sys_tenant.
 var sysTenantColumns = SysTenantColumns{
-	Id:        "id",
-	Name:      "name",
-	Status:    "status",
-	CreatedAt: "created_at",
-	UpdatedAt: "updated_at",
-	DeletedAt: "deleted_at",
+	Id:             "id",
+	Name:           "name",
+	Status:         "status",
+	CreatedAt:      "created_at",
+	UpdatedAt:      "updated_at",
+	DeletedAt:      "deleted_at",
+	Code:           "code",
+	ContactName:    "contact_name",
+	ContactMobile:  "contact_mobile",
+	StartAt:        "start_at",
+	ExpireAt:       "expire_at",
+	PackageVersion: "package_version",
+	Domain:         "domain",
 }
 
 // NewSysTenantDao creates and returns a new DAO object for table data access.

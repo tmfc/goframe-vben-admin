@@ -16,7 +16,11 @@ func NewV1() menu.IMenuV1 {
 	return &ControllerV1{}
 }
 
-// All returns the full menu list for the current user.
-func (c *ControllerV1) All(ctx context.Context, req *v1.MenuAllReq) (res v1.MenuAllRes, err error) {
-	return service.Menu().All(ctx)
+// MenuAll returns the full menu list for the current user.
+func (c *ControllerV1) MenuAll(ctx context.Context, req *v1.MenuAllReq) (res *v1.MenuAllRes, err error) {
+	out, err := service.Menu().All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
