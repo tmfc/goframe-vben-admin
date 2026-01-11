@@ -37,6 +37,24 @@ const routes: RouteRecordRaw[] = [
           title: 'system.permission.title',
         },
       },
+      {
+        name: 'User',
+        path: '/system/user',
+        component: () => import('#/views/sys/user/index.vue'),
+        meta: {
+          icon: 'ant-design:user-outlined',
+          title: 'system.user.title',
+        },
+      },
+      {
+        name: 'Tenant',
+        path: '/system/tenant',
+        component: () => import('#/views/sys/tenant/index.vue'),
+        meta: {
+          icon: 'ant-design:solution-outlined',
+          title: 'system.tenant.title',
+        },
+      },
     ],
   },
 ];

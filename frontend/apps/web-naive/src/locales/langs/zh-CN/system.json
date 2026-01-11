@@ -262,5 +262,46 @@
       "orderRequired": "排序不能为空",
       "orderPositive": "排序需为正整数"
     }
+  },
+  "tenant": {
+    "title": "租户管理",
+    "filters": {
+      "name": "租户名称",
+      "code": "租户代码",
+      "searchByName": "按名称搜索"
+    },
+    "columns": {
+      "name": "租户名称",
+      "code": "租户代码",
+      "contactName": "联系人",
+      "contactMobile": "联系电话",
+      "status": "状态",
+      "expireAt": "有效期至",
+      "actions": "操作"
+    },
+    "actions": {
+      "create": "新增"
+    },
+    "status": {
+      "enabled": "启用",
+      "disabled": "禁用"
+    },
+    "dialog": {
+      "deleteTitle": "提示",
+      "deleteConfirm": "确认删除该租户？"
+    },
+    "form": {
+      "name": "租户名称",
+      "code": "租户代码",
+      "contactName": "联系人",
+      "contactMobile": "联系电话",
+      "startAt": "开始时间",
+      "expireAt": "到期时间",
+      "packageVersion": "套餐版本",
+      "domain": "域名",
+      "status": "状态",
+      "createTitle": "新增租户",
+      "editTitle": "编辑租户"
+    }
   }
 }

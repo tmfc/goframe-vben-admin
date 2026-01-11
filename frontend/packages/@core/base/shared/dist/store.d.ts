@@ -1,1 +1,1 @@
-export * from "/Users/william/work/my_opensource/goframe-vben-admin/frontend/packages/@core/base/shared/src/store.js";
+export * from '@tanstack/vue-store';

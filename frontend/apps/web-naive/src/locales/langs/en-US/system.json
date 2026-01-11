@@ -262,5 +262,46 @@
       "orderRequired": "Order is required",
       "orderPositive": "Order must be a positive integer"
     }
+  },
+  "tenant": {
+    "title": "Tenant Management",
+    "filters": {
+      "name": "Tenant Name",
+      "code": "Tenant Code",
+      "searchByName": "Search by name"
+    },
+    "columns": {
+      "name": "Tenant Name",
+      "code": "Tenant Code",
+      "contactName": "Contact Name",
+      "contactMobile": "Contact Mobile",
+      "status": "Status",
+      "expireAt": "Expires At",
+      "actions": "Actions"
+    },
+    "actions": {
+      "create": "Create"
+    },
+    "status": {
+      "enabled": "Enabled",
+      "disabled": "Disabled"
+    },
+    "dialog": {
+      "deleteTitle": "Warning",
+      "deleteConfirm": "Are you sure you want to delete this tenant?"
+    },
+    "form": {
+      "name": "Tenant Name",
+      "code": "Tenant Code",
+      "contactName": "Contact Name",
+      "contactMobile": "Contact Mobile",
+      "startAt": "Start At",
+      "expireAt": "Expire At",
+      "packageVersion": "Package Version",
+      "domain": "Domain",
+      "status": "Status",
+      "createTitle": "Create Tenant",
+      "editTitle": "Edit Tenant"
+    }
   }
 }
