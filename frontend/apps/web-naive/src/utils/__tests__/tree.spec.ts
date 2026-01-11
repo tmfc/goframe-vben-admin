@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { listToTree, flattenTree, collectExpandedKeys } from '../tree';
 
 describe('Tree Utils', () => {
-  const list = [
+  const list: any[] = [
     { id: '1', parentId: '0', name: 'Root' },
     { id: '2', parentId: '1', name: 'Child 1' },
     { id: '3', parentId: '1', name: 'Child 2' },
@@ -13,21 +13,21 @@ describe('Tree Utils', () => {
   it('listToTree should convert list to tree', () => {
     const tree = listToTree(list, { id: 'id', pid: 'parentId', children: 'children' });
     expect(tree).toHaveLength(2);
-    expect(tree[0].id).toBe('1');
-    expect(tree[0].children).toHaveLength(2);
-    expect(tree[0].children[0].id).toBe('2');
-    expect(tree[0].children[0].children).toHaveLength(1);
-    expect(tree[0].children[0].children[0].id).toBe('4');
+    expect((tree[0] as any).id).toBe('1');
+    expect((tree[0] as any).children).toHaveLength(2);
+    expect((tree[0] as any).children[0].id).toBe('2');
+    expect((tree[0] as any).children[0].children).toHaveLength(1);
+    expect((tree[0] as any).children[0].children[0].id).toBe('4');
   });
 
   it('listToTree should handle custom field names', () => {
-    const customList = [
+    const customList: any[] = [
       { key: 1, parent: 0, title: 'Root' },
       { key: 2, parent: 1, title: 'Child' },
     ];
     const tree = listToTree(customList, { id: 'key', pid: 'parent', children: 'subs' });
     expect(tree).toHaveLength(1);
-    expect(tree[0].subs).toHaveLength(1);
+    expect((tree[0] as any).subs).toHaveLength(1);
   });
 
   it('flattenTree should convert tree to list', () => {
