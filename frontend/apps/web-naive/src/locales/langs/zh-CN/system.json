@@ -151,7 +151,10 @@
       "create": "新增菜单",
       "edit": "编辑菜单",
       "deleteConfirm": "确认删除该菜单？",
-      "manageButtons": "按钮"
+      "manageButtons": "按钮",
+      "generateButtons": "生成按钮",
+      "generateSuccess": "按钮生成成功",
+      "generateFailed": "按钮生成失败"
     },
     "validation": {
       "nameRequired": "名称不能为空",

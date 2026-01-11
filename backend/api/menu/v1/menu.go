@@ -17,6 +17,18 @@ type CreateMenuRes struct {
 	Id string `json:"id"`
 }
 
+// GenerateButtonsReq defines the request structure for generating default buttons under a menu.
+type GenerateButtonsReq struct {
+	g.Meta `path:"/sys-menu/{id}/generate-buttons" method:"post" summary:"Generate default buttons for a menu" tags:"System Menu"`
+	Id     string `json:"id" in:"path" v:"required#菜单ID不能为空"`
+}
+
+// GenerateButtonsRes defines the response structure for generated buttons.
+type GenerateButtonsRes struct {
+	Created int `json:"created"`
+	Skipped int `json:"skipped"`
+}
+
 // GetMenuReq defines the request structure for retrieving a menu.
 type GetMenuReq struct {
 	g.Meta `path:"/sys-menu/{id}" method:"get" summary:"Retrieve a menu by ID" tags:"System Menu"`

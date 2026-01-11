@@ -21,6 +21,7 @@ import {
   NSpace,
   NTag,
   NTreeSelect,
+  useMessage,
 } from 'naive-ui';
 
 import MenuIconPicker from './components/MenuIconPicker.vue';
@@ -28,6 +29,7 @@ import MenuIconPicker from './components/MenuIconPicker.vue';
 import {
   createMenu,
   deleteMenu,
+  generateButtons,
   getMenuList,
   updateMenu,
 } from '#/api/sys/menu';
@@ -38,9 +40,11 @@ import { $t } from '#/locales';
 
 const loading = ref(false);
 const saving = ref(false);
+const generating = ref(false);
 const showModal = ref(false);
 const editingId = ref<null | string>(null);
 const formRef = ref<FormInst | null>(null);
+const message = useMessage();
 
 const filters = reactive({
   name: '',
@@ -311,13 +315,6 @@ const buttonColumns = reactive<DataTableColumns<any>>([
     },
   },
   {
-    title: $t('system.menu.columns.path'),
-    key: 'permission',
-    render(row) {
-      return row.path;
-    },
-  },
-  {
     title: $t('system.menu.columns.permissionCode'),
     key: 'permissionCode',
     render(row) {
@@ -396,9 +393,10 @@ const buttonList = ref<any[]>([]);
 const buttonFormRef = ref<FormInst | null>(null);
 const buttonSaving = ref(false);
 const buttonEditingId = ref<null | string>(null);
+
 const buttonForm = reactive({
   name: '',
-  permission: '',
+  titleKey: '',
   metaTitle: '',
   status: 1,
   order: 0,
@@ -555,6 +553,24 @@ function openButtonModal(row: any) {
       .filter((item) => String(item.parentId) === buttonModal.menuId && item.type === 'button')
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0)) || [];
   buttonModal.show = true;
+}
+
+async function generateDefaultButtons() {
+  if (!buttonModal.menuId) return;
+  generating.value = true;
+  try {
+    await generateButtons(buttonModal.menuId);
+    message.success($t('system.menu.actions.generateSuccess'));
+    await fetchMenuList();
+    buttonList.value =
+      rawMenuList.value
+        .filter((item) => String(item.parentId) === buttonModal.menuId && item.type === 'button')
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0)) || [];
+  } catch (error) {
+    message.error($t('system.menu.actions.generateFailed'));
+  } finally {
+    generating.value = false;
+  }
 }
 
 function resetButtonForm() {
@@ -925,9 +941,14 @@ watch(
       style="width: 960px"
     >
       <div class="button-toolbar">
-        <NButton type="primary" size="small" @click="resetButtonForm">
-          {{ $t('common.create') }}
-        </NButton>
+        <NSpace>
+          <NButton size="small" :loading="generating" @click="generateDefaultButtons">
+            {{ $t('system.menu.actions.generateButtons') }}
+          </NButton>
+          <NButton type="primary" size="small" @click="resetButtonForm">
+            {{ $t('common.create') }}
+          </NButton>
+        </NSpace>
       </div>
       <NDataTable :columns="buttonColumns" :data="buttonList" :row-key="rowKey" :bordered="false" />
       <div class="button-form">

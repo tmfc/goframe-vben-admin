@@ -7,7 +7,7 @@ package menu
 import (
 	"context"
 
-	"backend/api/menu/v1"
+	v1 "backend/api/menu/v1"
 )
 
 type IMenuV1 interface {
@@ -16,4 +16,5 @@ type IMenuV1 interface {
 	UpdateMenu(ctx context.Context, req *v1.UpdateMenuReq) (res *v1.UpdateMenuRes, err error)
 	DeleteMenu(ctx context.Context, req *v1.DeleteMenuReq) (res *v1.DeleteMenuRes, err error)
 	GetMenuList(ctx context.Context, req *v1.GetMenuListReq) (res *v1.GetMenuListRes, err error)
+	GenerateButtons(ctx context.Context, req *v1.GenerateButtonsReq) (res *v1.GenerateButtonsRes, err error)
 }

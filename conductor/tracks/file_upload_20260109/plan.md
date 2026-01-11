@@ -28,7 +28,7 @@ This plan outlines the steps to implement the file upload feature as described i
 -   [x] **Task: Refactor & Review Backend** (8920c78)
     -   [ ] Sub-task: Refactor the upload logic for clarity and maintainability.
     -   [ ] Sub-task: Ensure all new backend code adheres to Go formatting and best practices.
--   [ ] **Task: Conductor - User Manual Verification 'Phase 1: Backend API Development' (Protocol in workflow.md)**
+-   [~] **Task: Conductor - User Manual Verification 'Phase 1: Backend API Development' (Protocol in workflow.md)**
 
 ## Phase 2: Frontend Component Development
 

@@ -151,7 +151,10 @@
       "create": "Create Menu",
       "edit": "Edit Menu",
       "deleteConfirm": "Delete this menu?",
-      "manageButtons": "Manage Buttons"
+      "manageButtons": "Manage Buttons",
+      "generateButtons": "Generate Buttons",
+      "generateSuccess": "Buttons generated",
+      "generateFailed": "Failed to generate buttons"
     },
     "validation": {
       "nameRequired": "Name is required",
