@@ -27,7 +27,7 @@
 ## Phase 3: 菜单与权限模块重构 (Refactoring)
 本阶段是核心工作，将菜单和权限模块迁移到标准的 Vben Form 架构。
 
-- [~] Task: 3.1 重构菜单表单 (Menu Form)
+- [x] Task: 3.1 重构菜单表单 (Menu Form) (853fd7c)
     - 创建 `src/views/sys/menu/modules/form.vue`。
     - 使用 `useVbenForm` 定义表单 Schema。
     - 迁移现有的权限代码自动生成逻辑 (`generatePermissionCode`)。
