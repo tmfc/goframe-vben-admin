@@ -15,4 +15,5 @@ type IAuthV1 interface {
 	RefreshToken(ctx context.Context, req *v1.RefreshTokenReq) (res *v1.RefreshTokenRes, err error)
 	Logout(ctx context.Context, req *v1.LogoutReq) (res *v1.LogoutRes, err error)
 	GetAccessCodes(ctx context.Context, req *v1.GetAccessCodesReq) (res *v1.GetAccessCodesRes, err error)
+	SwitchTenant(ctx context.Context, req *v1.SwitchTenantReq) (res *v1.SwitchTenantRes, err error)
 }

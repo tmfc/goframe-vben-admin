@@ -12,6 +12,11 @@ import { useAuthStore } from '#/store';
 defineOptions({ name: 'Login' });
 
 const authStore = useAuthStore();
+const multiTenantEnabled = import.meta.env.VITE_APP_MULTI_TENANT === 'true';
+const usernamePlaceholder = computed(() => {
+  const base = $t('authentication.usernameTip');
+  return multiTenantEnabled ? `${base} (e.g. admin@system)` : base;
+});
 
 const MOCK_USER_OPTIONS: BasicOption[] = [
   {
@@ -47,7 +52,7 @@ const formSchema = computed((): VbenFormSchema[] => {
     {
       component: 'VbenInput',
       componentProps: {
-        placeholder: $t('authentication.usernameTip'),
+        placeholder: usernamePlaceholder.value,
       },
       dependencies: {
         trigger(values, form) {

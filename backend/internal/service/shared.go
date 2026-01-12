@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"strings"
 
+	"backend/internal/config"
 	"backend/internal/consts"
 
-	"github.com/golang-jwt/jwt/v4"
 	"github.com/gogf/gf/v2/util/gconv"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 func parseRoles(raw any) []string {
@@ -72,6 +73,9 @@ func TenantID(ctx context.Context) string {
 func resolveTenantID(ctx context.Context) string {
 	const defaultTenantID = consts.DefaultTenantID
 
+	if !config.IsMultiTenantEnabled(ctx) {
+		return defaultTenantID
+	}
 	if v := ctx.Value(consts.CtxKeyTenantID); v != nil {
 		if tenantID, ok := v.(string); ok && strings.TrimSpace(tenantID) != "" {
 			return tenantID

@@ -68,7 +68,8 @@ func (s *sUser) Info(ctx context.Context, token string) (res *v1.UserInfoRes, er
 	}
 
 	var user entity.SysUser
-	err = dao.SysUser.Ctx(ctx).Where(dao.SysUser.Columns().Id, userID).Scan(&user)
+	noTenantCtx := dao.WithoutTenant(ctx)
+	err = dao.SysUser.Ctx(noTenantCtx).Where(dao.SysUser.Columns().Id, userID).Scan(&user)
 	if err != nil {
 		return nil, err
 	}

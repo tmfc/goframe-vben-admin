@@ -86,6 +86,7 @@ func (s *jwtTokenService) GenerateRefreshToken(user *entity.SysUser) (string, er
 	claims := jwt.MapClaims{
 		"id":       user.Id,
 		"username": user.Username,
+		"tenantId": user.TenantId,
 		"exp":      time.Now().Add(RefreshTokenTTL).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
