@@ -7,11 +7,11 @@
 - [x] 任务: 实现 DAO 和 Model 层 (GoFrame dao/model) [4861eb2]
     - [x] 使用 `gf gen dao` 生成基础代码
     - [x] 定义消息传输对象 (DTO) 和业务常量 (消息类型、跳转类型)
-- [ ] 任务: 核心业务逻辑实现 (Logic 层)
-    - [ ] 编写发送消息的基础接口 (支持异步推送到 Redis)
-    - [ ] 编写消息列表查询、标记已读的业务逻辑
-- [ ] 任务: 单元测试
-    - [ ] 针对消息发送、读取、已读状态更新编写单元测试
+- [x] 任务: 核心业务逻辑实现 (Logic 层) [67e6ae1]
+    - [x] 编写发送消息的基础接口 (支持异步推送到 Redis)
+    - [x] 编写消息列表查询、标记已读的业务逻辑
+- [x] 任务: 单元测试 [67e6ae1]
+    - [x] 针对消息发送、读取、已读状态更新编写单元测试
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Database & Backend Foundation' (Protocol in workflow.md)
 
 ## 阶段 2: 异步机制与 Redis 集成 (Phase 2: Async & Redis Integration)
