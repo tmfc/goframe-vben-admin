@@ -48,8 +48,8 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 4: Message Center API' (Protocol in workflow.md) [2be67f2]
 
 ## 阶段 5: 前端集成 - Vben Admin (Phase 5: Frontend Integration)
-- [ ] 任务: 实现前端 WebSocket 客户端封装
-    - [ ] 维护连接状态、重连逻辑
+- [x] 任务: 实现前端 WebSocket 客户端封装 [78730a0]
+    - [x] 维护连接状态、重连逻辑
 - [ ] 任务: 实现消息通知组件 (Header Bell)
     - [ ] 实时更新未读总数，展示最近几条通知
 - [ ] 任务: 实现消息中心管理页面
