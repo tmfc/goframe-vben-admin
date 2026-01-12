@@ -13,6 +13,9 @@ import (
 	"backend/internal/controller/dept"
 	"backend/internal/controller/hello"
 	"backend/internal/controller/menu"
+	"backend/internal/controller/sys_dict"
+	"backend/internal/controller/sys_dict_data"
+	"backend/internal/controller/sys_dict_type"
 	"backend/internal/controller/sys_permission"
 	"backend/internal/controller/sys_role"
 	"backend/internal/controller/tenant"
@@ -54,6 +57,9 @@ var (
 					hello.NewV1(),
 					auth.NewV1(),
 					dept.NewV1(),
+					sys_dict.NewV1(),
+					sys_dict_data.NewV1(),
+					sys_dict_type.NewV1(),
 					sys_permission.NewV1(),
 					sys_role.NewV1(),
 					tenant.NewV1(),

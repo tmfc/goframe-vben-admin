@@ -167,6 +167,54 @@
       "status": 1
     },
     {
+      "name": "System:DictType:List",
+      "description": "System dict type list",
+      "parent_name": "System",
+      "status": 1
+    },
+    {
+      "name": "System:DictType:Create",
+      "description": "System dict type create",
+      "parent_name": "System:DictType:List",
+      "status": 1
+    },
+    {
+      "name": "System:DictType:Edit",
+      "description": "System dict type edit",
+      "parent_name": "System:DictType:List",
+      "status": 1
+    },
+    {
+      "name": "System:DictType:Delete",
+      "description": "System dict type delete",
+      "parent_name": "System:DictType:List",
+      "status": 1
+    },
+    {
+      "name": "System:DictData:List",
+      "description": "System dict data list",
+      "parent_name": "System",
+      "status": 1
+    },
+    {
+      "name": "System:DictData:Create",
+      "description": "System dict data create",
+      "parent_name": "System:DictData:List",
+      "status": 1
+    },
+    {
+      "name": "System:DictData:Edit",
+      "description": "System dict data edit",
+      "parent_name": "System:DictData:List",
+      "status": 1
+    },
+    {
+      "name": "System:DictData:Delete",
+      "description": "System dict data delete",
+      "parent_name": "System:DictData:List",
+      "status": 1
+    },
+    {
       "name": "System:Tenant:List",
       "description": "System tenant list",
       "parent_name": "System",
@@ -760,6 +808,175 @@
       }
     }
   ],
+  "dict_types": [
+    {
+      "type_code": "gender",
+      "type_name": "性别",
+      "description": "性别选项",
+      "is_system": true,
+      "status": 1,
+      "sort": 1
+    },
+    {
+      "type_code": "education",
+      "type_name": "学历等级",
+      "description": "学历等级列表",
+      "is_system": true,
+      "status": 1,
+      "sort": 2
+    },
+    {
+      "type_code": "work_years",
+      "type_name": "工作年限",
+      "description": "工作年限选项",
+      "is_system": true,
+      "status": 1,
+      "sort": 3
+    },
+    {
+      "type_code": "marital_status",
+      "type_name": "婚姻状况",
+      "description": "婚姻状况选项",
+      "is_system": true,
+      "status": 1,
+      "sort": 4
+    }
+  ],
+  "dict_data": [
+    {
+      "dict_type_code": "gender",
+      "label": "男",
+      "label_i18n": {
+        "en": "Male",
+        "zh-tw": "男"
+      },
+      "value": "1",
+      "description": "男性",
+      "sort": 1
+    },
+    {
+      "dict_type_code": "gender",
+      "label": "女",
+      "label_i18n": {
+        "en": "Female",
+        "zh-tw": "女"
+      },
+      "value": "2",
+      "description": "女性",
+      "sort": 2
+    },
+    {
+      "dict_type_code": "gender",
+      "label": "未知",
+      "label_i18n": {
+        "en": "Unknown",
+        "zh-tw": "未知"
+      },
+      "value": "0",
+      "description": "未知性别",
+      "sort": 3
+    },
+    {
+      "dict_type_code": "education",
+      "label": "高中",
+      "label_i18n": {
+        "en": "High School"
+      },
+      "value": "1",
+      "description": "高中及以下",
+      "sort": 1
+    },
+    {
+      "dict_type_code": "education",
+      "label": "大专",
+      "label_i18n": {
+        "en": "College"
+      },
+      "value": "2",
+      "description": "大专学历",
+      "sort": 2
+    },
+    {
+      "dict_type_code": "education",
+      "label": "本科",
+      "label_i18n": {
+        "en": "Bachelor"
+      },
+      "value": "3",
+      "description": "本科学历",
+      "sort": 3
+    },
+    {
+      "dict_type_code": "education",
+      "label": "硕士",
+      "label_i18n": {
+        "en": "Master"
+      },
+      "value": "4",
+      "description": "硕士学历",
+      "sort": 4
+    },
+    {
+      "dict_type_code": "education",
+      "label": "博士",
+      "label_i18n": {
+        "en": "PhD"
+      },
+      "value": "5",
+      "description": "博士学历",
+      "sort": 5
+    },
+    {
+      "dict_type_code": "work_years",
+      "label": "应届生",
+      "label_i18n": {
+        "en": "Fresh Graduate"
+      },
+      "value": "0",
+      "description": "应届毕业生",
+      "sort": 1
+    },
+    {
+      "dict_type_code": "work_years",
+      "label": "1年以下",
+      "label_i18n": {
+        "en": "Under 1 year"
+      },
+      "value": "1",
+      "description": "1年以下工作经验",
+      "sort": 2
+    },
+    {
+      "dict_type_code": "work_years",
+      "label": "1-3年",
+      "label_i18n": {
+        "en": "1-3 years"
+      },
+      "value": "2",
+      "description": "1-3年工作经验",
+      "sort": 3
+    },
+    {
+      "dict_type_code": "marital_status",
+      "label": "未婚",
+      "label_i18n": {
+        "en": "Single"
+      },
+      "value": "1",
+      "description": "未婚",
+      "sort": 1
+    },
+    {
+      "dict_type_code": "marital_status",
+      "label": "已婚",
+      "label_i18n": {
+        "en": "Married"
+      },
+      "value": "2",
+      "description": "已婚",
+      "sort": 2
+    }
+  ],
   "users": [
     {
       "username": "vben",
@@ -817,6 +1034,22 @@
     {
       "role": "admin",
       "permission": "System:Role:Edit"
+    },
+    {
+      "role": "admin",
+      "permission": "System:DictType:List"
+    },
+    {
+      "role": "admin",
+      "permission": "System:DictType:Edit"
+    },
+    {
+      "role": "admin",
+      "permission": "System:DictData:List"
+    },
+    {
+      "role": "admin",
+      "permission": "System:DictData:Edit"
     },
     {
       "role": "admin",

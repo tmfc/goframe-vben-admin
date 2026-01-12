@@ -53,6 +53,8 @@ var Seed = gcmd.Command{
 		fmt.Printf("Roles: inserted=%d skipped=%d\n", result.Roles.Inserted, result.Roles.Skipped)
 		fmt.Printf("Permissions: inserted=%d skipped=%d\n", result.Permissions.Inserted, result.Permissions.Skipped)
 		fmt.Printf("Menus: inserted=%d skipped=%d\n", result.Menus.Inserted, result.Menus.Skipped)
+		fmt.Printf("Dict Types: inserted=%d skipped=%d\n", result.DictTypes.Inserted, result.DictTypes.Skipped)
+		fmt.Printf("Dict Data: inserted=%d skipped=%d\n", result.DictData.Inserted, result.DictData.Skipped)
 		fmt.Printf("Users: inserted=%d skipped=%d\n", result.Users.Inserted, result.Users.Skipped)
 		fmt.Printf("Role-Permissions: inserted=%d skipped=%d\n", result.RolePermissions.Inserted, result.RolePermissions.Skipped)
 		fmt.Printf("User-Roles: inserted=%d skipped=%d\n", result.UserRoles.Inserted, result.UserRoles.Skipped)
@@ -77,6 +79,8 @@ type SeedData struct {
 	Depts           []SeedDept           `json:"depts"`
 	Permissions     []SeedPermission     `json:"permissions"`
 	Menus           []SeedMenu           `json:"menus"`
+	DictTypes       []SeedDictType       `json:"dict_types"`
+	DictData        []SeedDictData       `json:"dict_data"`
 	UserRoles       []SeedUserRole       `json:"user_roles"`
 	RolePermissions []SeedRolePermission `json:"role_permissions"`
 	CasbinRules     []SeedCasbinRule     `json:"casbin_rules"`
@@ -150,6 +154,34 @@ type SeedDept struct {
 	TenantID   *int64 `json:"tenant_id,omitempty"`
 }
 
+type SeedDictType struct {
+	ID          *int64 `json:"id,omitempty"`
+	TypeCode    string `json:"type_code"`
+	TypeName    string `json:"type_name"`
+	Description string `json:"description"`
+	IsSystem    *bool  `json:"is_system,omitempty"`
+	Status      *int   `json:"status,omitempty"`
+	Sort        *int   `json:"sort,omitempty"`
+	TenantID    *int64 `json:"tenant_id,omitempty"`
+}
+
+type SeedDictData struct {
+	ID          *int64            `json:"id,omitempty"`
+	DictTypeID  *int64            `json:"dict_type_id,omitempty"`
+	DictType    string            `json:"dict_type_code"`
+	Label       string            `json:"label"`
+	LabelI18n   map[string]string `json:"label_i18n"`
+	Value       string            `json:"value"`
+	Description string            `json:"description"`
+	Color       string            `json:"color"`
+	Icon        string            `json:"icon"`
+	CssClass    string            `json:"css_class"`
+	Status      *int              `json:"status,omitempty"`
+	Sort        *int              `json:"sort,omitempty"`
+	IsDefault   *bool             `json:"is_default,omitempty"`
+	TenantID    *int64            `json:"tenant_id,omitempty"`
+}
+
 type SeedUserRole struct {
 	UserID   *int64 `json:"user_id,omitempty"`
 	Username string `json:"username"`
@@ -187,6 +219,8 @@ type seedResult struct {
 	Roles           seedStats
 	Permissions     seedStats
 	Menus           seedStats
+	DictTypes       seedStats
+	DictData        seedStats
 	Users           seedStats
 	UserRoles       seedStats
 	RolePermissions seedStats
@@ -223,6 +257,7 @@ func seedInitialData(ctx context.Context, data *SeedData, defaultTenant string, 
 	userIDs := make(map[string]int64)
 	deptIDs := make(map[string]int64)
 	menuIDs := make(map[string]int64)
+	dictTypeIDs := make(map[string]int64)
 
 	if err := seedTenants(ctx, data.Tenants, dryRun, &result.Tenants); err != nil {
 		return nil, err
@@ -237,6 +272,12 @@ func seedInitialData(ctx context.Context, data *SeedData, defaultTenant string, 
 		return nil, err
 	}
 	if err := seedMenus(ctx, data.Menus, defaultTenant, dryRun, menuIDs, &result.Menus); err != nil {
+		return nil, err
+	}
+	if err := seedDictTypes(ctx, data.DictTypes, defaultTenant, dryRun, dictTypeIDs, &result.DictTypes); err != nil {
+		return nil, err
+	}
+	if err := seedDictData(ctx, data.DictData, defaultTenant, dryRun, dictTypeIDs, &result.DictData); err != nil {
 		return nil, err
 	}
 	if err := seedUsers(ctx, data.Users, defaultTenant, dryRun, deptIDs, userIDs, &result.Users); err != nil {
@@ -453,6 +494,153 @@ func seedMenus(ctx context.Context, menus []SeedMenu, defaultTenant string, dryR
 		}
 		stats.Inserted++
 		menuIDs[mapKey(tenantID, name)] = lastID
+	}
+	return nil
+}
+
+func seedDictTypes(ctx context.Context, dictTypes []SeedDictType, defaultTenant string, dryRun bool, dictTypeIDs map[string]int64, stats *seedStats) error {
+	var fakeID int64
+	for _, dictType := range dictTypes {
+		typeCode := strings.TrimSpace(dictType.TypeCode)
+		typeName := strings.TrimSpace(dictType.TypeName)
+		if typeCode == "" {
+			return fmt.Errorf("dict type code is required")
+		}
+		if typeName == "" {
+			return fmt.Errorf("dict type name is required")
+		}
+		tenantID := resolveTenantID(defaultTenant, dictType.TenantID)
+		tenantIDValue := tenantIDToInt64(tenantID)
+		if tenantIDValue == 0 {
+			return fmt.Errorf("invalid tenant id for dict type %s: %s", typeCode, tenantID)
+		}
+		tenantCtx := context.WithValue(ctx, consts.CtxKeyTenantID, tenantID)
+
+		var existing struct {
+			Id int64
+		}
+		err := dao.SysDictType.Ctx(tenantCtx).
+			Where(dao.SysDictType.Columns().TypeCode, typeCode).
+			Fields(dao.SysDictType.Columns().Id).
+			Scan(&existing)
+		if err != nil {
+			if !errors.Is(err, sql.ErrNoRows) {
+				return err
+			}
+		}
+		if existing.Id > 0 {
+			stats.Skipped++
+			dictTypeIDs[mapKey(tenantID, typeCode)] = existing.Id
+			continue
+		}
+
+		insertData := map[string]any{
+			dao.SysDictType.Columns().TypeCode:    typeCode,
+			dao.SysDictType.Columns().TypeName:    typeName,
+			dao.SysDictType.Columns().Description: strings.TrimSpace(dictType.Description),
+			dao.SysDictType.Columns().IsSystem:    boolValueOrDefault(dictType.IsSystem, false),
+			dao.SysDictType.Columns().Status:      intValueOrDefault(dictType.Status, 1),
+			dao.SysDictType.Columns().Sort:        intValueOrDefault(dictType.Sort, 0),
+			dao.SysDictType.Columns().TenantId:    tenantIDValue,
+		}
+		if dictType.ID != nil && *dictType.ID > 0 {
+			insertData[dao.SysDictType.Columns().Id] = *dictType.ID
+		}
+
+		if dryRun {
+			fakeID++
+			stats.Inserted++
+			dictTypeIDs[mapKey(tenantID, typeCode)] = fakeID
+			continue
+		}
+		result, err := dao.SysDictType.CtxNoTenant(tenantCtx).Data(insertData).Insert()
+		if err != nil {
+			return err
+		}
+		lastID, err := result.LastInsertId()
+		if err != nil {
+			return err
+		}
+		stats.Inserted++
+		dictTypeIDs[mapKey(tenantID, typeCode)] = lastID
+	}
+	return nil
+}
+
+func seedDictData(ctx context.Context, dictData []SeedDictData, defaultTenant string, dryRun bool, dictTypeIDs map[string]int64, stats *seedStats) error {
+	var fakeID int64
+	for _, item := range dictData {
+		label := strings.TrimSpace(item.Label)
+		value := strings.TrimSpace(item.Value)
+		if label == "" {
+			return fmt.Errorf("dict data label is required")
+		}
+		if value == "" {
+			return fmt.Errorf("dict data value is required")
+		}
+		tenantID := resolveTenantID(defaultTenant, item.TenantID)
+		tenantIDValue := tenantIDToInt64(tenantID)
+		if tenantIDValue == 0 {
+			return fmt.Errorf("invalid tenant id for dict data %s: %s", value, tenantID)
+		}
+		tenantCtx := context.WithValue(ctx, consts.CtxKeyTenantID, tenantID)
+
+		dictTypeID := resolveDictTypeID(tenantCtx, item.DictTypeID, item.DictType, dictTypeIDs)
+		if dictTypeID == 0 {
+			return fmt.Errorf("dict type not found for dict data value=%s", value)
+		}
+
+		var existing struct {
+			Id int64
+		}
+		err := dao.SysDictData.Ctx(tenantCtx).
+			Where(dao.SysDictData.Columns().DictTypeId, dictTypeID).
+			Where(dao.SysDictData.Columns().Value, value).
+			Fields(dao.SysDictData.Columns().Id).
+			Scan(&existing)
+		if err != nil {
+			if !errors.Is(err, sql.ErrNoRows) {
+				return err
+			}
+		}
+		if existing.Id > 0 {
+			stats.Skipped++
+			continue
+		}
+
+		labelI18n, err := json.Marshal(item.LabelI18n)
+		if err != nil {
+			return fmt.Errorf("invalid label_i18n for dict data value=%s: %w", value, err)
+		}
+
+		insertData := map[string]any{
+			dao.SysDictData.Columns().DictTypeId:  dictTypeID,
+			dao.SysDictData.Columns().Label:       label,
+			dao.SysDictData.Columns().LabelI18n:   string(labelI18n),
+			dao.SysDictData.Columns().Value:       value,
+			dao.SysDictData.Columns().Description: strings.TrimSpace(item.Description),
+			dao.SysDictData.Columns().Color:       strings.TrimSpace(item.Color),
+			dao.SysDictData.Columns().Icon:        strings.TrimSpace(item.Icon),
+			dao.SysDictData.Columns().CssClass:    strings.TrimSpace(item.CssClass),
+			dao.SysDictData.Columns().Status:      intValueOrDefault(item.Status, 1),
+			dao.SysDictData.Columns().Sort:        intValueOrDefault(item.Sort, 0),
+			dao.SysDictData.Columns().IsDefault:   boolValueOrDefault(item.IsDefault, false),
+			dao.SysDictData.Columns().TenantId:    tenantIDValue,
+		}
+		if item.ID != nil && *item.ID > 0 {
+			insertData[dao.SysDictData.Columns().Id] = *item.ID
+		}
+
+		if dryRun {
+			fakeID++
+			stats.Inserted++
+			continue
+		}
+		_, err = dao.SysDictData.CtxNoTenant(tenantCtx).Data(insertData).Insert()
+		if err != nil {
+			return err
+		}
+		stats.Inserted++
 	}
 	return nil
 }
@@ -849,6 +1037,13 @@ func intValueOrDefault(value *int, defaultValue int) int {
 	return defaultValue
 }
 
+func boolValueOrDefault(value *bool, defaultValue bool) bool {
+	if value != nil {
+		return *value
+	}
+	return defaultValue
+}
+
 func resolveParentDeptID(ctx context.Context, parentID *int64, parentName string, deptIDs map[string]int64) int64 {
 	if parentID != nil && *parentID > 0 {
 		return *parentID
@@ -1007,6 +1202,43 @@ func resolvePermissionIDByName(ctx context.Context, name string, permIDs map[str
 	}
 	permIDs[key] = uint(existing.Id)
 	return uint(existing.Id)
+}
+
+func resolveDictTypeID(ctx context.Context, dictTypeID *int64, dictTypeCode string, dictTypeIDs map[string]int64) int64 {
+	if dictTypeID != nil && *dictTypeID > 0 {
+		return *dictTypeID
+	}
+	dictTypeCode = strings.TrimSpace(dictTypeCode)
+	if dictTypeCode == "" {
+		return 0
+	}
+	return resolveDictTypeIDByCode(ctx, dictTypeCode, dictTypeIDs)
+}
+
+func resolveDictTypeIDByCode(ctx context.Context, code string, dictTypeIDs map[string]int64) int64 {
+	tenantID := tenantIDFromCtx(ctx)
+	key := mapKey(tenantID, code)
+	if id, ok := dictTypeIDs[key]; ok && id > 0 {
+		return id
+	}
+	var existing struct {
+		Id int64
+	}
+	err := dao.SysDictType.Ctx(ctx).
+		Where(dao.SysDictType.Columns().TypeCode, code).
+		Fields(dao.SysDictType.Columns().Id).
+		Scan(&existing)
+	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			return 0
+		}
+		return 0
+	}
+	if existing.Id == 0 {
+		return 0
+	}
+	dictTypeIDs[key] = existing.Id
+	return existing.Id
 }
 
 func resolveUserID(ctx context.Context, tenantID string, userID *int64, username string, userIDs map[string]int64) (int64, error) {
