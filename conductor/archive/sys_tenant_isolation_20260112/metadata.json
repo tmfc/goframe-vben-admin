@@ -1,0 +1,8 @@
+{
+  "track_id": "sys_tenant_isolation_20260112",
+  "type": "feature",
+  "status": "completed",
+  "created_at": "2026-01-12T10:00:00Z",
+  "updated_at": "2026-01-12T11:45:00Z",
+  "description": "租户隔离配套工作,包括数据库字段补全,支持 用户名@租户代码 登录模式,以及超管切换租户功能。"
+}
