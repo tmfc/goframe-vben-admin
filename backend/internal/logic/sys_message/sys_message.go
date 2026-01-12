@@ -88,3 +88,20 @@ func (s *sSysMessage) SetRead(ctx context.Context, userId int64, messageIds []in
 		return nil
 	})
 }
+
+func (s *sSysMessage) SetAllRead(ctx context.Context, userId int64) error {
+	// Find all message IDs that this user should see but hasn't read yet
+	// INSERT INTO sys_message_read (message_id, user_id)
+	// SELECT m.id, ? FROM sys_message m
+	// LEFT JOIN sys_message_read r ON m.id = r.message_id AND r.user_id = ?
+	// WHERE (m.receiver_id = ? OR m.receiver_id IS NULL) AND r.id IS NULL
+
+	sql := `
+		INSERT INTO sys_message_read (message_id, user_id)
+		SELECT m.id, ? FROM sys_message m
+		LEFT JOIN sys_message_read r ON m.id = r.message_id AND r.user_id = ?
+		WHERE (m.receiver_id = ? OR m.receiver_id IS NULL) AND r.id IS NULL
+	`
+	_, err := dao.SysMessageRead.DB().Exec(ctx, sql, userId, userId, userId)
+	return err
+}

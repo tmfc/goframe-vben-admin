@@ -9,6 +9,7 @@ import (
 	"backend/internal/testutil"
 
 	_ "github.com/gogf/gf/contrib/drivers/pgsql/v2"
+	_ "github.com/gogf/gf/contrib/nosql/redis/v2"
 	"github.com/gogf/gf/v2/test/gtest"
 )
 
@@ -84,5 +85,42 @@ func Test_GetList_And_SetRead(t *testing.T) {
 		}
 		t.AssertNE(foundItem, nil)
 		t.Assert(foundItem.IsRead, true)
+	})
+}
+
+func Test_SetAllRead(t *testing.T) {
+	testutil.RequireDatabase(t)
+
+	gtest.C(t, func(t *gtest.T) {
+		s := sys_message.New()
+		ctx := context.Background()
+		userId := int64(2) // Different user for isolation
+
+		// 1. Send 3 messages
+		for i := 0; i < 3; i++ {
+			_, err := s.SendMessage(ctx, model.MessageCreateInput{
+				Title:      "Multi Message",
+				ReceiverID: &userId,
+				TenantID:   1,
+				CreatorID:  1,
+			})
+			t.AssertNil(err)
+		}
+
+		// 2. Verify 3 unread
+		_, total, err := s.GetList(ctx, userId, 1, 10)
+		t.AssertNil(err)
+		t.Assert(total >= 3, true)
+
+		// 3. Set All Read
+		err = s.SetAllRead(ctx, userId)
+		t.AssertNil(err)
+
+		// 4. Verify all read
+		list, _, err := s.GetList(ctx, userId, 1, 10)
+		t.AssertNil(err)
+		for _, item := range list {
+			t.Assert(item.IsRead, true)
+		}
 	})
 }
