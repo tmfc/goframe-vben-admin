@@ -303,5 +303,23 @@
       "createTitle": "Create Tenant",
       "editTitle": "Edit Tenant"
     }
+  },
+  "message": {
+    "title": "Message Center",
+    "columns": {
+      "title": "Title",
+      "content": "Content",
+      "status": "Status",
+      "createdAt": "Created At",
+      "actions": "Actions"
+    },
+    "status": {
+      "read": "Read",
+      "unread": "Unread"
+    },
+    "actions": {
+      "markRead": "Mark Read",
+      "markAllRead": "Mark All Read"
+    }
   }
 }

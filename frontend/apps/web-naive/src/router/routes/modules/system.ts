@@ -47,6 +47,15 @@ const routes: RouteRecordRaw[] = [
         },
       },
       {
+        name: 'Message',
+        path: '/system/message',
+        component: () => import('#/views/sys/message/index.vue'),
+        meta: {
+          icon: 'ant-design:mail-outlined',
+          title: 'system.message.title',
+        },
+      },
+      {
         name: 'Tenant',
         path: '/system/tenant',
         component: () => import('#/views/sys/tenant/index.vue'),

@@ -303,5 +303,23 @@
       "createTitle": "新增租户",
       "editTitle": "编辑租户"
     }
+  },
+  "message": {
+    "title": "消息中心",
+    "columns": {
+      "title": "标题",
+      "content": "内容",
+      "status": "状态",
+      "createdAt": "创建时间",
+      "actions": "操作"
+    },
+    "status": {
+      "read": "已读",
+      "unread": "未读"
+    },
+    "actions": {
+      "markRead": "标记已读",
+      "markAllRead": "全部标记已读"
+    }
   }
 }
