@@ -36,7 +36,7 @@
     - [x] 使用测试脚本模拟 WebSocket 连接并验证消息实时接收
 - [x] Task: Conductor - User Manual Verification 'Phase 3: WebSocket Server' (Protocol in workflow.md) [2f3fbfa]
 
-## 阶段 4: 消息中心 API 开发 (Phase 4: Message Center API)
+## 阶段 4: 消息中心 API 开发 (Phase 4: Message Center API) [checkpoint: 2be67f2]
 - [x] 任务: 编写 API 接口文档 (api/v1) [8a0e0de]
     - [x] 定义消息列表分页、详情、设为已读、全部已读等接口
 - [x] 任务: 实现 API 控制器层 [82341c8]
@@ -45,7 +45,7 @@
     - [x] 为消息中心相关 API 配置 RBAC 权限
 - [x] 任务: 自动化测试 (E2E) [a8ece0c]
     - [x] 验证全流程 API 调用
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Message Center API' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Message Center API' (Protocol in workflow.md) [2be67f2]
 
 ## 阶段 5: 前端集成 - Vben Admin (Phase 5: Frontend Integration)
 - [ ] 任务: 实现前端 WebSocket 客户端封装
