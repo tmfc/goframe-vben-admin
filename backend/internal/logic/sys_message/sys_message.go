@@ -5,10 +5,10 @@ import (
 	"fmt"
 
 	"backend/internal/dao"
+	"backend/internal/logic/sys_message/mq"
 	"backend/internal/model"
 
 	"github.com/gogf/gf/v2/database/gdb"
-	"github.com/gogf/gf/v2/frame/g"
 )
 
 type sSysMessage struct{}
@@ -22,6 +22,15 @@ func (s *sSysMessage) SendMessage(ctx context.Context, in model.MessageCreateInp
 	if err != nil {
 		return 0, err
 	}
+
+	// Async push to Redis topic "sys_message"
+	// We use a dedicated package 'mq' for this
+	err = mq.Publish(ctx, "sys_message", in)
+	if err != nil {
+		// Log error but don't fail the database transaction
+		g.Log().Error(ctx, "Failed to publish message to Redis", err)
+	}
+
 	return id, nil
 }
 
