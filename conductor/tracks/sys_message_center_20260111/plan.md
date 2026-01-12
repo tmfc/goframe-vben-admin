@@ -41,8 +41,8 @@
     - [x] 定义消息列表分页、详情、设为已读、全部已读等接口
 - [x] 任务: 实现 API 控制器层 [82341c8]
     - [x] 调用 Logic 层完成业务闭环
-- [ ] 任务: 权限配置 (Casbin)
-    - [ ] 为消息中心相关 API 配置 RBAC 权限
+- [x] 任务: 权限配置 (Casbin) [e138129]
+    - [x] 为消息中心相关 API 配置 RBAC 权限
 - [ ] 任务: 自动化测试 (E2E)
     - [ ] 验证全流程 API 调用
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Message Center API' (Protocol in workflow.md)
