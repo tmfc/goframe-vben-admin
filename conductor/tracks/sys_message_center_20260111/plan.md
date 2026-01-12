@@ -50,10 +50,10 @@
 ## 阶段 5: 前端集成 - Vben Admin (Phase 5: Frontend Integration)
 - [x] 任务: 实现前端 WebSocket 客户端封装 [78730a0]
     - [x] 维护连接状态、重连逻辑
-- [ ] 任务: 实现消息通知组件 (Header Bell)
-    - [ ] 实时更新未读总数，展示最近几条通知
-- [ ] 任务: 实现消息中心管理页面
-    - [ ] 包含分类列表、已读/未读筛选、一键已读功能
+- [x] 任务: 实现消息通知组件 (Header Bell) [6a4b665]
+    - [x] 实时更新未读总数，展示最近几条通知
+- [x] 任务: 实现消息中心管理页面 [e0fdea1]
+    - [x] 包含分类列表、已读/未读筛选、一键已读功能
 - [ ] 任务: 跳转逻辑实现
     - [ ] 根据后端返回的 `Path` 和 `Params` 执行路由跳转或打开弹窗
 - [ ] Task: Conductor - User Manual Verification 'Phase 5: Frontend Integration' (Protocol in workflow.md)
