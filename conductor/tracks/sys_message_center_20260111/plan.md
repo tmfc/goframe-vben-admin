@@ -24,7 +24,7 @@
     - [x] 编写测试用例验证消息在 Redis 中的堆积与正确消费
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Async & Redis Integration' (Protocol in workflow.md) [ebf7bf1]
 
-## 阶段 3: WebSocket 服务端实现 (Phase 3: WebSocket Server)
+## 阶段 3: WebSocket 服务端实现 (Phase 3: WebSocket Server) [checkpoint: 2f3fbfa]
 - [x] 任务: 实现 WebSocket 控制器 (Controller) [6d004af]
     - [x] 处理客户端连接、鉴权与心跳
 - [x] 任务: 实现连接管理器 (Hub/Manager) [6d004af]
@@ -34,7 +34,7 @@
     - [x] 将 Redis 消费者获取的消息通过 WebSocket 发送给指定用户
 - [x] 任务: 集成测试 [fda4b48]
     - [x] 使用测试脚本模拟 WebSocket 连接并验证消息实时接收
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: WebSocket Server' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: WebSocket Server' (Protocol in workflow.md) [2f3fbfa]
 
 ## 阶段 4: 消息中心 API 开发 (Phase 4: Message Center API)
 - [ ] 任务: 编写 API 接口文档 (api/v1)
