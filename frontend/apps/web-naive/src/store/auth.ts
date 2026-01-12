@@ -10,7 +10,13 @@ import { resetAllStores, useAccessStore, useUserStore } from '@vben/stores';
 import { defineStore } from 'pinia';
 
 import { notification } from '#/adapter/naive';
-import { getAccessCodesApi, getUserInfoApi, loginApi, logoutApi } from '#/api';
+import {
+  getAccessCodesApi,
+  getUserInfoApi,
+  loginApi,
+  logoutApi,
+  switchTenantApi,
+} from '#/api';
 import { $t } from '#/locales';
 
 export const useAuthStore = defineStore('auth', () => {
@@ -105,6 +111,26 @@ export const useAuthStore = defineStore('auth', () => {
     return userInfo;
   }
 
+  async function switchTenant(tenantId: number | string) {
+    const { accessToken } = await switchTenantApi({ tenantId });
+    if (!accessToken) {
+      return null;
+    }
+    accessStore.setAccessToken(accessToken);
+    const [userInfo, accessCodes] = await Promise.all([
+      fetchUserInfo(),
+      getAccessCodesApi(),
+    ]);
+    userStore.setUserInfo(userInfo);
+    accessStore.setAccessCodes(accessCodes);
+    notification.success({
+      content: $t('authentication.loginSuccess'),
+      description: `${$t('authentication.loginSuccessDesc')}:${userInfo?.realName}`,
+      duration: 3000,
+    });
+    return userInfo;
+  }
+
   function $reset() {
     loginLoading.value = false;
   }
@@ -115,5 +141,6 @@ export const useAuthStore = defineStore('auth', () => {
     fetchUserInfo,
     loginLoading,
     logout,
+    switchTenant,
   };
 });

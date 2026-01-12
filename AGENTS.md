@@ -35,6 +35,8 @@ Frontend (run from `frontend/`):
 
 ## Frontend Development Constraints
 - **Only modify code in `frontend/apps/web-naive/**`.** (当前前端开发仅限修改 `web-naive` 应用下的代码)
+## Backend Development Constraints
+- 允许修改 `backend/` 下所有代码。
 
 ## Language & Communication
 - **Always answer in Chinese.** (始终用中文回答)

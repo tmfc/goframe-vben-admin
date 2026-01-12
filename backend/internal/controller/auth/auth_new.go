@@ -45,3 +45,10 @@ func (c *ControllerV1) GetAccessCodes(ctx context.Context, req *v1.GetAccessCode
 	}
 	return service.Auth().GetAccessCodes(ctx, *req)
 }
+
+func (c *ControllerV1) SwitchTenant(ctx context.Context, req *v1.SwitchTenantReq) (res *v1.SwitchTenantRes, err error) {
+	if req == nil {
+		req = &v1.SwitchTenantReq{}
+	}
+	return service.Auth().SwitchTenant(ctx, *req)
+}

@@ -16,6 +16,16 @@ export namespace AuthApi {
     data: string;
     status: number;
   }
+
+  export interface SwitchTenantParams {
+    tenantId?: number | string;
+    tenantCode?: string;
+  }
+
+  export interface SwitchTenantResult {
+    accessToken: string;
+    refreshToken: string;
+  }
 }
 
 /**
@@ -48,4 +58,14 @@ export async function logoutApi() {
  */
 export async function getAccessCodesApi() {
   return requestClient.get<string[]>('/auth/codes');
+}
+
+/**
+ * 切换租户
+ */
+export async function switchTenantApi(data: AuthApi.SwitchTenantParams) {
+  return requestClient.post<AuthApi.SwitchTenantResult>(
+    '/auth/switch-tenant',
+    data,
+  );
 }
