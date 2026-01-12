@@ -26,4 +26,4 @@
 - [x] Task: 配置 RBAC 权限（Casbin），限制管理端 API 访问 [bb467ba]
 - [x] Task: 验证审计字段（`creator_id` 等）在创建/更新时是否自动填充 [388d0a0]
 - [x] Task: 进行端到端（E2E）集成测试，验证缓存、I18n 与数据库的一致性 [388d0a0]
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: 权限集成与最终验证' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: 权限集成与最终验证' (Protocol in workflow.md) [28d0baa]
