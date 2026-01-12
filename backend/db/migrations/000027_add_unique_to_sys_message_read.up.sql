@@ -1,0 +1,1 @@
+ALTER TABLE sys_message_read ADD CONSTRAINT uk_sys_message_read_message_user UNIQUE (message_id, user_id);

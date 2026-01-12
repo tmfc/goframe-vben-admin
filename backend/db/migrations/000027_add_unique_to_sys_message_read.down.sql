@@ -1,0 +1,1 @@
+ALTER TABLE sys_message_read DROP CONSTRAINT IF EXISTS uk_sys_message_read_message_user;
