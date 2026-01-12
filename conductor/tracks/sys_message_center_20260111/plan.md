@@ -15,8 +15,8 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Database & Backend Foundation' (Protocol in workflow.md) [5a9504a]
 
 ## 阶段 2: 异步机制与 Redis 集成 (Phase 2: Async & Redis Integration)
-- [ ] 任务: 配置 Redis 集成
-    - [ ] 在 `internal/config` 中确保 Redis 配置正确
+- [x] 任务: 配置 Redis 集成 [a26098c]
+    - [x] 在 `internal/config` 中确保 Redis 配置正确
 - [ ] 任务: 实现消息生产者与消费者
     - [ ] 业务模块作为生产者，将消息推入 Redis 队列
     - [ ] 实现后台消费协程，监听队列并准备分发到 WebSocket
