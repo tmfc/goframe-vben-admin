@@ -21,6 +21,8 @@ import (
 	"backend/internal/controller/tenant"
 	"backend/internal/controller/upload"
 	"backend/internal/controller/user"
+	"backend/internal/controller/ws"
+	wsLogic "backend/internal/logic/ws"
 	"backend/internal/middleware"
 )
 
@@ -31,6 +33,10 @@ var (
 		Brief: "start http server",
 		Func: func(ctx context.Context, parser *gcmd.Parser) (err error) {
 			s := g.Server()
+
+			// Start WebSocket Hub Consumer
+			wsLogic.GetHub().StartMessageConsumer(ctx)
+
 			cfg := g.Cfg()
 			port := 5666
 			if portVar, err := cfg.Get(ctx, "server.port"); err == nil && portVar != nil {
@@ -66,6 +72,7 @@ var (
 					menu.NewV1(),
 					upload.NewV1(),
 					user.NewV1(),
+					ws.NewV1(),
 				)
 			})
 			s.Run()

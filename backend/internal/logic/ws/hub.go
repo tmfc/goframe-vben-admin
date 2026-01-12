@@ -4,14 +4,18 @@ import (
 	"context"
 	"sync"
 
+	"backend/internal/logic/sys_message/mq"
+	"backend/internal/model"
+
+	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gorilla/websocket"
 )
 
 type Hub struct {
-	// Map userId -> []*websocket.Conn (support multiple tabs for one user)
 	clients map[int64][]*websocket.Conn
 	mu      sync.RWMutex
+	once    sync.Once
 }
 
 var globalHub = &Hub{
@@ -58,7 +62,6 @@ func (h *Hub) SendToUser(userId int64, message interface{}) {
 		err := conn.WriteJSON(message)
 		if err != nil {
 			g.Log().Error(context.Background(), "Failed to send WebSocket message to user", userId, err)
-			// Connection might be closed, it will be cleaned up in the read loop or Heartbeat
 		}
 	}
 }
@@ -74,4 +77,29 @@ func (h *Hub) Broadcast(message interface{}) {
 			}
 		}
 	}
+}
+
+// StartMessageConsumer starts a Redis subscription to consume messages and push to WebSocket
+func (h *Hub) StartMessageConsumer(ctx context.Context) {
+	h.once.Do(func() {
+		go mq.Subscribe(ctx, "sys_message", func(ctx context.Context, msg string) error {
+			j, err := gjson.DecodeToJson(msg)
+			if err != nil {
+				return err
+			}
+
+			// We use MessageCreateInput as the wire format from MQ
+			var in model.MessageCreateInput
+			if err := j.Scan(&in); err != nil {
+				return err
+			}
+
+			if in.ReceiverID != nil {
+				h.SendToUser(*in.ReceiverID, in)
+			} else {
+				h.Broadcast(in)
+			}
+			return nil
+		})
+	})
 }
