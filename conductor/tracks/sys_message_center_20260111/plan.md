@@ -27,9 +27,9 @@
 ## 阶段 3: WebSocket 服务端实现 (Phase 3: WebSocket Server)
 - [x] 任务: 实现 WebSocket 控制器 (Controller) [6d004af]
     - [x] 处理客户端连接、鉴权与心跳
-- [ ] 任务: 实现连接管理器 (Hub/Manager)
-    - [ ] 维护用户 ID 与 WebSocket 连接的映射关系
-    - [ ] 实现点对点 (P2P) 和广播 (Broadcast) 功能
+- [x] 任务: 实现连接管理器 (Hub/Manager) [6d004af]
+    - [x] 维护用户 ID 与 WebSocket 连接的映射关系
+    - [x] 实现点对点 (P2P) 和广播 (Broadcast) 功能
 - [ ] 任务: 消费 Redis 消息并推送
     - [ ] 将 Redis 消费者获取的消息通过 WebSocket 发送给指定用户
 - [ ] 任务: 集成测试
