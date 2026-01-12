@@ -27,3 +27,8 @@ access_key = ""
 secret_key = ""
 use_ssl = true
 prefix = "uploads"
+
+[redis.default]
+address = "127.0.0.1:6379"
+db = 0
+
