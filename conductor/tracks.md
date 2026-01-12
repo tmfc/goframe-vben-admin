@@ -17,5 +17,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [ ] Track: 在frontend的naive app中添加租户管理页面 tenant management
-*Link: [./conductor/tracks/sys_tenant_management_20260111/](./conductor/tracks/sys_tenant_management_20260111/)*
+## [ ] Track: System Dictionary Management (Backend Implementation)
+*Link: [./conductor/tracks/sys_dict_management_20260111/](./conductor/tracks/sys_dict_management_20260111/)*
