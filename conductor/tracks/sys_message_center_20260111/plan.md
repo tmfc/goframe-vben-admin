@@ -17,11 +17,11 @@
 ## 阶段 2: 异步机制与 Redis 集成 (Phase 2: Async & Redis Integration)
 - [x] 任务: 配置 Redis 集成 [a26098c]
     - [x] 在 `internal/config` 中确保 Redis 配置正确
-- [ ] 任务: 实现消息生产者与消费者
-    - [ ] 业务模块作为生产者，将消息推入 Redis 队列
-    - [ ] 实现后台消费协程，监听队列并准备分发到 WebSocket
-- [ ] 任务: 健壮性测试
-    - [ ] 编写测试用例验证消息在 Redis 中的堆积与正确消费
+- [x] 任务: 实现消息生产者与消费者 [9d5355c]
+    - [x] 业务模块作为生产者，将消息推入 Redis 队列
+    - [x] 实现后台消费协程，监听队列并准备分发到 WebSocket
+- [x] 任务: 健壮性测试 [9d5355c]
+    - [x] 编写测试用例验证消息在 Redis 中的堆积与正确消费
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Async & Redis Integration' (Protocol in workflow.md)
 
 ## 阶段 3: WebSocket 服务端实现 (Phase 3: WebSocket Server)
