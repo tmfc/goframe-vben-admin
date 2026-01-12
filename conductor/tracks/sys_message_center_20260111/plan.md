@@ -37,8 +37,8 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 3: WebSocket Server' (Protocol in workflow.md) [2f3fbfa]
 
 ## 阶段 4: 消息中心 API 开发 (Phase 4: Message Center API)
-- [ ] 任务: 编写 API 接口文档 (api/v1)
-    - [ ] 定义消息列表分页、详情、设为已读、全部已读等接口
+- [x] 任务: 编写 API 接口文档 (api/v1) [8a0e0de]
+    - [x] 定义消息列表分页、详情、设为已读、全部已读等接口
 - [ ] 任务: 实现 API 控制器层
     - [ ] 调用 Logic 层完成业务闭环
 - [ ] 任务: 权限配置 (Casbin)
