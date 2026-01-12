@@ -30,10 +30,10 @@
 - [x] 任务: 实现连接管理器 (Hub/Manager) [6d004af]
     - [x] 维护用户 ID 与 WebSocket 连接的映射关系
     - [x] 实现点对点 (P2P) 和广播 (Broadcast) 功能
-- [ ] 任务: 消费 Redis 消息并推送
-    - [ ] 将 Redis 消费者获取的消息通过 WebSocket 发送给指定用户
-- [ ] 任务: 集成测试
-    - [ ] 使用测试脚本模拟 WebSocket 连接并验证消息实时接收
+- [x] 任务: 消费 Redis 消息并推送 [fda4b48]
+    - [x] 将 Redis 消费者获取的消息通过 WebSocket 发送给指定用户
+- [x] 任务: 集成测试 [fda4b48]
+    - [x] 使用测试脚本模拟 WebSocket 连接并验证消息实时接收
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: WebSocket Server' (Protocol in workflow.md)
 
 ## 阶段 4: 消息中心 API 开发 (Phase 4: Message Center API)
