@@ -1,6 +1,6 @@
 # 消息中心实现计划 (plan.md)
 
-## 阶段 1: 数据库设计与后端基础 (Phase 1: Database & Backend Foundation)
+## 阶段 1: 数据库设计与后端基础 (Phase 1: Database & Backend Foundation) [checkpoint: 5a9504a]
 - [x] 任务: 创建数据库迁移文件 (SQL Migration) [52bb0dd]
     - [x] 创建 `sys_message` 表存储消息主体
     - [x] 创建 `sys_message_read` 表记录用户已读状态
@@ -12,7 +12,7 @@
     - [x] 编写消息列表查询、标记已读的业务逻辑
 - [x] 任务: 单元测试 [67e6ae1]
     - [x] 针对消息发送、读取、已读状态更新编写单元测试
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Database & Backend Foundation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Database & Backend Foundation' (Protocol in workflow.md) [5a9504a]
 
 ## 阶段 2: 异步机制与 Redis 集成 (Phase 2: Async & Redis Integration)
 - [ ] 任务: 配置 Redis 集成
