@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { PaginationProps } from 'naive-ui';
 import { h, onMounted, ref, reactive } from 'vue';
+import { useRouter } from 'vue-router';
 import {
   NButton,
   NCard,
@@ -15,6 +16,7 @@ import {
 import { $t } from '#/locales';
 import { getMessageListApi, setMessageReadApi, setAllMessageReadApi, type MessageApi } from '#/api/sys/message';
 
+const router = useRouter();
 const loading = ref(false);
 const data = ref<MessageApi.MessageItem[]>([]);
 const total = ref(0);
@@ -55,9 +57,20 @@ async function fetchData() {
 }
 
 async function handleMarkRead(row: MessageApi.MessageItem) {
-  if (row.read_at) return;
-  await setMessageReadApi([row.id]);
-  fetchData();
+  if (!row.read_at) {
+    await setMessageReadApi([row.id]);
+    fetchData();
+  }
+
+  if (row.jump_path) {
+    try {
+      const query = row.jump_params ? JSON.parse(row.jump_params) : {};
+      router.push({ path: row.jump_path, query });
+    } catch (e) {
+      console.error('Failed to parse jump_params', e);
+      router.push({ path: row.jump_path });
+    }
+  }
 }
 
 async function handleMarkAllRead() {
