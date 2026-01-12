@@ -16,7 +16,7 @@ type SysDictData struct {
 	TenantId    any         //
 	DictTypeId  any         //
 	Label       any         //
-	LabelI18n   any         //
+	LabelI18N   any         //
 	Value       any         //
 	Description any         //
 	Color       any         //

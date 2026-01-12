@@ -4,7 +4,7 @@
 gfcli:
   gen:
     dao:
-      - link: "pgsql:lab:lab@tcp(127.0.0.1:5433)/gva"
+      - link: "pgsql:gva:gva@tcp(127.0.0.1:5433)/gva"
         descriptionTag: true
 
   docker:

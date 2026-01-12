@@ -25,7 +25,7 @@ type SysDictDataColumns struct {
 	TenantId    string //
 	DictTypeId  string //
 	Label       string //
-	LabelI18n   string //
+	LabelI18N   string //
 	Value       string //
 	Description string //
 	Color       string //
@@ -47,7 +47,7 @@ var sysDictDataColumns = SysDictDataColumns{
 	TenantId:    "tenant_id",
 	DictTypeId:  "dict_type_id",
 	Label:       "label",
-	LabelI18n:   "label_i18n",
+	LabelI18N:   "label_i18n",
 	Value:       "value",
 	Description: "description",
 	Color:       "color",
