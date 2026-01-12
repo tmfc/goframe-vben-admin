@@ -32,3 +32,9 @@ Frontend (run from `frontend/`):
 
 ## Configuration Notes
 - Backend DB and migration guidance lives in `doc/` (PostgreSQL setup/config). Keep local secrets out of git.
+
+## Frontend Development Constraints
+- **Only modify code in `frontend/apps/web-naive/**`.** (当前前端开发仅限修改 `web-naive` 应用下的代码)
+
+## Language & Communication
+- **Always answer in Chinese.** (始终用中文回答)
