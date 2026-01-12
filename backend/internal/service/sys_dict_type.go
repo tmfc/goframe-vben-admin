@@ -62,6 +62,14 @@ func (s *sSysDictType) CreateDictType(ctx context.Context, in model.SysDictTypeC
 		return 0, gerror.NewCodef(gcode.CodeValidationFailed, "Dict type code '%s' already exists", in.TypeCode)
 	}
 
+	creatorID := in.CreatorId
+	if creatorID == 0 {
+		creatorID = resolveActorID(ctx)
+	}
+	modifierID := in.ModifierId
+	if modifierID == 0 {
+		modifierID = creatorID
+	}
 	result, err := dao.SysDictType.Ctx(ctx).Data(g.Map{
 		columns.TypeCode:    in.TypeCode,
 		columns.TypeName:    in.TypeName,
@@ -70,8 +78,8 @@ func (s *sSysDictType) CreateDictType(ctx context.Context, in model.SysDictTypeC
 		columns.Status:      in.Status,
 		columns.Sort:        in.Sort,
 		columns.TenantId:    resolveTenantID(ctx),
-		columns.CreatorId:   in.CreatorId,
-		columns.ModifierId:  in.ModifierId,
+		columns.CreatorId:   creatorID,
+		columns.ModifierId:  modifierID,
 		columns.DeptId:      in.DeptId,
 	}).Insert()
 	if err != nil {
@@ -129,6 +137,10 @@ func (s *sSysDictType) UpdateDictType(ctx context.Context, in model.SysDictTypeU
 		}
 	}
 
+	modifierID := in.ModifierId
+	if modifierID == 0 {
+		modifierID = resolveActorID(ctx)
+	}
 	updateData := g.Map{
 		columns.TypeCode:    in.TypeCode,
 		columns.TypeName:    in.TypeName,
@@ -136,7 +148,7 @@ func (s *sSysDictType) UpdateDictType(ctx context.Context, in model.SysDictTypeU
 		columns.IsSystem:    in.IsSystem,
 		columns.Status:      in.Status,
 		columns.Sort:        in.Sort,
-		columns.ModifierId:  in.ModifierId,
+		columns.ModifierId:  modifierID,
 	}
 	if in.UpdatedAt != nil {
 		updateData[columns.UpdatedAt] = in.UpdatedAt

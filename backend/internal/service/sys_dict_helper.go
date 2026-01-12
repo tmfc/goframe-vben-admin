@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/util/gconv"
 )
 
 func resolveAcceptLanguage(ctx context.Context) string {
@@ -82,4 +83,20 @@ func lookupLabel(labelI18n map[string]string, lang string) (string, bool) {
 		}
 	}
 	return "", false
+}
+
+func resolveActorID(ctx context.Context) int64 {
+	token, err := ResolveAccessToken(ctx, "")
+	if err != nil {
+		return 0
+	}
+	claims, err := ParseAccessToken(token)
+	if err != nil {
+		return 0
+	}
+	id := gconv.Int64(claims["id"])
+	if id <= 0 {
+		return 0
+	}
+	return id
 }

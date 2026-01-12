@@ -77,6 +77,14 @@ func (s *sSysDictData) CreateDictData(ctx context.Context, in model.SysDictDataC
 		labelI18nValue = nil
 	}
 
+	creatorID := in.CreatorId
+	if creatorID == 0 {
+		creatorID = resolveActorID(ctx)
+	}
+	modifierID := in.ModifierId
+	if modifierID == 0 {
+		modifierID = creatorID
+	}
 	result, err := dao.SysDictData.Ctx(ctx).Data(g.Map{
 		columns.DictTypeId:  in.DictTypeId,
 		columns.Label:       in.Label,
@@ -90,8 +98,8 @@ func (s *sSysDictData) CreateDictData(ctx context.Context, in model.SysDictDataC
 		columns.Sort:        in.Sort,
 		columns.IsDefault:   in.IsDefault,
 		columns.TenantId:    resolveTenantID(ctx),
-		columns.CreatorId:   in.CreatorId,
-		columns.ModifierId:  in.ModifierId,
+		columns.CreatorId:   creatorID,
+		columns.ModifierId:  modifierID,
 		columns.DeptId:      in.DeptId,
 	}).Insert()
 	if err != nil {
@@ -164,6 +172,10 @@ func (s *sSysDictData) UpdateDictData(ctx context.Context, in model.SysDictDataU
 		labelI18nValue = nil
 	}
 
+	modifierID := in.ModifierId
+	if modifierID == 0 {
+		modifierID = resolveActorID(ctx)
+	}
 	updateData := g.Map{
 		columns.DictTypeId:  in.DictTypeId,
 		columns.Label:       in.Label,
@@ -176,7 +188,7 @@ func (s *sSysDictData) UpdateDictData(ctx context.Context, in model.SysDictDataU
 		columns.Status:      in.Status,
 		columns.Sort:        in.Sort,
 		columns.IsDefault:   in.IsDefault,
-		columns.ModifierId:  in.ModifierId,
+		columns.ModifierId:  modifierID,
 	}
 	if in.UpdatedAt != nil {
 		updateData[columns.UpdatedAt] = in.UpdatedAt
