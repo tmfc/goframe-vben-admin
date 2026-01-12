@@ -1,9 +1,9 @@
 # 消息中心实现计划 (plan.md)
 
 ## 阶段 1: 数据库设计与后端基础 (Phase 1: Database & Backend Foundation)
-- [ ] 任务: 创建数据库迁移文件 (SQL Migration)
-    - [ ] 创建 `sys_message` 表存储消息主体
-    - [ ] 创建 `sys_message_read` 表记录用户已读状态
+- [x] 任务: 创建数据库迁移文件 (SQL Migration) [52bb0dd]
+    - [x] 创建 `sys_message` 表存储消息主体
+    - [x] 创建 `sys_message_read` 表记录用户已读状态
 - [ ] 任务: 实现 DAO 和 Model 层 (GoFrame dao/model)
     - [ ] 使用 `gf gen dao` 生成基础代码
     - [ ] 定义消息传输对象 (DTO) 和业务常量 (消息类型、跳转类型)
