@@ -25,8 +25,8 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Async & Redis Integration' (Protocol in workflow.md) [ebf7bf1]
 
 ## 阶段 3: WebSocket 服务端实现 (Phase 3: WebSocket Server)
-- [ ] 任务: 实现 WebSocket 控制器 (Controller)
-    - [ ] 处理客户端连接、鉴权与心跳
+- [x] 任务: 实现 WebSocket 控制器 (Controller) [6d004af]
+    - [x] 处理客户端连接、鉴权与心跳
 - [ ] 任务: 实现连接管理器 (Hub/Manager)
     - [ ] 维护用户 ID 与 WebSocket 连接的映射关系
     - [ ] 实现点对点 (P2P) 和广播 (Broadcast) 功能
