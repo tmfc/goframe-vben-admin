@@ -33,4 +33,6 @@ prefix = "uploads"
 [redis.default]
 address = "127.0.0.1:6379"
 db = 1
+user = ""
+pass = "123456"
 
