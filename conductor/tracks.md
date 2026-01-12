@@ -5,7 +5,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [ ] Track: 为系统添加消息中心功能,各个业务模块的消息都汇总到一起...
+## [~] Track: 为系统添加消息中心功能,各个业务模块的消息都汇总到一起...
 *Link: [./conductor/tracks/sys_message_center_20260111/](./conductor/tracks/sys_message_center_20260111/)*
 
 ---
