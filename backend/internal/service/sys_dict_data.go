@@ -88,7 +88,7 @@ func (s *sSysDictData) CreateDictData(ctx context.Context, in model.SysDictDataC
 	result, err := dao.SysDictData.Ctx(ctx).Data(g.Map{
 		columns.DictTypeId:  in.DictTypeId,
 		columns.Label:       in.Label,
-		columns.LabelI18n:   labelI18nValue,
+		columns.LabelI18N:   labelI18nValue,
 		columns.Value:       in.Value,
 		columns.Description: in.Description,
 		columns.Color:       in.Color,
@@ -179,7 +179,7 @@ func (s *sSysDictData) UpdateDictData(ctx context.Context, in model.SysDictDataU
 	updateData := g.Map{
 		columns.DictTypeId:  in.DictTypeId,
 		columns.Label:       in.Label,
-		columns.LabelI18n:   labelI18nValue,
+		columns.LabelI18N:   labelI18nValue,
 		columns.Value:       in.Value,
 		columns.Description: in.Description,
 		columns.Color:       in.Color,
@@ -303,7 +303,7 @@ func toDictDataDetail(data *entity.SysDictData) *model.SysDictDataDetail {
 		TenantId:    data.TenantId,
 		DictTypeId:  data.DictTypeId,
 		Label:       data.Label,
-		LabelI18n:   parseLabelI18n(data.LabelI18n),
+		LabelI18n:   parseLabelI18n(data.LabelI18N),
 		Value:       data.Value,
 		Description: data.Description,
 		Color:       data.Color,

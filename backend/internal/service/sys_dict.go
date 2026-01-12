@@ -75,7 +75,7 @@ func (s *sSysDict) GetDictOptions(ctx context.Context, typeCode string) (out []m
 	for i := range items {
 		cacheItems = append(cacheItems, dictDataCacheItem{
 			Label:     items[i].Label,
-			LabelI18n: parseLabelI18n(items[i].LabelI18n),
+			LabelI18n: parseLabelI18n(items[i].LabelI18N),
 			Value:     items[i].Value,
 			Color:     items[i].Color,
 			Icon:      items[i].Icon,

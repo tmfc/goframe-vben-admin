@@ -78,7 +78,7 @@ func (s *sTenant) List(ctx context.Context, in model.TenantListIn) (out *model.T
 	err = m.Page(in.Page, in.PageSize).
 		OrderDesc(dao.SysTenant.Columns().CreatedAt).
 		Scan(&out.Items)
-	
+
 	return out, err
 }
 

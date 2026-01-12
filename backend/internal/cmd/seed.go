@@ -616,7 +616,7 @@ func seedDictData(ctx context.Context, dictData []SeedDictData, defaultTenant st
 		insertData := map[string]any{
 			dao.SysDictData.Columns().DictTypeId:  dictTypeID,
 			dao.SysDictData.Columns().Label:       label,
-			dao.SysDictData.Columns().LabelI18n:   string(labelI18n),
+			dao.SysDictData.Columns().LabelI18N:   string(labelI18n),
 			dao.SysDictData.Columns().Value:       value,
 			dao.SysDictData.Columns().Description: strings.TrimSpace(item.Description),
 			dao.SysDictData.Columns().Color:       strings.TrimSpace(item.Color),

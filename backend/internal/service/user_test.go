@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"backend/api/auth/v1"
+	v1 "backend/api/auth/v1"
 	"backend/internal/consts"
 	"backend/internal/dao"
 	"backend/internal/testutil"

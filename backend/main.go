@@ -5,6 +5,8 @@ import (
 
 	_ "github.com/gogf/gf/contrib/drivers/pgsql/v2"
 
+	_ "backend/internal/logic"
+
 	"github.com/gogf/gf/v2/os/gctx"
 
 	"backend/internal/cmd"

@@ -24,7 +24,7 @@ type SysMenu struct {
 	Visible        any         //
 	Status         any         //
 	PermissionCode any         //
-	Meta           any         //
+	MenuMeta       any         `orm:"meta"` // Renamed from Meta to avoid conflict
 	CreatedAt      *gtime.Time //
 	UpdatedAt      *gtime.Time //
 	DeletedAt      *gtime.Time //

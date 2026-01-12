@@ -24,8 +24,8 @@ func TestTenant_CRUD(t *testing.T) {
 	gtest.C(t, func(t *gtest.T) {
 		// 1. Create
 		in := model.TenantCreateIn{
-			Name: "Test CRUD Tenant",
-			Code: "test_crud_tenant_" + grand.S(5),
+			Name:   "Test CRUD Tenant",
+			Code:   "test_crud_tenant_" + grand.S(5),
 			Status: 1,
 		}
 		id, err := Tenant().Create(ctx, in)

@@ -7,8 +7,8 @@ import (
 
 	"backend/internal/consts"
 
-	"github.com/golang-jwt/jwt/v4"
 	"github.com/gogf/gf/v2/util/gconv"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 func parseRoles(raw any) []string {
