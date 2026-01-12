@@ -13,3 +13,4 @@ This file tracks all major tracks for the project. Each track has its own detail
 ## [x] Track: System Dictionary Management (Backend Implementation)
 *Link: [./conductor/tracks/sys_dict_management_20260111/](./conductor/tracks/sys_dict_management_20260111/)*
 \n---\n\n## [ ] Track: 租户隔离配套工作及登录逻辑改造\n*Link: [./conductor/tracks/sys_tenant_isolation_20260112/](./conductor/tracks/sys_tenant_isolation_20260112/)*
+\n---\n\n## [ ] Track: System Dictionary Management (Backend) 配套的frontend页面 (Full-stack Enhancement)\n*Link: [./conductor/tracks/sys_dict_fullstack_20260112/](./conductor/tracks/sys_dict_fullstack_20260112/)*
