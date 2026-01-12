@@ -3,7 +3,7 @@ const { createJiti } = require("../../../node_modules/.pnpm/jiti@2.6.1/node_modu
 const jiti = createJiti(__filename, {
   "interopDefault": true,
   "alias": {
-    "@vben/tailwind-config": "/Users/william/work/my_opensource/goframe-vben-admin/frontend/internal/tailwind-config"
+    "@vben/tailwind-config": "/Users/william/.conduit/worktrees/goframe-vben-admin/20260112-113357-9ee810e1/frontend/internal/tailwind-config"
   },
   "transformOptions": {
     "babel": {
@@ -12,5 +12,5 @@ const jiti = createJiti(__filename, {
   }
 })
 
-/** @type {import("/Users/william/work/my_opensource/goframe-vben-admin/frontend/internal/tailwind-config/src/postcss.config.js")} */
-module.exports = jiti("/Users/william/work/my_opensource/goframe-vben-admin/frontend/internal/tailwind-config/src/postcss.config.ts")
+/** @type {import("/Users/william/.conduit/worktrees/goframe-vben-admin/20260112-113357-9ee810e1/frontend/internal/tailwind-config/src/postcss.config.js")} */
+module.exports = jiti("/Users/william/.conduit/worktrees/goframe-vben-admin/20260112-113357-9ee810e1/frontend/internal/tailwind-config/src/postcss.config.ts")

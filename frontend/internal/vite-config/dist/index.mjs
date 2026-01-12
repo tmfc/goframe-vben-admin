@@ -3,7 +3,7 @@ import { createJiti } from "../../../node_modules/.pnpm/jiti@2.6.1/node_modules/
 const jiti = createJiti(import.meta.url, {
   "interopDefault": true,
   "alias": {
-    "@vben/vite-config": "/Users/william/work/my_opensource/goframe-vben-admin/frontend/internal/vite-config"
+    "@vben/vite-config": "/Users/william/.conduit/worktrees/goframe-vben-admin/20260112-113357-9ee810e1/frontend/internal/vite-config"
   },
   "transformOptions": {
     "babel": {
@@ -12,8 +12,8 @@ const jiti = createJiti(import.meta.url, {
   }
 })
 
-/** @type {import("/Users/william/work/my_opensource/goframe-vben-admin/frontend/internal/vite-config/src/index.js")} */
-const _module = await jiti.import("/Users/william/work/my_opensource/goframe-vben-admin/frontend/internal/vite-config/src/index.ts");
+/** @type {import("/Users/william/.conduit/worktrees/goframe-vben-admin/20260112-113357-9ee810e1/frontend/internal/vite-config/src/index.js")} */
+const _module = await jiti.import("/Users/william/.conduit/worktrees/goframe-vben-admin/20260112-113357-9ee810e1/frontend/internal/vite-config/src/index.ts");
 
 export const loadAndConvertEnv = _module.loadAndConvertEnv;
 export const defineConfig = _module.defineConfig;

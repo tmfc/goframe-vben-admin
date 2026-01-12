@@ -3,7 +3,7 @@ import { createJiti } from "../../../node_modules/.pnpm/jiti@2.6.1/node_modules/
 const jiti = createJiti(import.meta.url, {
   "interopDefault": true,
   "alias": {
-    "@vben/node-utils": "/Users/william/work/my_opensource/goframe-vben-admin/frontend/internal/node-utils"
+    "@vben/node-utils": "/Users/william/.conduit/worktrees/goframe-vben-admin/20260112-113357-9ee810e1/frontend/internal/node-utils"
   },
   "transformOptions": {
     "babel": {
@@ -12,8 +12,8 @@ const jiti = createJiti(import.meta.url, {
   }
 })
 
-/** @type {import("/Users/william/work/my_opensource/goframe-vben-admin/frontend/internal/node-utils/src/index.js")} */
-const _module = await jiti.import("/Users/william/work/my_opensource/goframe-vben-admin/frontend/internal/node-utils/src/index.ts");
+/** @type {import("/Users/william/.conduit/worktrees/goframe-vben-admin/20260112-113357-9ee810e1/frontend/internal/node-utils/src/index.js")} */
+const _module = await jiti.import("/Users/william/.conduit/worktrees/goframe-vben-admin/20260112-113357-9ee810e1/frontend/internal/node-utils/src/index.ts");
 
 export const getStagedFiles = _module.getStagedFiles;
 export const gitAdd = _module.gitAdd;
