@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"backend/internal/config"
 	"backend/internal/consts"
 	"backend/internal/service"
 
@@ -68,13 +69,17 @@ func CasbinAuthz() ghttp.HandlerFunc {
 		}
 
 		tenantID := gconv.String(claims["tenantId"])
-		if isSuper {
-			headerTenant := strings.TrimSpace(r.Header.Get("X-TENANT-ID"))
-			if headerTenant != "" {
-				tenantID = headerTenant
+		if config.IsMultiTenantEnabled(r.Context()) {
+			if isSuper {
+				headerTenant := strings.TrimSpace(r.Header.Get("X-TENANT-ID"))
+				if headerTenant != "" {
+					tenantID = headerTenant
+				}
 			}
-		}
-		if strings.TrimSpace(tenantID) == "" {
+			if strings.TrimSpace(tenantID) == "" {
+				tenantID = consts.DefaultTenantID
+			}
+		} else {
 			tenantID = consts.DefaultTenantID
 		}
 

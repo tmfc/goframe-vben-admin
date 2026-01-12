@@ -2,7 +2,8 @@
   "tenants": [
     {
       "id": 1,
-      "name": "Default Tenant",
+      "name": "System Tenant",
+      "code": "system",
       "status": 1
     }
   ],

@@ -56,3 +56,17 @@ type GetAccessCodesReq struct {
 type GetAccessCodesRes struct {
 	Codes []string `json:"codes"`
 }
+
+// SwitchTenantReq defines the request structure for switching tenant identity.
+type SwitchTenantReq struct {
+	g.Meta     `path:"/auth/switch-tenant" method:"post" summary:"Switch tenant" tags:"Authentication"`
+	TenantId   int64  `json:"tenantId"`
+	TenantCode string `json:"tenantCode"`
+	Token      string `json:"-"`
+}
+
+// SwitchTenantRes defines the response structure for switching tenant identity.
+type SwitchTenantRes struct {
+	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken"`
+}

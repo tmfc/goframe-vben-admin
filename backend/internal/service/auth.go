@@ -8,10 +8,12 @@ import (
 	"time"
 
 	v1 "backend/api/auth/v1"
+	"backend/internal/config"
 	"backend/internal/consts"
 	"backend/internal/dao"
 	"backend/internal/model/entity"
 
+	"github.com/gogf/gf/v2/errors/gcode"
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/util/gconv"
@@ -43,6 +45,30 @@ var roleAccessCodes = map[string][]string{
 		"System:Dept:Create",
 		"System:Dept:Edit",
 		"System:Dept:Delete",
+		"System:User:List",
+		"System:User:Create",
+		"System:User:Edit",
+		"System:User:Delete",
+		"System:Permission:List",
+		"System:Permission:Create",
+		"System:Permission:Edit",
+		"System:Permission:Delete",
+		"System:Role:List",
+		"System:Role:Create",
+		"System:Role:Edit",
+		"System:Role:Delete",
+		"System:DictType:List",
+		"System:DictType:Create",
+		"System:DictType:Edit",
+		"System:DictType:Delete",
+		"System:DictData:List",
+		"System:DictData:Create",
+		"System:DictData:Edit",
+		"System:DictData:Delete",
+		"System:Tenant:List",
+		"System:Tenant:Create",
+		"System:Tenant:Edit",
+		"System:Tenant:Delete",
 	},
 	consts.RoleAdmin: {
 		"System:Menu:List",
@@ -114,14 +140,35 @@ type IAuth interface {
 	RefreshToken(ctx context.Context, in v1.RefreshTokenReq) (out *v1.RefreshTokenRes, err error)
 	Logout(ctx context.Context, in v1.LogoutReq) (out *v1.LogoutRes, err error)
 	GetAccessCodes(ctx context.Context, in v1.GetAccessCodesReq) (out *v1.GetAccessCodesRes, err error)
+	SwitchTenant(ctx context.Context, in v1.SwitchTenantReq) (out *v1.SwitchTenantRes, err error)
 	// Temp method for creating a user for testing
 	CreateUserForTest(ctx context.Context, username, password string) error
 }
 
 // Login implements interface IAuth.Login.
 func (s *sAuth) Login(ctx context.Context, in v1.LoginReq) (out *v1.LoginRes, err error) {
+	multiTenantEnabled := config.IsMultiTenantEnabled(ctx)
+	identity := parseLoginIdentity(in.Username, multiTenantEnabled)
+	username := identity.Username
+	tenantID := identity.TenantID
+
+	if multiTenantEnabled && identity.HasSuffix {
+		var tenant entity.SysTenant
+		err = dao.SysTenant.Ctx(ctx).
+			Where(dao.SysTenant.Columns().Code, identity.TenantCode).
+			Scan(&tenant)
+		if err != nil {
+			return nil, err
+		}
+		if tenant.Id == 0 {
+			return nil, gerror.NewCode(gcode.CodeNotFound, "tenant not found")
+		}
+		tenantID = gconv.String(tenant.Id)
+	}
+
+	ctx = context.WithValue(ctx, consts.CtxKeyTenantID, tenantID)
 	var user *entity.SysUser
-	err = dao.SysUser.Ctx(ctx).Where(dao.SysUser.Columns().Username, in.Username).Scan(&user)
+	err = dao.SysUser.Ctx(ctx).Where(dao.SysUser.Columns().Username, username).Scan(&user)
 	if err != nil {
 		return nil, err
 	}
@@ -214,7 +261,8 @@ func (s *sAuth) RefreshToken(ctx context.Context, in v1.RefreshTokenReq) (out *v
 	}
 
 	var user entity.SysUser
-	err = dao.SysUser.Ctx(ctx).Where(dao.SysUser.Columns().Id, userID).Scan(&user)
+	noTenantCtx := dao.WithoutTenant(ctx)
+	err = dao.SysUser.Ctx(noTenantCtx).Where(dao.SysUser.Columns().Id, userID).Scan(&user)
 	if err != nil {
 		return nil, err
 	}
@@ -222,6 +270,12 @@ func (s *sAuth) RefreshToken(ctx context.Context, in v1.RefreshTokenReq) (out *v
 		return nil, gerror.NewCode(consts.ErrorCodeUserNotFound, "user not found")
 	}
 
+	tenantID := gconv.String(claims["tenantId"])
+	if strings.TrimSpace(tenantID) != "" {
+		if tenantIDValue := gconv.Int64(tenantID); tenantIDValue > 0 {
+			user.TenantId = tenantIDValue
+		}
+	}
 	accessToken, err := s.tokens.GenerateAccessToken(&user)
 	if err != nil {
 		return nil, err
@@ -269,7 +323,8 @@ func (s *sAuth) GetAccessCodes(ctx context.Context, in v1.GetAccessCodesReq) (ou
 	}
 
 	var user entity.SysUser
-	err = dao.SysUser.Ctx(ctx).Where(dao.SysUser.Columns().Id, userID).Scan(&user)
+	noTenantCtx := dao.WithoutTenant(ctx)
+	err = dao.SysUser.Ctx(noTenantCtx).Where(dao.SysUser.Columns().Id, userID).Scan(&user)
 	if err != nil {
 		return nil, err
 	}
@@ -278,13 +333,99 @@ func (s *sAuth) GetAccessCodes(ctx context.Context, in v1.GetAccessCodesReq) (ou
 	}
 
 	roles := parseRoles(user.Roles)
-	codes, err := accessCodesFromCasbin(ctx, gconv.String(user.TenantId), roles)
+	tenantID := gconv.String(claims["tenantId"])
+	if strings.TrimSpace(tenantID) == "" {
+		tenantID = gconv.String(user.TenantId)
+	}
+	codes, err := accessCodesFromCasbin(ctx, tenantID, roles)
 	if err != nil || len(codes) == 0 {
 		codes = buildAccessCodes(roles)
 	}
 
 	out = &v1.GetAccessCodesRes{
 		Codes: codes,
+	}
+	return
+}
+
+// SwitchTenant implements interface IAuth.SwitchTenant.
+func (s *sAuth) SwitchTenant(ctx context.Context, in v1.SwitchTenantReq) (out *v1.SwitchTenantRes, err error) {
+	if !config.IsMultiTenantEnabled(ctx) {
+		return nil, gerror.NewCode(consts.ErrorCodeUnauthorized, "multi-tenant is disabled")
+	}
+	token, err := ResolveAccessToken(ctx, in.Token)
+	if err != nil {
+		return nil, err
+	}
+	claims, err := s.tokens.ParseAccessToken(token)
+	if err != nil {
+		return nil, err
+	}
+
+	userID := gconv.Int64(claims["id"])
+	if userID == 0 {
+		return nil, gerror.NewCode(consts.ErrorCodeUnauthorized, "invalid access token")
+	}
+
+	noTenantCtx := dao.WithoutTenant(ctx)
+	var user entity.SysUser
+	err = dao.SysUser.Ctx(noTenantCtx).Where(dao.SysUser.Columns().Id, userID).Scan(&user)
+	if err != nil {
+		return nil, err
+	}
+	if user.Id == 0 {
+		return nil, gerror.NewCode(consts.ErrorCodeUserNotFound, "user not found")
+	}
+	roles := parseRoles(user.Roles)
+	if !hasSuperRole(roles) {
+		return nil, gerror.NewCode(consts.ErrorCodeUnauthorized, "permission denied")
+	}
+
+	targetTenantID := in.TenantId
+	if targetTenantID <= 0 && strings.TrimSpace(in.TenantCode) != "" {
+		var tenant entity.SysTenant
+		err = dao.SysTenant.Ctx(ctx).
+			Where(dao.SysTenant.Columns().Code, strings.TrimSpace(in.TenantCode)).
+			Scan(&tenant)
+		if err != nil {
+			return nil, err
+		}
+		if tenant.Id == 0 {
+			return nil, gerror.NewCode(gcode.CodeNotFound, "tenant not found")
+		}
+		targetTenantID = tenant.Id
+	}
+	if targetTenantID <= 0 {
+		return nil, gerror.NewCode(gcode.CodeValidationFailed, "tenant is required")
+	}
+
+	var tenant entity.SysTenant
+	err = dao.SysTenant.Ctx(ctx).
+		Where(dao.SysTenant.Columns().Id, targetTenantID).
+		Scan(&tenant)
+	if err != nil {
+		return nil, err
+	}
+	if tenant.Id == 0 {
+		return nil, gerror.NewCode(gcode.CodeNotFound, "tenant not found")
+	}
+
+	targetUser := user
+	targetUser.TenantId = targetTenantID
+	accessToken, err := s.tokens.GenerateAccessToken(&targetUser)
+	if err != nil {
+		return nil, err
+	}
+	refreshToken, err := s.tokens.GenerateRefreshToken(&targetUser)
+	if err != nil {
+		return nil, err
+	}
+	s.store.Add(refreshToken, gconv.String(user.Id))
+	SetRefreshTokenCookie(ctx, refreshToken)
+
+	out = &v1.SwitchTenantRes{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
 	}
 	return
 }

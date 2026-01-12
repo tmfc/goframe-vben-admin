@@ -53,7 +53,8 @@ func loadCachedUser(ctx context.Context, userID string) (cachedUser, error) {
 	}
 
 	var user entity.SysUser
-	if err := dao.SysUser.Ctx(ctx).Where(dao.SysUser.Columns().Id, userID).Scan(&user); err != nil {
+	noTenantCtx := dao.WithoutTenant(ctx)
+	if err := dao.SysUser.Ctx(noTenantCtx).Where(dao.SysUser.Columns().Id, userID).Scan(&user); err != nil {
 		return cachedUser{}, err
 	}
 	if user.Id == 0 {

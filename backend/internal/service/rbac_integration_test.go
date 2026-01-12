@@ -18,6 +18,7 @@ import (
 
 func TestRBACFlow_EndToEnd(t *testing.T) {
 	testutil.RequireDatabase(t)
+	t.Setenv("APP_MULTI_TENANT", "true")
 	baseCtx := context.TODO()
 
 	tenantID := "1000"
@@ -108,6 +109,7 @@ func TestRBACFlow_EndToEnd(t *testing.T) {
 
 func TestRBACFlow_TenantIsolation(t *testing.T) {
 	testutil.RequireDatabase(t)
+	t.Setenv("APP_MULTI_TENANT", "true")
 	baseCtx := context.TODO()
 
 	roleName := "TestRoleTenant"

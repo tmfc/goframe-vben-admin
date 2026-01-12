@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"backend/internal/config"
 	"backend/internal/consts"
 
 	"github.com/gogf/gf/v2/database/gdb"
@@ -16,6 +17,9 @@ func WithoutTenant(ctx context.Context) context.Context {
 }
 
 func tenantIDFromCtx(ctx context.Context) string {
+	if !config.IsMultiTenantEnabled(ctx) {
+		return consts.DefaultTenantID
+	}
 	if v := ctx.Value(consts.CtxKeyTenantID); v != nil {
 		if tenantID, ok := v.(string); ok && strings.TrimSpace(tenantID) != "" {
 			return tenantID
