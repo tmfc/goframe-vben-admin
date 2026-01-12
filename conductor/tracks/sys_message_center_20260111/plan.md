@@ -14,7 +14,7 @@
     - [x] 针对消息发送、读取、已读状态更新编写单元测试
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Database & Backend Foundation' (Protocol in workflow.md) [5a9504a]
 
-## 阶段 2: 异步机制与 Redis 集成 (Phase 2: Async & Redis Integration)
+## 阶段 2: 异步机制与 Redis 集成 (Phase 2: Async & Redis Integration) [checkpoint: ebf7bf1]
 - [x] 任务: 配置 Redis 集成 [a26098c]
     - [x] 在 `internal/config` 中确保 Redis 配置正确
 - [x] 任务: 实现消息生产者与消费者 [9d5355c]
@@ -22,7 +22,7 @@
     - [x] 实现后台消费协程，监听队列并准备分发到 WebSocket
 - [x] 任务: 健壮性测试 [9d5355c]
     - [x] 编写测试用例验证消息在 Redis 中的堆积与正确消费
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Async & Redis Integration' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Async & Redis Integration' (Protocol in workflow.md) [ebf7bf1]
 
 ## 阶段 3: WebSocket 服务端实现 (Phase 3: WebSocket Server)
 - [ ] 任务: 实现 WebSocket 控制器 (Controller)
