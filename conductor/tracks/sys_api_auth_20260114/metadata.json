@@ -1,0 +1,8 @@
+{
+  "track_id": "sys_api_auth_20260114",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-01-14T10:00:00Z",
+  "updated_at": "2026-01-14T10:00:00Z",
+  "description": "增加权限和api的绑定关系,在api中检查用户(的角色)是否拥有这个api的权限(用casbin)"
+}

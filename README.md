@@ -51,6 +51,7 @@ go test ./...
 常用命令：
 
 - `go test ./...` 运行后端测试
+- `make cover` 运行带覆盖率的后端测试并生成/打开覆盖率报告 `backend/cover.html`
 - `make build` 使用 GoFrame 构建二进制（需安装 `gf` CLI）
 
 ## 前端开发与运行

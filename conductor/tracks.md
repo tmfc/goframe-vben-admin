@@ -20,5 +20,18 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
+
+
 ## [ ] Track: System Dictionary Management (Backend) 配套 of frontend (Full-stack Enhancement)
+
 *Link: [./conductor/tracks/sys_dict_fullstack_20260112/](./conductor/tracks/sys_dict_fullstack_20260112/)*
+
+
+
+---
+
+
+
+## [ ] Track: 增加权限和api的绑定关系,在api中检查用户(的角色)是否拥有这个api的权限(用casbin)
+
+*Link: [./conductor/tracks/sys_api_auth_20260114/](./conductor/tracks/sys_api_auth_20260114/)*

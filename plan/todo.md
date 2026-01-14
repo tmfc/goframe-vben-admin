@@ -1,4 +1,6 @@
-- 盘点现有 SQL migrations 中涉及非自增 ID 的表与字段，并确认需替换/新增自增主键的范围。
-- 设计迁移方案：哪些表改用 bigserial/bigint，自增主键新增到哪些表，外键/索引/默认值如何调整。
-- 修改对应的迁移文件（up/down）以实现统一自增 ID，并记录影响的表关系与约束变更。
-- 检查相关种子数据/变更脚本是否依赖旧 ID 规则，必要时同步调整。
+- [x] 后端 menu 服务多租户隔离：All/fetchMenuFromDB 查询需按 tenantId 过滤，避免跨租户菜单泄露。
+- [x] 后端 menu 删除/递归删除权限需按 tenantId 过滤，防止误删其他租户数据。
+- [x] 权限同步（创建/更新/删除/自动生成按钮）对 sys_menu/sys_permission 的读写需加入租户过滤，避免跨租户覆盖。
+- [x] GenerateButtons 使用 strings.Title 已废弃，需替换为 cases.Title(language.Und) 或自定义大小写方案。
+- [x] Meta JSON 解析失败当前静默回退，需记录日志或返回校验错误，避免权限名称/描述异常。
+- [x] filterMenuRoutes 会过滤 Path 为空的项，需确认业务是否允许占位目录，必要时调整策略。
